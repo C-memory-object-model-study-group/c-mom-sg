@@ -1,0 +1,1051 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Kayvan Memarian, Victor Gomes, Peter Sewell. University of Cambridge" />
+  <title>Clarifying Pointer Provenance v4</title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<div id="header">
+<h1 class="title">Clarifying Pointer Provenance v4</h1>
+<h2 class="author">Kayvan Memarian, Victor Gomes, Peter Sewell. University of Cambridge</h2>
+<h3 class="date">Fri 4 May 09:52:56 BST 2018</h3>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#summary"><span class="toc-section-number">1</span> Summary</a><ul>
+<li><a href="#problem"><span class="toc-section-number">1.1</span> Problem</a></li>
+<li><a href="#status-and-summary-of-changes-since-n2219"><span class="toc-section-number">1.2</span> Status and summary of changes since N2219</a></li>
+<li><a href="#acknowledgements"><span class="toc-section-number">1.3</span> Acknowledgements</a></li>
+<li><a href="#outline-of-proposal"><span class="toc-section-number">1.4</span> Outline of proposal</a></li>
+</ul></li>
+<li><a href="#questions-and-examples"><span class="toc-section-number">2</span> Questions and examples</a><ul>
+<li><a href="#basic-provenance"><span class="toc-section-number">2.1</span> Basic provenance</a><ul>
+<li><a href="#q1.-must-the-pointer-used-for-a-memory-access-have-the-right-provenance-i.e.-be-derived-from-the-pointer-to-the-original-allocation-with-undefined-behaviour-otherwise-this-lets-compilers-do-provenance-based-alias-analysis"><span class="toc-section-number">2.1.1</span> Q1. Must the pointer used for a memory access have the right provenance, i.e. be derived from the pointer to the original allocation (with undefined behaviour otherwise)? (This lets compilers do provenance-based alias analysis)</a></li>
+<li><a href="#q2.-can-equality-testing-on-pointers-be-affected-by-pointer-provenance-information"><span class="toc-section-number">2.1.2</span> Q2. Can equality testing on pointers be affected by pointer provenance information?</a></li>
+</ul></li>
+<li><a href="#pointer-provenance-via-integer-types"><span class="toc-section-number">2.2</span> Pointer provenance via integer types</a><ul>
+<li><a href="#q3.-can-one-make-a-usable-pointer-via-casts-to-intptr_t-and-back"><span class="toc-section-number">2.2.1</span> Q3. Can one make a usable pointer via casts to <code>intptr_t</code> and back?</a></li>
+<li><a href="#q4.-can-one-make-a-usable-pointer-via-casts-to-unsigned-long-and-back"><span class="toc-section-number">2.2.2</span> Q4. Can one make a usable pointer via casts to unsigned long and back?</a></li>
+<li><a href="#q5.-must-provenance-information-be-tracked-via-casts-to-integer-types-and-integer-arithmetic"><span class="toc-section-number">2.2.3</span> Q5. Must provenance information be tracked via casts to integer types and integer arithmetic?</a></li>
+<li><a href="#q6.-can-one-use-bit-manipulation-and-integer-casts-to-store-information-in-unused-bits-of-pointers"><span class="toc-section-number">2.2.4</span> Q6. Can one use bit manipulation and integer casts to store information in unused bits of pointers?</a></li>
+<li><a href="#q7.-can-equality-testing-on-integers-that-are-derived-from-pointer-values-be-affected-by-their-provenance"><span class="toc-section-number">2.2.5</span> Q7. Can equality testing on integers that are derived from pointer values be affected by their provenance?</a></li>
+</ul></li>
+<li><a href="#pointers-constructed-from-multiple-provenances"><span class="toc-section-number">2.3</span> Pointers constructed from multiple provenances</a><ul>
+<li><a href="#q8.-should-intra-object-pointer-subtraction-give-provenance-free-integer-results"><span class="toc-section-number">2.3.1</span> Q8. Should intra-object pointer subtraction give provenance-free integer results?</a></li>
+<li><a href="#q9.-can-one-make-a-usable-offset-between-two-separately-allocated-objects-by-inter-object-subtraction-using-either-pointer-or-integer-arithmetic-to-make-a-usable-pointer-to-the-second-by-adding-the-offset-to-the-first"><span class="toc-section-number">2.3.2</span> Q9. Can one make a usable offset between two separately allocated objects by inter-object subtraction (using either pointer or integer arithmetic), to make a usable pointer to the second by adding the offset to the first?</a></li>
+<li><a href="#q9b.-can-one-make-a-usable-offset-between-a-mallocd-region-and-a-reallocd-version-thereof-by-inter-object-subtraction-to-make-a-usable-pointer-to-data-within-the-latter-by-adding-the-offset-to-some-pointer-to-data-within-the-former"><span class="toc-section-number">2.3.3</span> Q9b. Can one make a usable offset between a malloc'd region and a realloc'd version thereof by inter-object subtraction, to make a usable pointer to data within the latter by adding the offset to some pointer to data within the former?</a></li>
+<li><a href="#q9c.-can-one-make-a-usable-offset-between-two-objects-within-a-single-allocated-region-by-inter-object-subtraction-using-either-pointer-or-integer-arithmetic-to-make-a-usable-pointer-to-the-second-by-adding-the-offset-to-the-first"><span class="toc-section-number">2.3.4</span> Q9c. Can one make a usable offset between two objects within a single allocated region by inter-object subtraction (using either pointer or integer arithmetic), to make a usable pointer to the second by adding the offset to the first?</a></li>
+<li><a href="#q11.-is-the-xor-linked-list-idiom-supported"><span class="toc-section-number">2.3.5</span> Q11. Is the XOR linked list idiom supported?</a></li>
+</ul></li>
+<li><a href="#pointer-provenance-via-pointer-representation-copying"><span class="toc-section-number">2.4</span> Pointer provenance via pointer representation copying</a><ul>
+<li><a href="#q13.-can-one-make-a-usable-copy-of-a-pointer-by-copying-its-representation-bytes-using-the-library-memcpy"><span class="toc-section-number">2.4.1</span> Q13. Can one make a usable copy of a pointer by copying its representation bytes using the library memcpy?</a></li>
+<li><a href="#q14.-can-one-make-a-usable-copy-of-a-pointer-by-copying-its-representation-bytes-unchanged-in-user-code"><span class="toc-section-number">2.4.2</span> Q14. Can one make a usable copy of a pointer by copying its representation bytes (unchanged) in user code?</a></li>
+<li><a href="#q15.-can-one-make-a-usable-copy-of-a-pointer-by-copying-its-representation-bytes-by-user-code-that-indirectly-computes-the-identity-function-on-those-bytes"><span class="toc-section-number">2.4.3</span> Q15. Can one make a usable copy of a pointer by copying its representation bytes by user code that indirectly computes the identity function on those bytes?</a></li>
+<li><a href="#q16.-can-one-carry-provenance-through-dataflow-alone-not-through-control-flow"><span class="toc-section-number">2.4.4</span> Q16. Can one carry provenance through dataflow alone (not through control flow)?</a></li>
+</ul></li>
+<li><a href="#pointer-provenance-and-union-type-punning"><span class="toc-section-number">2.5</span> Pointer provenance and union type punning</a><ul>
+<li><a href="#q17.-is-type-punning-between-integer-and-pointer-values-allowed"><span class="toc-section-number">2.5.1</span> Q17. Is type punning between integer and pointer values allowed?</a></li>
+</ul></li>
+<li><a href="#pointer-provenance-via-io-device-memory-and-linking"><span class="toc-section-number">2.6</span> Pointer provenance via IO, device memory, and linking</a><ul>
+<li><a href="#q19.-can-one-make-a-usable-pointer-via-io"><span class="toc-section-number">2.6.1</span> Q19. Can one make a usable pointer via IO?</a></li>
+<li><a href="#q20.-can-one-make-a-usable-pointer-from-a-concrete-address-of-device-memory"><span class="toc-section-number">2.6.2</span> Q20. Can one make a usable pointer from a concrete address (of device memory)?</a></li>
+</ul></li>
+<li><a href="#pointer-provenance-for-subobjects"><span class="toc-section-number">2.7</span> Pointer provenance for subobjects</a><ul>
+<li><a href="#q86.-are-provenance-checks-only-on-a-per-allocation-granularity-not-per-subobject"><span class="toc-section-number">2.7.1</span> Q86. Are provenance checks only on a per-allocation granularity (not per-subobject)?</a></li>
+</ul></li>
+<li><a href="#pointer-provenance-in-c-and-provenance-within-allocated-regions"><span class="toc-section-number">2.8</span> Pointer provenance in C++, and provenance within allocated regions</a></li>
+<li><a href="#the-problem-with-lost-escapes"><span class="toc-section-number">2.9</span> The problem with lost escapes</a><ul>
+<li><a href="#q87.-can-provenance-be-carried-via-values-which-could-be-algebraically-optimised-away"><span class="toc-section-number">2.9.1</span> Q87. Can provenance be carried via values which could be algebraically optimised away?</a></li>
+</ul></li>
+<li><a href="#provenance-escape-hatches-for-io-and-inter-object-arithmetic---and-the-problem-with-wildcards"><span class="toc-section-number">2.10</span> Provenance escape hatches, for IO and inter-object arithmetic - and the problem with wildcards</a></li>
+<li><a href="#algebraic-laws"><span class="toc-section-number">2.11</span> Algebraic laws</a><ul>
+<li><a href="#q12.-for-arithmetic-over-provenanced-integer-values-is-the-provenance-of-the-result-invariant-under-commutativity-and-under-plusminus-associativity"><span class="toc-section-number">2.11.1</span> Q12. For arithmetic over provenanced integer values, is the provenance of the result invariant under commutativity and under plus/minus associativity?</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#proposed-semantics-in-detail"><span class="toc-section-number">3</span> Proposed semantics, in detail</a></li>
+<li><a href="#proposed-technical-corrigendum"><span class="toc-section-number">4</span> Proposed Technical Corrigendum</a></li>
+</ul>
+</div>
+<p>==========================================================</p>
+<p><strong>Related:</strong> <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2219.htm">N2219: Clarifying Pointer Provenance (Q1-Q20) v3</a> <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2223.htm">N2223: Clarifying the C Memory Object Model: Introduction to N2219 - N2222</a>, <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2090.htm">N2090</a>, Section 4 of <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2012.htm">N2012</a>, Questions 3/15, 4/15, and 5/15 of our <a href="http://www.cl.cam.ac.uk/~pes20/cerberus/index.html#SURVEY">survey</a>, Section 2.1-2.9 (Q1-20) of our <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/notes30.pdf">N2013</a>, and <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/dr_260.htm">DR260</a></p>
+<p>This is a revision of N2219, which was based on N2090, which was based on N2012 (Section 4) and N2013.</p>
+<h1 id="summary"><span class="header-section-number">1</span> Summary</h1>
+<h2 id="problem"><span class="header-section-number">1.1</span> Problem</h2>
+<p>C pointer values could traditionally be considered to be concrete numeric values (our <a href="http://www.cl.cam.ac.uk/~pes20/cerberus/index.html#SURVEY">survey</a>, Questions 3, 4, and 5, indicates many still do). The DR260 Committee Response suggests otherwise, hinting at a notion of <em>provenance</em> associated to values that keeps track of their &quot;origins&quot;:</p>
+<blockquote>
+<p><em>&quot;Implementations are permitted to track the origins of a bit-pattern and treat those representing an indeterminate value as distinct from those representing a determined value. They may also treat pointers based on different origins as distinct even though they are bitwise identical.&quot;</em></p>
+</blockquote>
+<p>Current compilers exploit this, using it to justify alias analysis based on provenance distinctions. However, the DR260 CR has not been incorporated in the standard text, and it also leaves many specific questions unclear: it's ambiguous whether some idioms are allowed or not, and unclear what alias analysis and optimisation are allowed to do.</p>
+<p>In this note we go through a sequence of specific questions, supported by concrete examples, and make a candidate proposal for discussion.</p>
+<h2 id="status-and-summary-of-changes-since-n2219"><span class="header-section-number">1.2</span> Status and summary of changes since N2219</h2>
+<p>We're reasonably confident in the basic proposal, with provenances (single or empty) carried with pointer and integer values. The main open questions are:</p>
+<ul>
+<li><p>the treatment of IO and an escape hatch for inter-object pointer arithmetic</p></li>
+<li><p>whether provenance should be purely per-allocation or also involve subobject-granularity checks</p></li>
+<li><p>the treatment of provenance for objects within allocated regions, and reconciling that with C++</p></li>
+</ul>
+<p>Changes:</p>
+<ul>
+<li><p>We've added discussion of provenance escape hatches, for IO and inter-object arithmetic - and the problem with the N2090/N2219 wildcard provenance notion</p></li>
+<li><p>We've added a realloc example.</p></li>
+<li><p>We've added discussion of the problem with lost escapes.</p></li>
+<li><p>We now propose a more refined treatment of subobjects.</p></li>
+<li><p>We've noted that the previous TC phrasing was mis-drafted in some ways.</p></li>
+</ul>
+<h2 id="acknowledgements"><span class="header-section-number">1.3</span> Acknowledgements</h2>
+<p>This has been informed by helpful discussions with many people, including members of WG14 (including among others Martin Sebor, Jens Gustedt, Martin Uecker, Florian Weimar, Blaine Garst, David Keaton, and Freek Wiedijk), Richard Smith, Chris Lattner, Kostya Serebryany, Nuno Lopes, Juneyoung Lee, David Chisnall, Robert Watson, Paul McKenney, and all the contributors to our surveys. Please let us know if we've forgotten to include anyone.<br />
+The work has been partly funded by the UK EPSRC REMS Programme Grant, EP/K008528/1.</p>
+<h2 id="outline-of-proposal"><span class="header-section-number">1.4</span> Outline of proposal</h2>
+<p>The basic idea is to associate a provenance with every pointer value, essentially identifying the original allocation the pointer is derived from. This is for the <em>C abstract machine</em> as defined in the standard: compilers might rely on provenance in their alias analysis and optimisation, but one would not expect normal implementations to record or manipulate provenance at runtime (though dynamic or static analysis tools might). Accordingly, provenances do not have any representation.</p>
+<ul>
+<li><p>Pointer values and integer values both carry a <em>provenance</em>, normally either a single provenance ID or the &quot;empty&quot; provenance. We also need some escape hatch(es) to support pointers derived from I/O or from rare cases of inter-object pointer arithmetic, and for device memory; we return to these below.</p></li>
+<li><p>On every allocation (of objects with static, thread, automatic, and allocated storage duration), the abstract machine nondeterministically chooses a fresh provenance ID (unique in the entire execution), and the resulting pointer value carries that single provenance ID.</p></li>
+<li><p>At any access via a pointer value, its numeric address must be consistent with its provenance, with undefined behaviour otherwise. In particular:</p>
+<ul>
+<li><p>access via a pointer value with a single provenance ID must be at least within the memory footprint of the corresponding original allocation. We impose a tighter condition w.r.t. subobjects below.</p></li>
+<li><p>access via a pointer value with empty provenance is undefined behaviour (except where the numeric value is within an implementation-defined set of &quot;device&quot; memory addresses).</p></li>
+</ul>
+<p>This undefined behaviour is what justifies optimisation based on provenance-based alias analysis.</p></li>
+</ul>
+<p>Then there are many specific choices of how provenance is affected by arithmetic operations and suchlike. We first discuss the questions and then summarise our proposal.</p>
+<p>Note that provenance-based alias analysis should not be confused with type-based alias analysis, and it is (contrary to the expectations of some expert C users and OS developers) still observable in current mainstream implementations even with <code>-fno-strict-aliasing</code>, opening the door to subtle bugs. Compilers should probably provide an option to turn it off (which proposals for &quot;safe C&quot; might want to mandate). We define the behaviour with and without a hypothetical -fno-provenance flag here, but exactly how that option is expressed might be left implementation-defined (in some implementations it might not be a command-line flag). There should be a corresponding feature-test macro to expose whether it has been enabled. What granularity it should have (e.g. per-function / per-compilation-unit / per-compilation / per-link-job) needs thought.</p>
+<h1 id="questions-and-examples"><span class="header-section-number">2</span> Questions and examples</h1>
+<h2 id="basic-provenance"><span class="header-section-number">2.1</span> Basic provenance</h2>
+<p><a name="Q1"></a></p>
+<h3 id="q1.-must-the-pointer-used-for-a-memory-access-have-the-right-provenance-i.e.-be-derived-from-the-pointer-to-the-original-allocation-with-undefined-behaviour-otherwise-this-lets-compilers-do-provenance-based-alias-analysis"><span class="header-section-number">2.1.1</span> Q1. Must the pointer used for a memory access have the right provenance, i.e. be derived from the pointer to the original allocation (with undefined behaviour otherwise)? (This lets compilers do provenance-based alias analysis)</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: yes (clear from DR260CR, but not in the standard text). C2x proposal: yes. C2x proposal (no-provenance option): no</p>
+<p>Here <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/dr_260.htm">DR260CR</a> clearly says yes. Our experimental data and discussions with compiler developers show that recent compilers do assume non-aliasing of pointers with identical representation values but distinct provenance. This is incompatible with a concrete semantics of pointers (in which pointers would be fully characterised by their representation values). Tracking of provenance in the abstract machine is therefore necessary to make these compilers sound with respect to the standard. For example, consider the following pathological code (adapted from DR260).</p>
+<p>Example: <code>provenance_basic_global_yx.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_basic_global_yx.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+int  y=2, x=1;
+int main() {
+  int *p = &amp;x + 1;
+  int *q = &amp;y;
+  printf(&quot;Addresses: p=%p q=%p\n&quot;,(void*)p,(void*)q);
+  if (memcmp(&amp;p, &amp;q, sizeof(p)) == 0) {
+    *p = 11;  // does this have undefined behaviour?
+    printf(&quot;x=%d y=%d *p=%d *q=%d\n&quot;,x,y,*p,*q);
+  }
+  return 0;
+}</code></pre>
+<p>Depending on the implementation, <code>x</code> and <code>y</code> might happen to be allocated in adjacent memory, in which case <code>&amp;x+1</code> and <code>&amp;y</code> will have bitwise-identical representation values, the <code>memcmp</code> will succeed, and <code>p</code> (derived from a pointer to <code>x</code>) will have the same representation value as a pointer to a different object, <code>y</code>, at the point of the update <code>*p=11</code>. This can occur in practice, e.g. with GCC 8.1 -O2. Its output of</p>
+<pre><code>x=1 y=2 *p=11 *q=2</code></pre>
+<p>suggests that the compiler is reasoning that <code>*p</code> does not alias with <code>y</code> or <code>*q</code>, and hence that the initial value of <code>y=2</code> can be propagated to the final <code>printf</code>.</p>
+<p>This outcome would not be correct with respect to a concrete semantics, and so to make the compiler sound it is necessary for this program to be deemed to have undefined behaviour. Note that this example does not involve type-based alias analysis, and the outcome is not affected by GCC's <code>-fno-strict-aliasing</code> flag. One might ask whether the mere formation of the pointer <code>x+1</code> is legal, but this is explicitly permitted by the ISO standard.</p>
+<p>This test is only interesting in executions in which the variables happen to be allocated adjacently. Different compilers and flag choices lead to different allocations, so we also include the <code>xy</code> variant below. Whether the variables have global or automatic storage duration should not have any effect on the semantics here, though it obviously it can affect the allocation addresses; we also include automatic storage-duration versions below. One can also write analogous tests using distinct malloc'd regions, but they are typically not allocated adjacently, so constructing the aliasing pointer is already illegal according to ISO for those.</p>
+<p>Example: <code>provenance_basic_global_xy.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_basic_global_xy.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_basic_auto_yx.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_basic_auto_yx.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_basic_auto_xy.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_basic_auto_xy.c.html">(code and experimental data)</a></p>
+<p><a name="Q2"></a></p>
+<h3 id="q2.-can-equality-testing-on-pointers-be-affected-by-pointer-provenance-information"><span class="header-section-number">2.1.2</span> Q2. Can equality testing on pointers be affected by pointer provenance information?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: yes (clear from DR260CR). C2x proposal: yes (nondeterministically). C2x proposal (no-provenance option): no</p>
+<p>Example: <code>provenance_equality_global_yx.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_equality_global_yx.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+int  y=2, x=1;
+int main() {
+  int *p = &amp;x + 1;
+  int *q = &amp;y;
+  printf(&quot;Addresses: p=%p q=%p\n&quot;,(void*)p,(void*)q);
+  _Bool b = (p==q);
+  // can this be false even with identical addresses?
+  printf(&quot;(p==q) = %s\n&quot;, b?&quot;true&quot;:&quot;false&quot;);
+  return 0;
+}</code></pre>
+<p>This is also allowed according to DR260CR. We observe (eg) GCC 8.1 -O2 regarding two pointers with different provenance as nonequal (according to <code>==</code>) even though they have the same address. This happens in some circumstances but not others (e.g. it happens if the test is pulled into a simple separate function, but not if it is in a separate compilation unit), so we suggest that whether pointer equality takes provenance into account or not should be made indeterminate in the standard (again to make the observed compiler behaviour sound with respect to the standard). Note that requiring equality to <em>always</em> take provenance into account would require implementations to track provenance at runtime.</p>
+<p>The ISO C11 standard text is too strong here: 6.5.9p6 says <em>&quot;Two pointers compare equal <strong>if and only if</strong> both are [...] or one is a pointer to one past the end of one array object and the other is a pointer to the start of a different array object that happens to immediately follow the first array object in the address space&quot;</em>, which requires such pointers to compare equal (reasonable pre-DR260CR, but not after it). We don't expect programmers to rely on that behaviour and GCC does not satisfy it, so, to be consistent with DR260CR and with the indeterminate behaviour we suggest, it should permit them to compare either equal or non-equal.</p>
+<p>Example: <code>provenance_equality_global_xy.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_equality_global_xy.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_equality_global_fn_yx.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_equality_global_fn_yx.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_equality_global_fn_xy.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_equality_global_fn_xy.c.html">(code and experimental data)</a></p>
+<h2 id="pointer-provenance-via-integer-types"><span class="header-section-number">2.2</span> Pointer provenance via integer types</h2>
+<p><a name="Q3"></a></p>
+<h3 id="q3.-can-one-make-a-usable-pointer-via-casts-to-intptr_t-and-back"><span class="header-section-number">2.2.1</span> Q3. Can one make a usable pointer via casts to <code>intptr_t</code> and back?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: yes (when <code>intptr_t</code> is present). C2x proposal: yes (when <code>intptr_t</code> is present). C2x proposal (no-provenance option): yes (when <code>intptr_t</code> is present)</p>
+<p>ISO C11 optionally allows implementations to provide the type <code>intptr_t</code> (along with an unsigned variant) with guaranteed round-trip properties for pointer/integer casts. The following should be allowed, and that means that the C abstract machine should track provenance via such casts to and from integer values, otherwise implementations would have to make very coarse aliasing assumptions.</p>
+<p>Example: <code>provenance_roundtrip_via_intptr_t.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_roundtrip_via_intptr_t.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;inttypes.h&gt;
+int  x=1;
+int main() {
+  int *p = &amp;x;
+  intptr_t i = (intptr_t)p;
+  int *q = (int *)i;
+  *q = 11; // is this free of undefined behaviour?
+  printf(&quot;*p=%d  *q=%d\n&quot;,*p,*q);  
+}</code></pre>
+<p><a name="Q4"></a></p>
+<h3 id="q4.-can-one-make-a-usable-pointer-via-casts-to-unsigned-long-and-back"><span class="header-section-number">2.2.2</span> Q4. Can one make a usable pointer via casts to unsigned long and back?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: implementation defined. C2x proposal (no-provenance option): implementation defined</p>
+<p>It also seems to be common practice (e.g. in Linux) to extend these roundtrip properties to unsigned long, as in the example below, when its implementation is large enough. We suggest that it be implementation-defined which integer types support this - typically this might be all the types with wide-enough implementation representations, but implementations can restrict to <code>intptr_t</code>/<code>uintptr_t</code> if they choose.</p>
+<p>Example: <code>provenance_roundtrip_via_unsigned_long.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_roundtrip_via_unsigned_long.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+int  x=1;
+int main() {
+  int *p = &amp;x;
+  unsigned long i = (unsigned long)p;
+  int *q = (int *)i;
+  *q = 11; // is this free of undefined behaviour?
+  printf(&quot;*p=%d  *q=%d\n&quot;,*p,*q);  
+}</code></pre>
+<p>One should also ask whether provenance can be carried via float types. We tentatively suggest not.</p>
+<p><a name="Q5"></a></p>
+<h3 id="q5.-must-provenance-information-be-tracked-via-casts-to-integer-types-and-integer-arithmetic"><span class="header-section-number">2.2.3</span> Q5. Must provenance information be tracked via casts to integer types and integer arithmetic?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): no</p>
+<p>Example: <code>provenance_basic_using_intptr_t_global_xy.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_basic_using_intptr_t_global_xy.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_basic_using_intptr_t_global_yx.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_basic_using_intptr_t_global_yx.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;stdint.h&gt;
+#include &lt;inttypes.h&gt;
+int  y = 2, x = 1;
+int main() {
+  intptr_t ux = (intptr_t)&amp;x;
+  intptr_t uy = (intptr_t)&amp;y;
+  intptr_t offset = 4;
+  int *p = (int *)(ux + offset);
+  int *q = &amp;y;
+  printf(&quot;Addresses: &amp;x=%&quot;PRIiPTR&quot; p=%p &amp;y=%&quot;PRIiPTR\
+         &quot;\n&quot;,ux,(void*)p,uy);
+  if (memcmp(&amp;p, &amp;q, sizeof(p)) == 0) {
+    *p = 11; // does this have undefined behaviour?
+    printf(&quot;x=%d  y=%d  *p=%d  *q=%d\n&quot;,x,y,*p,*q); 
+  }
+}</code></pre>
+<p>Given the type <code>intptr_t</code>, this question asks whether one can return to a concrete view of pointers as simple numbers, by casting to <code>intptr_t</code> followed by integer arithmetic and casting back to a pointer type. Here again, we observe GCC behaving the same as with Q1, reasoning that pointers obtained in this way cannot alias even if they have the same numerical values. This observation is reinforced by the GCC documentation, which mentions an &quot;original pointer&quot; associated to integer values cast to pointer type, so the answer seems to be &quot;yes&quot;. This leads to many more questions regarding the specifics of how provenance information affect the semantics of each integer operator. Some of these are discussed in the next subsection and the remainder are given a complete treatment in the summary of our proposal at the end.</p>
+<p><a name="Q6"></a></p>
+<h3 id="q6.-can-one-use-bit-manipulation-and-integer-casts-to-store-information-in-unused-bits-of-pointers"><span class="header-section-number">2.2.4</span> Q6. Can one use bit manipulation and integer casts to store information in unused bits of pointers?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): no</p>
+<p>Now we extend the example of Q3, that cast a pointer to <code>intptr_t</code> and back, to use bitwise logical operations on the integer value to store some tag bits. The following code exhibits a strong form of this, storing the address and tag bit combination as a pointer (which thereby creates a misaligned pointer value, though one not used for accesses); a weaker form would store the combined value only as an integer.</p>
+<p>Example: <code>provenance_tag_bits_via_uintptr_t_1.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_tag_bits_via_uintptr_t_1.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;assert.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+int x=1;
+int main() {
+  int *p = &amp;x;
+  // cast &amp;x to an integer 
+  uintptr_t i = (uintptr_t) p;
+  // check the bottom two bits of an int* are not used
+  assert(_Alignof(int) &gt;= 4);
+  assert((i &amp; 3u) == 0u);
+  // construct an integer like &amp;x with low-order bit set
+  i = i | 1u;  
+  // cast back to a pointer
+  int *q = (int *) i; // does this have defined behaviour?
+  // cast to integer and mask out the low-order two bits
+  uintptr_t j = ((uintptr_t)q) &amp; ~((uintptr_t)3u);  
+  // cast back to a pointer
+  int *r = (int *) j; 
+  // are r and p now equivalent?  
+  *r = 11;           //  does this have defined behaviour? 
+  _Bool b = (r==p);  //  is this true?
+  printf(&quot;x=%i *r=%i (r==p)=%s\n&quot;,x,*r,b?&quot;true&quot;:&quot;false&quot;);  
+}</code></pre>
+<p>The standard leaves conversions between integer and pointer types implementation-defined (6.3.2.3p{5,6}), but it is common practice to use unused pointer bits (either low-order bits from alignment requirements or high-order bits beyond the maximum address range). We suggest that the set of unused bits for pointer types of each alignment should be made implementation-defined, to make this practice legal where necessary.</p>
+<p>Note that in our proposal XOR'ing with a pure number and then back (as in some pointer encryption schemes) is well-defined.</p>
+<p>Moreover, where the standard does give a guarantee about round-trip casts, e.g. for round-trips through intptr_t (7.20.1.4p1), it says only that the result &quot;will compare equal&quot;. In a provenance-aware semantics, that may not be enough to make the result usable to reference memory; the standard text should be strengthened here to guarantee that by giving the result a usable provenance - the same as that of the source. And similarly for casts to <code>void *</code> and back, and adding and removing qualifiers (c.f. 6.3.2.3p{1,2}).</p>
+<p><a name="Q7"></a></p>
+<h3 id="q7.-can-equality-testing-on-integers-that-are-derived-from-pointer-values-be-affected-by-their-provenance"><span class="header-section-number">2.2.5</span> Q7. Can equality testing on integers that are derived from pointer values be affected by their provenance?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: no. C2x proposal (no-provenance option): no</p>
+<p>Example: <code>provenance_equality_uintptr_t_global_xy.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_equality_uintptr_t_global_xy.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_equality_uintptr_t_global_yx.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_equality_uintptr_t_global_yx.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;inttypes.h&gt; 
+int y=2, x=1;
+int main() {
+  uintptr_t p = (uintptr_t)(&amp;x + 1);
+  uintptr_t q = (uintptr_t)&amp;y;
+  printf(&quot;Addresses: p=%&quot; PRIxPTR &quot; q=%&quot; PRIxPTR &quot;\n&quot;,
+         p,q);
+  _Bool b = (p==q);
+  // can this be false even with identical addresses?
+  printf(&quot;(p==q) = %s\n&quot;, b?&quot;true&quot;:&quot;false&quot;);
+  return 0;
+}</code></pre>
+<p>GCC did at one point print false for this, but it was regarded as a bug and fixed (from 4.7.1 to 4.8). DR 260CR does not address the question. We believe that integer equality testing should not be affected by provenance, i.e. &quot;no&quot;.</p>
+<p>This example is inspired by one from Krebbers' PhD thesis.</p>
+<h2 id="pointers-constructed-from-multiple-provenances"><span class="header-section-number">2.3</span> Pointers constructed from multiple provenances</h2>
+<p><a name="Q8"></a></p>
+<h3 id="q8.-should-intra-object-pointer-subtraction-give-provenance-free-integer-results"><span class="header-section-number">2.3.1</span> Q8. Should intra-object pointer subtraction give provenance-free integer results?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): yes</p>
+<p>DR260CR does not address this, but it is uncontroversially &quot;yes&quot; in practice: an intra-object pointer subtraction, say between the addresses of two elements of an array, should give a provenance-free integer offset that can then be used for indexing into that or another array.</p>
+<p>Example: <code>provenance_multiple_1_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_multiple_1_global.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_multiple_2_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_multiple_2_global.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+int y[2], x[2];
+int main() {
+  int *p = &amp;(x[0]) + (&amp;(y[1])-&amp;(y[0]));
+  *p = 11;  // is this free of undefined behaviour?
+  printf(&quot;x[1]=%d *p=%d\n&quot;,x[1],*p);
+  return 0;
+}</code></pre>
+<p>We say a <em>provenance-free</em> integer offset because the fact that an offset is calculated from pointers to <code>y</code> should not, when added to a pointer to a distinct (perhaps adjacent) object <code>x</code>, license its use to access <code>y</code>. The example below should not be allowed to access <code>y[0]</code>. We see GCC 8.1 -O2 optimise based on alias analysis here.</p>
+<p>Example: <code>provenance_multiple_4_global_yx.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_multiple_4_global_yx.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+int  y[2], x[2];
+int main() {
+  int *p = &amp;x[1] + (&amp;y[1]-&amp;y[0]) + 0;
+  int *q = &amp;y[0];
+  printf(&quot;Addresses: p=%p q=%p\n&quot;,(void*)p,(void*)q);
+  if (memcmp(&amp;p, &amp;q, sizeof(p)) == 0) {
+    *p = 11;  // does this have undefined behaviour?
+    printf(&quot;y[0]=%d *p=%d *q=%d\n&quot;,y[0],*p,*q);
+  }
+  return 0;
+}</code></pre>
+<p><a name="Q9"></a></p>
+<h3 id="q9.-can-one-make-a-usable-offset-between-two-separately-allocated-objects-by-inter-object-subtraction-using-either-pointer-or-integer-arithmetic-to-make-a-usable-pointer-to-the-second-by-adding-the-offset-to-the-first"><span class="header-section-number">2.3.2</span> Q9. Can one make a usable offset between two separately allocated objects by inter-object subtraction (using either pointer or integer arithmetic), to make a usable pointer to the second by adding the offset to the first?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: no (without explicit programmer annotation). C2x proposal (no-provenance option): yes</p>
+<p>This is asking about pointers that potentially have <em>multiple</em> provenances, which is not addressed in DR260CR or current GCC or Clang compiler documentation - they refer to &quot;the origin&quot; of a pointer as if there were necessarily only one. The example below is a variant of the Q5 <code>provenance_basic_using_intptr_t_global_yx.c</code> in which the constant offset is replaced by a subtraction (here after casting from pointer to integer type).</p>
+<p>Example: <code>pointer_offset_from_subtraction_1_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_from_subtraction_1_global.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;stdint.h&gt;
+#include &lt;inttypes.h&gt;
+int  y = 2, x=1;
+int main() {
+  intptr_t ux = (intptr_t)&amp;x;
+  intptr_t uy = (intptr_t)&amp;y;
+  intptr_t offset = uy - ux;
+  printf(&quot;Addresses: &amp;x=%&quot;PRIiPTR&quot; &amp;y=%&quot;PRIiPTR\
+         &quot; offset=%&quot;PRIiPTR&quot; \n&quot;,ux,uy,offset);
+  int *p = (int *)(ux + offset);
+  int *q = &amp;y;
+  if (memcmp(&amp;p, &amp;q, sizeof(p)) == 0) {
+    *p = 11; // is this free of undefined behaviour?
+    printf(&quot;x=%d  y=%d  *p=%d  *q=%d\n&quot;,x,y,*p,*q); 
+  }
+}</code></pre>
+<p>Our survey responses suggest that compilers do not in general support this, and we imagine it is uncommon in practice. For normal code, we suggest &quot;no&quot;. Here are analogous tests with automatic storage duration variables and malloc'd regions, and the latter using a constant rather than calculated offset. We see GCC 8.1 -O2 optimise based on a no-aliasing assumption only for the last.</p>
+<p>Example: <code>pointer_offset_from_subtraction_1_auto.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_from_subtraction_1_auto.c.html">(code and experimental data)</a></p>
+<p>Example: <code>pointer_offset_from_subtraction_1_malloc.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_from_subtraction_1_malloc.c.html">(code and experimental data)</a></p>
+<p>Example: <code>pointer_offset_constant_8_malloc.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_constant_8_malloc.c.html">(code and experimental data)</a></p>
+<p>However, there do seem to be specific important use cases. These include fixing up pointers to objects after <code>realloc</code> calls, as in Q9b below, and the Linux and FreeBSD per-CPU-variable implementations - though it is unclear whether the latter are between multiple allocations in the C sense. We suspect there are other cases, e.g. within fancy allocators. What kind of escape hatch is needed to support this code needs further discussion. The basic question is how such code should communicate with compiler alias analyses.</p>
+<p><a name="Q9b"></a></p>
+<h3 id="q9b.-can-one-make-a-usable-offset-between-a-mallocd-region-and-a-reallocd-version-thereof-by-inter-object-subtraction-to-make-a-usable-pointer-to-data-within-the-latter-by-adding-the-offset-to-some-pointer-to-data-within-the-former"><span class="header-section-number">2.3.3</span> Q9b. Can one make a usable offset between a malloc'd region and a realloc'd version thereof by inter-object subtraction, to make a usable pointer to data within the latter by adding the offset to some pointer to data within the former?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: no. C2x proposal: yes (with suitable annotation, TBD). C2x proposal (no-provenance option): yes</p>
+<p>Example: <code>pointer_offset_from_subtraction_realloc_1.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_from_subtraction_realloc_1.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;stdlib.h&gt;
+#include &lt;stddef.h&gt;
+#include &lt;assert.h&gt;
+int main() {
+  // malloc a region and initialise some data within it
+  void *p=malloc(2*sizeof(int));                      // allocation P
+  assert(p != NULL); // pick out the interesting execution
+  int *i=(int*)p;
+  *(i+0)=10;
+  *(i+1)=11;
+  // construct some pointers to that data
+  int *j0 = i+0;
+  int *j1 = i+1;
+  // realloc the region
+  void *q=realloc(p,65536*sizeof(int));                    // allocation Q
+  assert(q != NULL &amp;&amp; q != p); // pick out the interesting execution (UB?)
+  // calculate the offset between the two allocations
+  ptrdiff_t offset=(unsigned char*)q-(unsigned char*)p;// does this have UB?
+  // try to adapt the data pointers to new allocation by adding the offset
+  int *k0 = (int*)((unsigned char *)j0 + offset);      // do these have UB?
+  int *k1 = (int*)((unsigned char *)j1 + offset); 
+  // and use one of those for an access
+  *k0=20;                                              // does this have UB? 
+  printf(&quot;Addresses: p=%p q=%p\n&quot;,(void*)p,(void*)q);  // does this have UB?
+  printf(&quot;*k0=%d *k1=%d\n&quot;,*k0,*k1);
+  return 0;
+}</code></pre>
+<p>This example uses pointer arithmetic to fix up pointers to data within a malloc'd region after it is realloc'd, calculating an offset that it uniformly adds to each such pointer (as suggested by Florian Weimar).</p>
+<p>On the one hand, something like this seems to be needed, otherwise the utility of realloc would be limited - one couldn't have pointers from outside the region to anything except the start of the region across the realloc call, and one couldn't have any pointers within the region to itself. We don't know how widely they those occur in practice.</p>
+<p>But in ISO C11, it is undefined behaviour, for several reasons.</p>
+<ul>
+<li><p>In executions in which the realloc returns a distinct address to that it is passed, the original object has been deallocated (7.22.3.5p2), so its lifetime has ended, and so has that of the integers within it (following 6.2.4p2 <em>&quot;An object exists, has a constant address, and retains its last-stored value throughout its lifetime&quot;</em>). But then 6.2.4p2 continues <em>&quot;The value of a pointer becomes indeterminate when the object it points to (or just past) reaches the end of its lifetime&quot;</em>, so the values of <code>p</code>, <code>j0</code>, and <code>j1</code> are indeterminate in the second assert, the subsequent arithmetic, and the printf.</p></li>
+<li><p>Even if one ignores that, the pointer subtraction is undefined, as the two pointers are not within or one-past the same array object (6.5.6p9).</p></li>
+<li><p>And, ignoring that, the arithmetic of adding <code>offset</code> goes outside the original allocation, which is also undefined (6.5.6p8).</p></li>
+<li><p>Additionally, as someone (Fred Tydeman?) remarked for Q9 at WG14 Brno, because <code>ptrdiff_t</code> is a signed type, the pointer subtraction could also overflow. To avoid that, one either needs an extension or option that enables wrapping pointer arithmetic, or some (perhaps implementation-defined) bounds on the size of the heap address space.</p></li>
+</ul>
+<p>It seems clear that ISO C2x should permit some version of this code, probably requiring some programmer annotation to explain to the compiler that exotic pointer arithmetic is involved. But what form should that annotation take?</p>
+<p>See <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2222.htm#q31-can-one-construct-out-of-bounds-by-more-than-one-pointer-values-by-pointer-arithmetic-without-undefined-behaviour">N2222 Q31</a> and <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2222.htm#q43-can-one-inspect-the-value-e.g.-by-testing-equality-with-of-a-pointer-to-an-object-whose-lifetime-has-ended-either-at-a-free-or-block-exit">N2222 Q43</a> for additional (older) discussion of the pointer-lifetime-end-zap and out-of-bounds pointer construction issues.</p>
+<p><a name="Q9c"></a></p>
+<h3 id="q9c.-can-one-make-a-usable-offset-between-two-objects-within-a-single-allocated-region-by-inter-object-subtraction-using-either-pointer-or-integer-arithmetic-to-make-a-usable-pointer-to-the-second-by-adding-the-offset-to-the-first"><span class="header-section-number">2.3.4</span> Q9c. Can one make a usable offset between two objects within a single allocated region by inter-object subtraction (using either pointer or integer arithmetic), to make a usable pointer to the second by adding the offset to the first?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): yes</p>
+<p>Within a malloc'd region, it seems this has to be supported, to allow the use of the region to hold an array - as in the example below. In our proposal, this is allowed because provenance checking is done on a per-allocation granularity.</p>
+<p>Example: <code>pointer_offset_from_subtraction_within_malloc_int_1.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_from_subtraction_within_malloc_int_1.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;stdlib.h&gt;
+#include &lt;stddef.h&gt;
+int main() {
+  void *a = malloc(4*sizeof(int)); // allocation P
+  // initialise two elements of a notional array within the allocation
+  int *p1 = (int*)((unsigned char*)a+1*sizeof(int));
+  int *p3 = (int*)((unsigned char*)a+3*sizeof(int));
+  *p1 = 11;
+  *p3 = 33;
+  // calculate an unsigned char* offset between pointers to those elements
+  ptrdiff_t offset=(unsigned char*)p3-(unsigned char*)p1;  // provenance ?
+  // add the offset to a pointer to the first
+  unsigned char *q1 = (unsigned char*)p1;                  // provenance P
+  unsigned char *q3 = (unsigned char*)p1 + offset;         // provenance ?
+  int *r1 = (int*)q1;
+  int *r3 = (int*)q3;
+  printf(&quot;Addresses: a=%p p3=%p r3=%p\n&quot;,a,(void*)p3,(void*)r3);
+  // if that has the same representation as the pointer to the third...
+  if (memcmp(&amp;p3, &amp;r3, sizeof(p3)) == 0) {
+    // try to use it to access that
+    *r3 = 11;  // is this free of undefined behaviour?
+    printf(&quot;*p1=%d *q3=%d *r1=%d *r3=%d \n&quot;,
+           *p1, *q3, *r1, *r3);
+  }
+  return 0;
+}</code></pre>
+<p>The following example is similar but using structs, and accessing their members only via lvalues of the member types, to illustrate the case where the compiler has no explicit information that the accesses are conceptually to parts of an array of structs.</p>
+<p>Example: <code>pointer_offset_from_subtraction_within_malloc_struct_1.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_from_subtraction_within_malloc_struct_1.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;stdlib.h&gt;
+#include &lt;stddef.h&gt;
+typedef struct { char c; int i; } st;
+int main() {
+  void *a = malloc(4*sizeof(st)); // allocation P
+  // initialise one member of two elements of a notional array of structs
+  char *p1 = (char*)((unsigned char*)a+1*sizeof(int)+offsetof(st,c));
+  int  *p3 = (int *)((unsigned char*)a+3*sizeof(int)+offsetof(st,i));
+  *p1 = 'a';
+  *p3 = 33;
+  // calculate an unsigned char* offset between pointers to those elements
+  ptrdiff_t offset=((unsigned char*)p3-offsetof(st,i)) -
+                   ((unsigned char*)p1-offsetof(st,c));  // provenance ?
+  // add the offset to a pointer to the first struct
+  unsigned char *q1  = (unsigned char*)p1 - offsetof(st,c);// provenance P
+  unsigned char *q3  = ((unsigned char*)p1 - offsetof(st,c)) + offset;     // provenance P
+  // and adapt to point to the i element of the third
+  unsigned char *q3i = q3 + offsetof(st,i);                // provenance P
+  char *r1 = (char*)q1;
+  int  *r3 = (int*)q3i;
+  printf(&quot;Addresses: a=%p p3=%p r3=%p\n&quot;,a,(void*)p3,(void*)r3);
+  // if that has the same representation as the pointer to the i member of the third...
+  if (memcmp(&amp;p3, &amp;r3, sizeof(p3)) == 0) {
+    // try to use it to access that
+    *r3 = 11;  // is this free of undefined behaviour?
+    printf(&quot;*p1=0x%x *q3=%d *r1=0x%x *r3=%d \n&quot;,
+           (unsigned int)*p1, *p3, (unsigned int)*r1, *r3);
+  }
+  return 0;
+}</code></pre>
+<p><a name="Q11"></a></p>
+<h3 id="q11.-is-the-xor-linked-list-idiom-supported"><span class="header-section-number">2.3.5</span> Q11. Is the XOR linked list idiom supported?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: no. C2x proposal (no-provenance option): yes</p>
+<p>The classic XOR linked list algorithm (implementing a doubly linked list with only one pointer per node, by storing the XOR of two pointers) also makes essential use of pointers constructed from pointer values with multiple distinct provenances. In this example we XOR the integer values from two pointers and XOR the result again with one of them.</p>
+<p>Example: <code>pointer_offset_xor_auto.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_xor_auto.c.html">(code and experimental data)</a></p>
+<p>Example: <code>pointer_offset_xor_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_offset_xor_global.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;inttypes.h&gt;
+int x=1;
+int y=2;  
+int main() {
+  int *p = &amp;x;
+  int *q = &amp;y;
+  uintptr_t i = (uintptr_t) p;
+  uintptr_t j = (uintptr_t) q;
+  uintptr_t k = i ^ j;
+  uintptr_t l = k ^ i;
+  int *r = (int *)l;
+  // are r and q now equivalent?  
+  *r = 11;     // does this have defined behaviour?             
+  _Bool b = (r==q); 
+  printf(&quot;x=%i y=%i *r=%i (r==p)=%s\n&quot;,x,y,*r,
+         b?&quot;true&quot;:&quot;false&quot;);  
+}</code></pre>
+<p>It appears (though it is not completely clear) that this idiom is not important in modern practice. One respondent remarks that the XOR list implementation interacts badly with modern pipelines and the space saving is not a big win; another doesn't know of modern usages, though suspects that it is probably still used in places. We don't know whether current compiler alias analysis permits it or not. Our suggested semantics would not allow it.</p>
+<p>If one did want to allow it in specific code, it's not clear what kind of escape hatch would be necessary. At the point of construction of the final pointer, that code doesn't have any other way to refer to the provenance of the original allocation, so an attribute to add a specific provenance to a pointer would not suffice for this case. A general wildcard would, but that would be problematic w.r.t. alias analysis.</p>
+<h2 id="pointer-provenance-via-pointer-representation-copying"><span class="header-section-number">2.4</span> Pointer provenance via pointer representation copying</h2>
+<p><a name="Q13"></a></p>
+<h3 id="q13.-can-one-make-a-usable-copy-of-a-pointer-by-copying-its-representation-bytes-using-the-library-memcpy"><span class="header-section-number">2.4.1</span> Q13. Can one make a usable copy of a pointer by copying its representation bytes using the library memcpy?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: yes. C2x proposal: yes. C2x proposal (no-provenance option): yes</p>
+<p>Example: <code>pointer_copy_memcpy.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_memcpy.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+int x=1;
+int main() {
+  int *p = &amp;x;
+  int *q;
+  memcpy (&amp;q, &amp;p, sizeof p); 
+  *q = 11; // is this free of undefined behaviour?
+  printf(&quot;*p=%d  *q=%d\n&quot;,*p,*q);  
+}</code></pre>
+<p>The ISO C11 text does not explicitly address this. In a pre-provenance semantics, before DR260, it did not need to, but now (as this surely should be allowed) the standard needs to guarantee that the result has the appropriate provenance to make it usable. One could allow it by special-casing <code>memcpy()</code> to preserve provenance, but the following questions suggest a less ad hoc approach.</p>
+<p><a name="Q14"></a></p>
+<h3 id="q14.-can-one-make-a-usable-copy-of-a-pointer-by-copying-its-representation-bytes-unchanged-in-user-code"><span class="header-section-number">2.4.2</span> Q14. Can one make a usable copy of a pointer by copying its representation bytes (unchanged) in user code?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: yes (from effective types text?). C2x proposal: yes. C2x proposal (no-provenance option): yes</p>
+<p>Example: <code>pointer_copy_user_dataflow_direct_bytewise.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_dataflow_direct_bytewise.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+int  x=1;
+void user_memcpy(unsigned char* dest, 
+                 unsigned char *src, size_t n) {
+  while (n &gt; 0)  {      
+    *dest = *src;
+    src += 1;
+    dest += 1;
+    n -= 1;
+  }
+}
+int main() {
+  int *p = &amp;x;
+  int *q;
+  user_memcpy((unsigned char*)&amp;q, 
+              (unsigned char*)&amp;p, sizeof(int *));
+  *q = 11; // is this free of undefined behaviour?
+  printf(&quot;*p=%d  *q=%d\n&quot;,*p,*q);
+}</code></pre>
+<p>ISO C11 and DR260CR again do not mention this explicitly (though the 6.5p6 effective type text weakly implies it is allowed). We believe it is widely relied on. (The only exceptions we are aware of are capability machines such as IBM system 38 and descendents, and CHERI. In CHERI you have to copy pointers at pointer types for it to work properly, but capability loads and stores can operate generically, because the capability registers have tag bits. There is also some new tagged memory support for Oracle Sparc, to find invalid pointers; we've not looked into that.)</p>
+<p>Our proposed semantics makes it legal by regarding each representation byte (as an integer value) as having the provenance of the original pointer, and the result pointer, being composed of representation bytes of which at least one has that provenance and none have a conflicting provenance, as having the same.</p>
+<p>One could instead require, more restrictively, that one has all the original bytes of some legitimate pointer. There may not be much reasonable code that would be sensitive to the distinctions between these, but there is some, e.g. manipulations of pointers where one knows the high-order bytes are the same, as in the survey response mentioning encoding 64-bit pointers in 48 bits. Our semantics will permit that.</p>
+<p>Real <code>memcpy()</code> implementations are more complex. The <a href="https://sourceware.org/git/?p=glibc.git;a=blob;f=string/memcpy.c;hb=HEAD">glibc memcpy</a> involves copying byte-by-byte, as above, and also word-by-word and, using virtual memory manipulation, page-by-page. Word-by-word copying is not permitted by the ISO standard, as it violates the effective type rules, but we believe C2x should support it in some form. Virtual memory manipulation is outside our scope at present.</p>
+<p><a name="Q15"></a></p>
+<h3 id="q15.-can-one-make-a-usable-copy-of-a-pointer-by-copying-its-representation-bytes-by-user-code-that-indirectly-computes-the-identity-function-on-those-bytes"><span class="header-section-number">2.4.3</span> Q15. Can one make a usable copy of a pointer by copying its representation bytes by user code that indirectly computes the identity function on those bytes?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes (if multiple pointers are not mixed). C2x proposal (no-provenance option): yes</p>
+<p>The following code is a simple version of this, just using a XOR twice; one should imagine a more complex transform, with the transform and its inverse separated in the code and in time so that the compiler cannot analyse them.</p>
+<p>Example: <code>pointer_copy_user_dataflow_indirect_bytewise.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_dataflow_indirect_bytewise.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+int  x=1;
+void user_memcpy2(unsigned char* dest, 
+                  unsigned char *src, size_t n) {
+  while (n &gt; 0)  {      
+    *dest = ((*src) ^ 1) ^ 1;
+    src += 1;
+    dest += 1;
+    n -= 1;
+  }
+}
+int main() {
+  int *p = &amp;x;
+  int *q;
+  user_memcpy2((unsigned char*)&amp;q, (unsigned char*)&amp;p, 
+              sizeof(p));
+  *q = 11; // is this free of undefined behaviour?
+  printf(&quot;*p=%d  *q=%d\n&quot;,*p,*q);
+}</code></pre>
+<p>Whether this should be supported is unclear, and DR260 CR does not speak to it (it calls out the library <code>memcpy</code> and <code>memmove</code> as special cases: <em>&quot;Note that using assignment or bitwise copying via <code>memcpy</code> or <code>memmove</code> of a determinate value makes the destination acquire the same determinate value.&quot;</em>).</p>
+<p>Our proposal would allow it (without escape-hatch annotations) only in the case where bytes of different pointer values are not mixed during the computation; it would forbid code that compresses or encrypts multiple pointers together, as such a computation would (somewhere) be combining values of different provenances, with an empty-provenance result. That would need an escape hatch.</p>
+<p>Richard Smith argued that pointer construction via <code>intptr_t</code> and back via any value-dependent identity function should be required to work. That would admit the encryption/compressing of multiple pointers, which our proposal forbids. But defining that notion of &quot;value-dependent&quot; is exactly the thing that is hard in the concurrency thin-air problem, and we don't believe compilers can be made to respect it in general.</p>
+<p><a name="Q16"></a></p>
+<h3 id="q16.-can-one-carry-provenance-through-dataflow-alone-not-through-control-flow"><span class="header-section-number">2.4.4</span> Q16. Can one carry provenance through dataflow alone (not through control flow)?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): n/a</p>
+<p>Our provenance examples so far have all only involved dataflow; we also have to ask if a usable pointer can be constructed via non-dataflow control-flow paths, e.g. if testing equality of an unprovenanced integer value against a valid pointer permits the integer to be used as if it had the same provenance as the pointer. We don't expect that this is relied on in practice, and our proposed semantics does not permit it - we track provenance only through dataflow. This needs to be discussed with respect to current compiler analysis behaviour.</p>
+<p>For example, consider a version of the previous indirect <code>memcpy</code> example with a control-flow choice on the value of the bytes:</p>
+<p>Example: <code>pointer_copy_user_ctrlflow_bytewise.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_ctrlflow_bytewise.c.html">(code and experimental data)</a></p>
+<p>Example: <code>pointer_copy_user_ctrlflow_bytewise_abbrev.c</code></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;assert.h&gt;
+#include &lt;limits.h&gt;
+int  x=1;
+unsigned char control_flow_copy(unsigned char c) {
+  assert(UCHAR_MAX==255);
+  switch (c) {
+  case 0: return(0);
+  case 1: return(1);
+  case 2: return(2);
+  ...
+  case 255: return(255);
+  }
+}
+void user_memcpy2(unsigned char* dest, 
+                  unsigned char *src, size_t n) {
+  while (n &gt; 0)  {      
+    *dest = control_flow_copy(*src);
+    src += 1;
+    dest += 1;
+    n -= 1;
+  }
+}
+int main() {
+  int *p = &amp;x;
+  int *q;
+  user_memcpy2((unsigned char*)&amp;q, (unsigned char*)&amp;p, 
+              sizeof(p));
+  *q = 11; // does this have undefined behaviour?
+  printf(&quot;*p=%d  *q=%d\n&quot;,*p,*q);
+}</code></pre>
+<p>Similarly, one can imagine copying a pointer via <code>uintptr_t</code> bit-by-bit via a control-flow choice for each bit.</p>
+<p>Finally, contrasting with the first two examples above, that recover all the concrete value information of the original pointer, we can consider a variant of the Q5 <code>provenance_basic_using_intptr_t_global_yx.c</code> example in which there is a control-flow choice based on partial information of the intended target pointer (here just whether <code>q</code> is null) and the concrete value information is obtained otherwise:</p>
+<p>Example: <code>provenance_basic_mixed_global_offset+4.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_basic_mixed_global_offset+4.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;stdint.h&gt;
+#include &lt;inttypes.h&gt;
+int  y = 2, x=1;
+int main() {
+  intptr_t ux = (intptr_t)&amp;x;
+  intptr_t uy = (intptr_t)&amp;y;
+  intptr_t offset = 4;
+  printf(&quot;Addresses: &amp;x=%&quot;PRIiPTR&quot; &amp;y=%&quot;PRIiPTR\
+         &quot;\n&quot;,ux,uy);
+  int *q = &amp;y;
+  if (q != NULL) {
+    int *p = (int *)(ux + offset);
+    if (memcmp(&amp;p, &amp;q, sizeof(p)) == 0) {
+      *p = 11; // does this have undefined behaviour?
+      printf(&quot;x=%d  y=%d  *p=%d  *q=%d\n&quot;,x,y,*p,*q); 
+    }
+  }
+}</code></pre>
+<p>A semantics that tracks provenance only through dataflow dependency is our preferred option. It seems to be the simplest, and is probably compatible with programming practice - we imagine that none of these idioms occur in normal practice. Our proposal would forbid the above examples, while permitting the dataflow bitwise copy example.</p>
+<p>Allowing provenance to be propagated via any control-flow dependency would allow all these examples, but it seems clear that the last example should be forbidden, in ISO or de facto semantics, and indeed GCC is again doing an optimisation that would not be sound if it were. In real code we imagine that many pointer accesses are in some way control-flow dependent on others, given the many null-pointer checks required in C, so tracking that would neither be feasible nor useful.</p>
+<h2 id="pointer-provenance-and-union-type-punning"><span class="header-section-number">2.5</span> Pointer provenance and union type punning</h2>
+<p><a name="Q17"></a></p>
+<h3 id="q17.-is-type-punning-between-integer-and-pointer-values-allowed"><span class="header-section-number">2.5.1</span> Q17. Is type punning between integer and pointer values allowed?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: yes (if the representations are the same). C2x proposal: implementation defined (if the representations are the same). C2x proposal (no-provenance option): implementation defined (if the representations are the same)</p>
+<p>The following example (analogous to the <code>provenance_roundtrip_via_intptr_t.c</code> of Q3) constructs a pointer by casting a pointer to <code>uintptr_t</code>, storing that in a member of a union of that type, and then reading from a member of the union of pointer type.</p>
+<p>Example: <code>provenance_union_punning_1_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_union_punning_1_global.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;inttypes.h&gt;
+int x=1;
+typedef union { uintptr_t ui; int *p; } un;
+int main() {
+  un u; 
+  int *px = &amp;x;
+  uintptr_t i = (uintptr_t)px;
+  u.ui = i;
+  int *p = u.p;
+  printf(&quot;Addresses: p=%p &amp;x=%p\n&quot;,(void*)p,(void*)&amp;x);
+  *p = 11;  // is this free of undefined behaviour?
+  printf(&quot;x=%d *p=%d\n&quot;,x,*p);
+  return 0;
+}</code></pre>
+<p>The ISO standard says <em>&quot;the appropriate part of the object representation of the value is reinterpreted as an object representation in the new type&quot;</em>, but says little about that reinterpretation, and DR260 CR does not speak to the provenance of the result.</p>
+<p>For any particular implementation, pointers to normal object types might or might not have the same representation as <code>uintptr_t</code> values. That might well not hold for some implementations, but it does for our usual ones. Our semantics has to have an implementation-defined map for the conversions between pointer representations and <code>uintptr_t</code> in any case, so we can say that this example is allowed, preserving the original provenance, iff that is the identity.</p>
+<h2 id="pointer-provenance-via-io-device-memory-and-linking"><span class="header-section-number">2.6</span> Pointer provenance via IO, device memory, and linking</h2>
+<p><a name="Q19"></a></p>
+<h3 id="q19.-can-one-make-a-usable-pointer-via-io"><span class="header-section-number">2.6.1</span> Q19. Can one make a usable pointer via IO?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: yes (clear for %p; unclear elsewhere). C2x proposal: yes (modulo IO-escape check for <code>%p</code>, and with programmer annotation for other cases). C2x proposal (no-provenance option): yes</p>
+<p>We now consider the extreme example of pointer provenance flowing via IO, if one writes the address of an object to a file and reads it back in. We have three versions: one using <code>fprintf</code>/<code>fscanf</code> and the <code>%p</code> format, one using <code>fwrite</code>/<code>fread</code> on the pointer representation bytes, and one converting the pointer to and from <code>uintptr_t</code> and using <code>fprintf</code>/<code>fscanf</code> on that value with the <code>PRIuPTR</code>/<code>SCNuPTR</code> formats.<br />
+The first gives a syntactic indication of a potentially escaping pointer value, while the others (after preprocessing) do not. Giving just the first in full:</p>
+<p>Example: <code>provenance_via_io_percentp_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_via_io_percentp_global.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;inttypes.h&gt;
+int x=1;
+int main() {
+  int *p = &amp;x;
+  FILE *f = fopen(
+    &quot;provenance_via_io_percentp_global.tmp&quot;,&quot;w+b&quot;);
+  printf(&quot;Addresses: p=%p\n&quot;,(void*)p);
+  // print pointer address to a file
+  fprintf(f,&quot;%p\n&quot;,(void*)p);
+  rewind(f);
+  void *rv;
+  int n = fscanf(f,&quot;%p\n&quot;,&amp;rv);
+  int *r = (int *)rv;
+  if (n != 1) exit(EXIT_FAILURE);
+  printf(&quot;Addresses: r=%p\n&quot;,(void*)r);
+  // are r and p now equivalent?  
+  *r=12; // is this free of undefined behaviour?                                                           
+  _Bool b1 = (r==p); // do they compare equal?                      
+  _Bool b2 = (0==memcmp(&amp;r,&amp;p,sizeof(r)));//same reps?
+  printf(&quot;x=%i *r=%i b1=%s b2=%s\n&quot;,x,*r,
+         b1?&quot;true&quot;:&quot;false&quot;,b2?&quot;true&quot;:&quot;false&quot;);
+}</code></pre>
+<p>Example: <code>provenance_via_io_bytewise_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_via_io_bytewise_global.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_via_io_uintptr_t_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_via_io_uintptr_t_global.c.html">(code and experimental data)</a></p>
+<p>This is used in practice: in graphics code for marshalling/unmarshalling (using <code>%p</code>), in xlib (using <code>SCNuPTR</code>), and in debuggers.</p>
+<p>In the ISO standard, the standard text for <code>fprintf</code> and <code>scanf</code> for <code>%p</code> say that this should work: <em>&quot;If the input item is a value converted earlier during the same program execution, the pointer that results shall compare equal to that value; otherwise the behavior of the <code>%p</code> conversion is undefined&quot;</em> (modulo the usual remarks about &quot;compare equal&quot;), and the text for <code>uintptr_t</code> and the presence of <code>SCNuPTR</code> in <code>inttypes.h</code> implies the same there.</p>
+<p>To make the standard allow the <code>%p</code> case in a provenance-aware C abstract machine, we suggest that the provenances (of pointer or integer values) the pointers output during an execution should be recorded (in the abstract machine, not in normal implementations). Then when a pointer is read via <code>%p</code>, we check whether the numeric address is strictly within any live allocation whose provenance has escaped via IO. If it has, we give it the associated provenance, otherwise we give it the empty provenance (thus making it UB to use for accesses). (Freek Wiedijk observes one might want to allow one-past pointers, which is nicely uniform but means it can be ambiguous which of two provenances to allow.) To nail down what counts as &quot;output&quot;, one might enumerate a subset of the standard library call arguments, or, more elegantly, introduce some annotation for those.</p>
+<p>This does not directly support reading pointers from IO by reading their representation bytes or by reading a <code>uintptr_t</code> value. In those cases there's no clear syntactic indication that the pointer might be coming from IO rather than other integer/pointer manipulation (as in our earlier examples), and so no clear place to tell alias analysis what's going on. This seems to need an explicit programmer annotation of some form.</p>
+<p><a name="Q20"></a></p>
+<h3 id="q20.-can-one-make-a-usable-pointer-from-a-concrete-address-of-device-memory"><span class="header-section-number">2.6.2</span> Q20. Can one make a usable pointer from a concrete address (of device memory)?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: no. C2x proposal: yes (in implementation-defined device memory). C2x proposal (no-provenance option): yes (likewise)</p>
+<p>C programs should normally not form pointers from particular concrete addresses. For example, the following should normally be considered to have undefined behaviour, as address <code>0xABC</code> might not be mapped or, if it is, might alias with other data used by the runtime. By the ISO standard it does have undefined behaviour, consistent with an abstract view of pointers.</p>
+<p>Example: <code>pointer_from_concrete_address_1.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_from_concrete_address_1.c.html">(experimental data)</a></p>
+<pre><code>int main() { 
+  // on systems where 0xABC is not a legal non-stack/heap 
+  // address, does this have undefined behaviour?
+  *((int *)0xABC) = 123;
+}</code></pre>
+<p>But in some circumstances, especially for embedded devices, it is idiomatic to use concrete addresses in C to access memory-mapped devices, e.g.</p>
+<p>Example: <code>pointer_from_concrete_address_2.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_from_concrete_address_2.c.html">(experimental data)</a></p>
+<pre><code>#define PORTBASE 0x40000000
+unsigned int volatile * const port = 
+  (unsigned int *) PORTBASE;
+int main() {
+  unsigned int value = 0;
+  // on systems where PORTBASE is a legal non-stack/heap 
+  // address, does this have defined behaviour?
+  *port = value; /* write to port */
+  value = *port; /* read from port */
+}</code></pre>
+<p>Our suggestion is to introduce an implementation-defined set of &quot;device memory&quot; addresses (which may depend on linking), and which is guaranteed to be disjoint from normal C-accessible stack, heap, and program memory, for which the creation of such pointers be allowed.</p>
+<p>Linking provides many mechanisms for controlling memory layout. It doesn't seem feasible to incorporate much of that into the C standard, but perhaps we should provide a more coherent semantic interface to allow it to be tied in?</p>
+<h2 id="pointer-provenance-for-subobjects"><span class="header-section-number">2.7</span> Pointer provenance for subobjects</h2>
+<p><a name="Q86"></a></p>
+<h3 id="q86.-are-provenance-checks-only-on-a-per-allocation-granularity-not-per-subobject"><span class="header-section-number">2.7.1</span> Q86. Are provenance checks only on a per-allocation granularity (not per-subobject)?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): n/a</p>
+<p>Our previous proposal (N2219 and before) had a simple per-allocation notion of provenance, allowing access via a pointer anywhere within the memory footprint of the original allocation (though note that without '-fno-strict-aliasing' there would be some additional restrictions). In some cases this flexibility is needed, e.g. for any bytewise computation of the representation of a struct, e.g. via a user-code 'memcpy', as below, or to serialise/unserialise it, where an <code>unsigned char *</code> pointer has to be able to traverse the entire allocation footprint.</p>
+<p>Example: <code>pointer_copy_user_dataflow_direct_bytewise_struct.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_dataflow_direct_bytewise_struct.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+typedef struct { int i; float f; } st;
+st s1 = {.i=1, .f=1.0 };
+st s2;
+void user_memcpy(unsigned char* dest, 
+                 unsigned char *src, size_t n) {
+  while (n &gt; 0)  {      
+    *dest = *src;
+    src += 1;
+    dest += 1;
+    n -= 1;
+  }
+}
+int main() {
+  st *p = &amp;s1;
+  st *q = &amp;s2;
+  user_memcpy((unsigned char*)q, 
+              (unsigned char*)p, sizeof(st));
+  // is this free of undefined behaviour?
+  printf(&quot;p-&gt;i = %d  q-&gt;i = %d\n&quot;,p-&gt;i,q-&gt;i);
+}</code></pre>
+<p>This is similarly needed for the <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2222.htm#q34-can-one-move-among-the-members-of-a-struct-using-representation-pointer-arithmetic-and-casts">N2222 2.5.4 Q34 <em>Can one move among the members of a struct using representation-pointer arithmetic and casts?</em></a></p>
+<p>But in other cases per-allocation provenance allows intra-allocation examples which we don't think should be supported, e.g. as below, and which will unnecessarily impede alias analysis. Existing compilers may well do this (according to Nuno Lopes, GCC and ICC already support some subobject analysis, and people are working on it for LLVM. We don't know whether or not these analyses are turned on even with <code>-fno-strict-aliasing</code>.)</p>
+<p>Example: <code>provenance_intra_object_1.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_intra_object_1.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+typedef struct { int x; int y; } st;
+int main() {
+  st s = { .x=1, .y=2 };
+  int *p = &amp;s.x + 1;
+  int *q = &amp;s.y;
+  printf(&quot;Addresses: p=%p q=%p\n&quot;,(void*)p,(void*)q);
+  if (memcmp(&amp;p, &amp;q, sizeof(p)) == 0) {
+    *p = 11;  // is this free of undefined behaviour?
+    printf(&quot;s.x=%d s.y=%d *p=%d *q=%d\n&quot;,s.x,s.y,*p,*q);
+  }
+}</code></pre>
+<p>A possible reconcilation of all this would be to have a per-subobject provenance restriction by default, but relax this (to per-allocation provenance) for pointers that have been formed by an explicit cast. Perhaps only for casts to <code>void *</code>, <code>unsigned char *</code>, <code>intptr_t</code>, or <code>uintptr_t</code>, or perhaps (for simplicity) for all casts. This semantics was suggested by documentation from the RV-match group.</p>
+<p>We agree that something like that is needed in some situations, especially given the status of compiler subobject alias analysis mentioned above. But is it already covered by effective types, or do we need separate subobject provenance enforcement even with <code>-fno-strict-aliasing</code>? That isn't clear. The per-allocation provenance proposal is attracticely simple.</p>
+<p>For the moment the detailed proposal we provide does not do subobject provenance, so it allows the above example.</p>
+<p>To enforce subobject provenance, we'd adapt the proposal to keep, with every pointer and integer value, both a provenance ID and a subrange of the original allocation footprint. When constructing a pointer to a struct member, by <code>&amp;(x.p)</code>, we'd take the subrange of that member. When constructing a pointer to a union member, we'd take the size of that member. For a pointer constructed as the address of a specific array element, it's unclear whether one should take just that element or the whole array. Then on any cast, we'd expand the subrange to that of the original allocation. Similarly on any representation-byte write, except that we'd like a user-memcopy to reconstruct the original limited pointer value.</p>
+<h2 id="pointer-provenance-in-c-and-provenance-within-allocated-regions"><span class="header-section-number">2.8</span> Pointer provenance in C++, and provenance within allocated regions</h2>
+<p>[This is from discussion with Richard Smith, C++ editor, at EuroLLVM 2018]</p>
+<p>Ignoring malloc'd regions and wildcard-provenance pointers, our proposal seems broadly consistent with the current C++ draft for the &quot;C fragment&quot; of C++ (whatever that is exactly).</p>
+<p>Note that this relies on the &quot;implicit forwarding rule&quot;, and that in C++ they split allocation lifetime and object lifetime.</p>
+<p>For plain-old-data (POD) object creation within malloc'd regions, which in practice will happen incrementally as struct/union members or array elements are written, they have an exotic style for angelically specifying ghost &quot;object creation&quot; in whatever way is necessary to make the program defined (if such exists). It'd probably be better to accumulate constraints explicitly.</p>
+<p>In C++, if you create two distinct objects in the same allocated region from operator-new (a possibly user-defined allocator), then implementations will assume you can't get from one to the other by pointer arithmetic.</p>
+<p>If you really malloc a region and create two POD objects, do the same rules apply? In principle, when you create an object, the pointer you get can only be used to access that object. In practice, RS doesn't know of implementations that take advantage of that (except maybe XL C/C++, which is rather aggressive for this), and there probably is user code that takes advantage of that. C++ text currently forbids it. <em>Probably</em> it should be allowed? Otherwise how could one use incrementally initialised arrays in an allocated region? Question 9b above illustrates this.</p>
+<p>XL C/C++ might have an optimisation that assumes if you pass a function a pointer to a member, it assumes it doesn't modify the rest of the struct. That's arguably over-aggressive.</p>
+<p>Also relevant here is our <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/notes30.pdf">N2013 Q75. Can an unsigned character array with static or automatic storage duration be used (in the same way as a malloc’d region) to hold values of other types?</a>. As we say there, a literal reading of the ISO effective type rules for C forbids this, but we believe it needs to be allowed. C++ explicitly allows it.</p>
+<h2 id="the-problem-with-lost-escapes"><span class="header-section-number">2.9</span> The problem with lost escapes</h2>
+<p><a name="Q87"></a></p>
+<h3 id="q87.-can-provenance-be-carried-via-values-which-could-be-algebraically-optimised-away"><span class="header-section-number">2.9.1</span> Q87. Can provenance be carried via values which could be algebraically optimised away?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): n/a</p>
+<p>[From discussion with Richard Smith]</p>
+<p>Our provenance proposal allows computations that erase the numeric value (and hence a concrete view of the &quot;semantic dependencies&quot;) of a pointer but retain provenance. This makes examples like that below allowed in our proposal. Note that we don't believe it is especially desirable to allow this particular example - this is just a consequence of choosing a straightforward provenance semantics that allows the bytewise copying and the bitwise manipulation of pointers of Q14 and Q15.</p>
+<p>Example: <code>provenance_lost_escape_2.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_lost_escape_2.c.html">(code and experimental data)</a></p>
+<p>Example: <code>provenance_lost_escape_1.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_lost_escape_1.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; 
+#include &lt;stdint.h&gt; 
+int x=1;
+int main() {
+  int *p = &amp;x;                             // assume allocated at 0x6009b8
+  uintptr_t i1 = (intptr_t)p;              // value 0x6009b8 provanance x
+  uintptr_t i2 = i1 &amp; 0x00000000FFFFFFFF;  // 
+  uintptr_t i3 = i2 &amp; 0xFFFFFFFF00000000;  // value 0x0,     provenance x
+  uintptr_t i4 = i3 + 0x6009b8;            // value 0x6009b8 provanance x
+  int *q = (int *)i4;
+  printf(&quot;Addresses: p=%p\n&quot;,(void*)p);
+  if (memcmp(&amp;i1, &amp;i4, sizeof(i1)) == 0) {
+    *q = 11;  // does this have defined behaviour?
+    printf(&quot;x=%d *p=%d *q=%d\n&quot;,x,*p,*q);
+  }
+  return 0;
+}</code></pre>
+<p>However, in implementations some optimisation may be done before alias analysis - in particular, in LLVM, algebraic optimisations are - and those optimisations might erase the escape of <code>&amp;x</code>, replacing it and all the calculation of <code>i3</code> by <code>0x0</code> (a similar example would have <code>i3 = i1-i1</code>).<br />
+But then alias analysis might be unable to see that <code>*q</code> could access <code>x</code>, and so report that it couldn't, and hence enable optimisations that are unsound for this case. The basic point is that escapes are not preserved by optimisation.</p>
+<p>A possible solution, which would need some implementation work but (we guess) not very much, would be to require those initial optimisation passes to <em>record</em> the escapes involved in computations they erase, so that that could be passed in explicitly to alias analysis.</p>
+<p>This would also be necessary for a more refined treatment of pointers from I/O, in which the source-language semantics permits them to alias only with source-language I/O-escaped pointers - more on that below.</p>
+<h2 id="provenance-escape-hatches-for-io-and-inter-object-arithmetic---and-the-problem-with-wildcards"><span class="header-section-number">2.10</span> Provenance escape hatches, for IO and inter-object arithmetic - and the problem with wildcards</h2>
+<p>Our previous proposal suggested that pointers from I/O, and pointers from inter-object arithmetic explicitly flagged as such, could be supported with a &quot;wildcard&quot; provenance, allowing them to be used to access any current allocation with the same concrete address and type. But (as pointed out by several people, including Martin Uecker), this would be problematic: given the existence of such pointers, unless they are somehow kept distinct (e.g. by having distinct types for potentially-wildcard pointers), which seems challenging, a compiler would have to assume that any pointer-typed function argument could be such a wildcard, and then in the semantics it might legitimately alias (and be used to access) function local variables, including those that are only created later in the function.</p>
+<p>The LLVM internal-language semantics proposal by Lopes, Lee, Hur, et al. uses timestamps to limit what their (somewhat different) wildcard pointers can alias to.</p>
+<p>For the IO case, one could keep track in the semantics of the provenances which have escaped via IO (in all forms, including <code>%p</code> and integer IO of <code>intptr_t</code>-cast pointers and pointer representation bytes). Then regard a read pointer as potentially aliasing any of those (of the same type, without <code>-fno-strict-aliasing</code>).</p>
+<p>For pointers constructed via escape-hatch-tagged inter-object pointer arithmetic, it's less clear what would be sensible.<br />
+What syntactic form should such an escape hatch take? One could define a source-language-semantics notion of all the provenances which have escaped by the combination of casts to integer type, access to their representations, and I/O, and regard wildcard provenances as allowed to access any of those. That's rather crude - is it too liberal for implemented alias analysis?</p>
+<p>At the other extreme, one could require the programmer to explicitly annotate allocations that might later be aliased by pointers constructed by wild casts. Syntactically, these might just be function calls, so we'd have <code>void mark_as_escaping(void *p)</code> and <code>void * wild_cast(intptr_t i)</code> (probably these should have better names, so as not to be confused with normal escape analysis). The former would just record the provenance/allocation of <code>p</code> in the abstract machine; the latter would check the integer value of <code>i</code> is within one of those allocations, and, if it is, give the result the corresponding provenance - with UB otherwise.</p>
+<p>A proper solution to this would also handle allocators and their abstraction boundaries. In general an allocator (<code>malloc</code> or other OS or user allocators) starts with some region of memory which is essentially private to it, obtained from linking or from some other allocator, and hands out pointers to parts thereof. As far as the rest of the code is concerned, this should have fresh provenance - roughly as captured by the GCC <a href="https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#Common-Function-Attributes"><code>malloc</code> function attribute</a>: <em>&quot;This tells the compiler that a function is malloc-like, i.e., that the pointer P returned by the function cannot alias any other pointer valid when the function returns, and moreover no pointers to valid objects occur in any storage addressed by <code>P</code>. Using this attribute can improve optimization. Functions like malloc and calloc have this property because they return a pointer to uninitialized or zeroed-out storage. However, functions like realloc do not have this property, as they can return a pointer to storage containing pointers.&quot;</em>. When such pointers are passed back into the allocator, e.g. in a call to <code>free</code>, they can alias with the whole region, though presumably the allocator doesn't write into the issued memory until it reallocates it. It might write into metadata via a computation based on the pointer passed into free - which could be handled via an explicit re-provenancing operation, taking that pointer and giving it the whole-region provenance. Proper treatment of this needs annotations to manually annotate lifetime too? Do existing alias analysis implementations get this right? With link-time optimisation (LTO) it presumably really matters.</p>
+<h2 id="algebraic-laws"><span class="header-section-number">2.11</span> Algebraic laws</h2>
+<p><a name="Q12"></a></p>
+<h3 id="q12.-for-arithmetic-over-provenanced-integer-values-is-the-provenance-of-the-result-invariant-under-commutativity-and-under-plusminus-associativity"><span class="header-section-number">2.11.1</span> Q12. For arithmetic over provenanced integer values, is the provenance of the result invariant under commutativity and under plus/minus associativity?</h3>
+<p><b>Our reading of C11 and proposal for C2x:</b> C11: the text does not clearly specify. C2x proposal: no. C2x proposal (no-provenance option): n/a</p>
+<p>Normal integer arithmetic or modular arithmetic satisfies various algebraic laws, e.g. <code>(a+b)=(b+a)</code> (commutativity for <code>+</code>) and <code>a+(b-c) = (a+b)-c</code> (which we call plus/minus associativity, in the absence of a standard name). Do these still hold for provenanced values? For C pointer arithmetic, addition of two pointers is a type error, so the question does not arise for those two laws. But in semantics in which integer values also carry provenance data of some kind, we have the same question for analogous examples that do the arithmetic at <code>uintptr_t</code> type, e.g. asking whether the following two programs behave the same:</p>
+<p>Example: <code>pointer_arith_algebraic_properties_2_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_arith_algebraic_properties_2_global.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;inttypes.h&gt;
+int y[2], x[2];
+int main() {
+  int *p=(int*)(((uintptr_t)&amp;(x[0])) + 
+    (((uintptr_t)&amp;(y[1]))-((uintptr_t)&amp;(y[0]))));
+  *p = 11;  // is this free of undefined behaviour?
+  printf(&quot;x[1]=%d *p=%d\n&quot;,x[1],*p);
+  return 0;
+}</code></pre>
+<p>Example: <code>pointer_arith_algebraic_properties_3_global.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_arith_algebraic_properties_3_global.c.html">(experimental data)</a></p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;inttypes.h&gt;
+int y[2], x[2];
+int main() {
+  int *p=(int*)(
+    (((uintptr_t)&amp;(x[0])) + ((uintptr_t)&amp;(y[1])))
+    -((uintptr_t)&amp;(y[0])) );
+  *p = 11;  // is this free of undefined behaviour?
+  //(equivalent to the &amp;x[0]+(&amp;(y[1])-&amp;(y[0])) version?)
+  printf(&quot;x[1]=%d *p=%d\n&quot;,x[1],*p);
+  return 0;
+}</code></pre>
+<p>Note that because the arithmetic is happening at <code>uintptr_t</code>, constructing the transiently &quot;out of bounds&quot; value is not in itself illegal.</p>
+<p>In our proposal, provanance for binary operations on integers is unaffected by swapping the arguments, so they are commutative iff the underlying operation is. For plus/minus associativity, both examples would have empty provenance, as they combine integer values with distinct single provenances.</p>
+<p>Automatic storage-duration analogues:</p>
+<p>Example: <code>pointer_arith_algebraic_properties_2_auto.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_arith_algebraic_properties_2_auto.c.html">(code and experimental data)</a></p>
+<p>Example: <code>pointer_arith_algebraic_properties_3_auto.c</code> <a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_arith_algebraic_properties_3_auto.c.html">(code and experimental data)</a></p>
+<h1 id="proposed-semantics-in-detail"><span class="header-section-number">3</span> Proposed semantics, in detail</h1>
+<p>This gives details for the core proposal only, without escape hatches and without subobject provenance. It is essentially the N2219 proposal with wildcard provenances removed.</p>
+<ul>
+<li><p>Pointer values and integer values both carry a <em>provenance</em>, either the &quot;empty&quot; provenance or a single provenance ID.</p></li>
+<li><p>On every allocation (of objects with static, thread, automatic, and allocated storage duration), we choose a fresh provenance ID (unique in the entire execution), and the resulting pointer value carries that single provenance ID.</p></li>
+<li><p>At any access via a pointer value, then without the <code>-fno-provenance</code> option, its numeric address must be consistent with its provenance, with undefined behaviour otherwise. In particular:</p>
+<ul>
+<li><p>access via a pointer value with empty provenance is undefined behaviour (except where the numeric value is within an implementation-defined set of &quot;device&quot; memory addresses);</p></li>
+<li><p>access via a pointer value with a single provenance ID must be within the corresponding allocation;</p></li>
+</ul>
+<p>This and the result of <code>==</code> are the only places where provenance is used - all the rest is just calculating provenances appropriately.</p>
+<p>With the <code>-fno-provenance</code> option, the numeric address and footprint of the access must be within some live allocation, with undefined behaviour otherwise. Note that the effective-types semantics (without <code>-fno-strict-aliasing</code>) will impose additional constraints here.</p></li>
+<li><p>NULL pointers constructed from integer constant expressions have the empty provenance.</p></li>
+<li><p>With the <code>-fno-provenanance</code> option, whether pointer equality comparison (with <code>==</code> or <code>!=</code>) takes the associated provenances into account or not is indeterminate. Without that option, pointer equality comparison should not take the associated provenances into account.</p></li>
+<li><p>Pointer relational comparison (with <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, and <code>&gt;=</code>) is unaffected by the associated provenances.</p></li>
+<li><p>All casts among pointer and integer types preserve provenance.</p></li>
+<li><p>The result of subtraction of two pointer values is an integer value with empty provenance, irrespective of the operand provenances (in particular, irrespective of whether they point within the same object or not).</p></li>
+<li><p>The result of an addition or subtraction of a pointer value and an integer value has the provenance of the pointer value</p></li>
+<li><p>The result of operations on integer values is as follows:</p>
+<ul>
+<li><p>the result of the address-of has the corresponding provenance of the object associated with the lvalue, for non-function-pointers, or empty for function pointers.</p></li>
+<li><p>the provenance of the result of the unary <code>*</code> operator is whatever was stored</p></li>
+<li><p>integer unary <code>+</code>, unary <code>-</code>, and <code>~</code> operators preserve the original provenance; logical negation ! gives a value with empty provenance.</p></li>
+<li><p><code>sizeof</code> and <code>_Alignof</code> operators give values with empty provenance</p></li>
+<li><p>multiplicative and additive operators, bitwise AND, bitwise exclusive OR, and bitwise inclusive OR operators have provenance as follows:</p>
+<ul>
+<li><p>if both have empty provenance, the result has that</p></li>
+<li><p>if exactly one argument has non-empty provenance, the result has that</p></li>
+<li><p>if both have the same single provenance, the result has that</p></li>
+<li><p>if they have different single provenances, the result has empty provenance</p></li>
+</ul>
+<p>Summarising:</p>
+<pre><code>                  |  empty    ID       ID'   
+         ---------+--------------------------
+         empty    |  empty    ID       ID'   
+         ID       |  ID       ID       empty 
+         ID'      |  ID'      empty    ID'   </code></pre>
+<p>Note that this use of empty for the ID/ID' cases is liberal as far as alias analysis is concerned, but requires programmers to be conservative.</p></li>
+<li><p>bitwise shift has the provenance of its first operand</p></li>
+<li><p>relational, equality, logical AND, logical OR, and constant expressions give values with empty provenance</p></li>
+<li><p>prefix increment and decrement operators follow the pointer or integer arithmetic rules above</p></li>
+<li><p>the conditional operator gives the provenance of the second or third operand as appropriate; simple assignment gives the provenance of the expression, as do function arguments; compound assignment follows the pointer or integer arithmetic rules above; the comma operator gives the provenance of the second operand,</p></li>
+</ul></li>
+<li><p>The representation bytes of a pointer have the provenance of the pointer.</p></li>
+<li>The provenance of a pointer constructed by writing individual representation bytes
+<ul>
+<li><p>if all have the empty provenance, the result has the empty provenance</p></li>
+<li><p>if one has a single provenance and the others all have either the same single provenance or empty provenance, the result has the single provenance</p></li>
+<li><p>if two have distinct single provenance, the result has empty provenance</p></li>
+</ul></li>
+<li><p>Provenance is not propagated via control flow (e.g. by conditionals that check equality of a pointer value).</p></li>
+<li><p>To permit pointers to be constructed via IO (e.g. via <code>%p</code> or by marshalling and unmarshalling their representation bytes, in the same runtime), there are several choices, and it would be useful to know what compiler alias analysis actually does here.</p></li>
+</ul>
+<h1 id="proposed-technical-corrigendum"><span class="header-section-number">4</span> Proposed Technical Corrigendum</h1>
+<p><em style="color:red">TODO: UPDATE</em> This is currently the old N2219 proposal. The wildcard aspects need to be removed, and it needs to be adapted to support escape hatches and perhaps also subobject provenance.</p>
+<p><em style="color:red">TODO: FIX</em> There are errors in the lvalue-conversion and equality text, identified by Martin Sebor, that need to be fixed.</p>
+<ul>
+<li>add the following term to (§3):</li>
+</ul>
+<blockquote>
+<p><strong>provenance</strong><br />
+abstract information associated to each concrete value of pointer or integer type. It can either be the <em>empty</em> provenance, a <em>single</em> provenance for a given object or region, or the <em>wildcard</em> provenance.</p>
+</blockquote>
+<ul>
+<li>add a new clause to (§6.3.2.1):</li>
+</ul>
+<blockquote>
+<p>Without the <code>-fno-provenance</code> option, when the <em>lvalue conversion</em> is performed on an lvalue with pointer type, if it has the empty provenance and the associated memory location is not within the implementation-defined device memory, the behavior is undefined. If it has a single provenance and the object designated by the lvalue is not the same as or within the object from the single provenance, the behavior is undefined.</p>
+<p>NOTE: for the wildcard provenance there is no additional check.</p>
+<p>With the <code>-fno-provenance</code> option, when the <em>lvalue conversion</em> is performed on an lvalue with pointer type, if the associated memory location is not within a current allocation, the behaviour is undefined.</p>
+</blockquote>
+<ul>
+<li>add a new clause to (§6.3.2.1):</li>
+</ul>
+<blockquote>
+<p>The provenance of a value resulting from an <em>lvalue conversion</em> is has follows: if all the bytes of the designated object have the empty provenance, then so does the resulting value; if some bytes have a single provenance and all the other bytes have the empty provenance, then the resulting value has the same single provenance; if any two bytes have different single provenances, then the resulting value has the empty provenance; if any byte has the wildcard provenance, then so does the resulting value.</p>
+</blockquote>
+<ul>
+<li>append after the first sentence of (§6.3.2.3#5):</li>
+</ul>
+<blockquote>
+<p>There is an implementation-defined set of integer values for which the resulting pointer is within a device region of storage.</p>
+</blockquote>
+<ul>
+<li><strong>Null pointers</strong> add the following clause to (§6.3.2.3):</li>
+</ul>
+<blockquote>
+<p>A null pointer has the empty provenance</p>
+</blockquote>
+<ul>
+<li><p><strong>Conversions between pointer and integer type</strong></p>
+<ul>
+<li><p>append to the end of (§6.3.2.3#5):</p>
+<blockquote>
+<p>The resulting pointer has the provenance of the converted integer.</p>
+</blockquote></li>
+<li><p>append to the end of (§6.3.2.3#6):</p>
+<blockquote>
+<p>The resulting integer has the provenance of the converted pointer.</p>
+</blockquote></li>
+<li><p>add the following clause to (§6.3.2.3):</p>
+<blockquote>
+<p>All conversions between two pointer types leave the provenance unchanged.</p>
+</blockquote></li>
+</ul></li>
+<li><p><strong>Expression operators</strong> add the following clause to (§6.5) (for later reference we call this clause X, to be replaced by its section number)</p></li>
+</ul>
+<blockquote>
+<p>Some expression operators evaluate to an integer value when both operands have integer type. For these the provenance of the resulting integer is as follows: if the value of both operands have empty provenance, so does the result; if the value of one operand has a single provenance and the other has empty provenance, or both values have the same single provenance, the result has that single provenance; if the values of the two operands have different single provenances, the result has the empty provenance; if the value of one operand has the wildcard provenance, the result has the wildcard provenance.</p>
+</blockquote>
+<ul>
+<li><strong>Address operator</strong> append to the end of (§6.5.3.2#3):</li>
+</ul>
+<blockquote>
+<p>When the operand designates an object, the result has the single provenance of the outermost object containing that object.</p>
+</blockquote>
+<ul>
+<li><strong>Unary arithmetic operators</strong> add the following clause to (§6.5.3.3):</li>
+</ul>
+<blockquote>
+<p>For all these operators, when the operand has integer type, the result has the empty provenance.</p>
+</blockquote>
+<ul>
+<li>**sizeof and _Alignof operators** append to the end of both (§6.5.3.4#2) and (§6.5.3.4#3):</li>
+</ul>
+<blockquote>
+<p>The result has the empty provenance.</p>
+</blockquote>
+<ul>
+<li><strong>Multiplicative operators</strong> add the following clause to (§6.5.5):</li>
+</ul>
+<blockquote>
+<p>When both operands have integer type, the resulting integer has provenance as described in X.</p>
+</blockquote>
+<ul>
+<li><p><strong>Additive operators</strong></p>
+<ul>
+<li>add the following to (§6.5.6#5) (or as a new clause):</li>
+</ul>
+<blockquote>
+<p>When two integers are added or subtracted, the resulting integer has provenance as described in X.</p>
+</blockquote>
+<ul>
+<li>append to the end of (§6.5.6#8):</li>
+</ul>
+<blockquote>
+<p>The result has the provenance of the pointer operand.</p>
+</blockquote>
+<ul>
+<li>append to the end of (§6.5.6#9):</li>
+</ul>
+<blockquote>
+<p>The result has the empty provenance.</p>
+</blockquote></li>
+<li><p><strong>Bitwise shift operators</strong> add the following clause to (§6.5.7):</p></li>
+</ul>
+<blockquote>
+<p>The result has the provenance of the first operand.</p>
+</blockquote>
+<ul>
+<li><strong>Relational operator</strong> append to the last sentence of (§6.5.8#6):</li>
+</ul>
+<blockquote>
+<p>, and has the empty provenance.</p>
+</blockquote>
+<ul>
+<li><p><strong>Equality operator</strong></p>
+<ul>
+<li>append to the penultimate sentence of (§6.5.9#3):</li>
+</ul>
+<blockquote>
+<p>, and has the empty provenance.</p>
+</blockquote>
+<ul>
+<li>modify (§6.5.9#6) from the current:</li>
+</ul>
+<blockquote>
+<p>Two pointers compare equal if and only if both are null pointers, both are pointers to the same object (including a pointer to an object and a subobject at its beginning) or function, both are pointers to one past the last element of the same array object, or one is a pointer to one past the end of one array object and the other is a pointer to the start of a different array object that happens to immediately follow the first array object in the address space.109)</p>
+</blockquote>
+<pre><code>    to read:</code></pre>
+<blockquote>
+<p><strong>Without the <code>-fno-provenance</code> option,</strong> two pointers compare equal if and only if both are null pointers, both are pointers to the same object (including a pointer to an object and a subobject at its beginning) or function, both are pointers to one past the last element of the same array object, or one is a pointer to one past the end of one array object and the other is a pointer to the start of a different array object that happens to immediately follow the first array object in the address space<strong>, and they have the same single provenance (for the other cases involving their provenances, it is unspecified whether the pointers compare equal). With the <code>-fno-provenance</code> option, two pointers compare equal iff they have the same numeric address.</strong>109)</p>
+</blockquote></li>
+<li><p><strong>Bitwise AND operator</strong> append to the end of (§6.5.10#4):</p></li>
+</ul>
+<blockquote>
+<p>The result has provenance as described in X.</p>
+</blockquote>
+<ul>
+<li><strong>Bitwise exclusive OR operator</strong> append to the end of (§6.5.11#4):</li>
+</ul>
+<blockquote>
+<p>The result has provenance as described in X.</p>
+</blockquote>
+<ul>
+<li><strong>Bitwise inclusive OR operator</strong> append to the end of (§6.5.12#4):</li>
+</ul>
+<blockquote>
+<p>The result has provenance as described in X.</p>
+</blockquote>
+<ul>
+<li><strong>Logical AND operator</strong> append to the last sentence of (§6.5.13#3):</li>
+</ul>
+<blockquote>
+<p>, and has the empty provenance.</p>
+</blockquote>
+<ul>
+<li><strong>Logical OR operator</strong> append to the last sentence of (§6.5.14#3):</li>
+</ul>
+<blockquote>
+<p>, and has the empty provenance.</p>
+</blockquote>
+<ul>
+<li><strong>Object representation</strong> modify the following sentence from (§6.2.6.1#4): after the second sentence</li>
+</ul>
+<blockquote>
+<p>The value may be copied into an object of type unsigned char [n] (e.g., by memcpy)</p>
+</blockquote>
+<pre><code>   to read:</code></pre>
+<blockquote>
+<p>The value may be copied into an object of type unsigned char [n] (e.g., by memcpy), if the value is an integer or a pointer (and therefore has a provenance), the elements of the resulting array all have that provenance.</p>
+</blockquote>
+<ul>
+<li><strong>Provenance via IO</strong> modify the sentence from (§7.21.6.2#12 %p conversion specifier):</li>
+</ul>
+<blockquote>
+<p>If the input item is a value converted earlier during the same program execution, the pointer that results shall compare equal to that value</p>
+</blockquote>
+<pre><code>   to read:</code></pre>
+<blockquote>
+<p>If the input item is a value converted earlier during the same program execution, the pointer that results shall compare equal to the most recent such value <strong>and have the same provenance</strong></p>
+</blockquote>
+</body>
+</html>
