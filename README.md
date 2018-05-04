@@ -17,3 +17,10 @@ https://lists.cam.ac.uk/mailman/listinfo/cl-c-memory-object-model
 GitHub repo
 -----------
 https://github.com/C-memory-object-model-study-group/c-mom-sg
+
+
+Notes
+-----
+In the notes/ directory.  Please follow the naming convention.
+HTML files can be viewed in a properly rendered way from URLs like this:
+[https://cdn.rawgit.com/C-memory-object-model-study-group/c-mom-sg/master/notes/cmom-0001-2018-05-04-sewell-clarifying-provenance-v4.html](https://cdn.rawgit.com/C-memory-object-model-study-group/c-mom-sg/master/notes/cmom-0001-2018-05-04-sewell-clarifying-provenance-v4.html)
