@@ -12,7 +12,7 @@
 <div id="header">
 <h1 class="title">Clarifying Pointer Provenance v4</h1>
 <h2 class="author">Kayvan Memarian, Victor Gomes, Peter Sewell. University of Cambridge</h2>
-<h3 class="date">Fri 4 May 09:52:56 BST 2018</h3>
+<h3 class="date">Wed 23 May 16:21:48 BST 2018</h3>
 </div>
 <div id="TOC">
 <ul>
@@ -385,8 +385,8 @@ int main() {
   // initialise two elements of a notional array within the allocation
   int *p1 = (int*)((unsigned char*)a+1*sizeof(int));
   int *p3 = (int*)((unsigned char*)a+3*sizeof(int));
-  *p1 = 11;
-  *p3 = 33;
+  *p1 = 1;
+  *p3 = 3;
   // calculate an unsigned char* offset between pointers to those elements
   ptrdiff_t offset=(unsigned char*)p3-(unsigned char*)p1;  // provenance ?
   // add the offset to a pointer to the first
@@ -399,8 +399,8 @@ int main() {
   if (memcmp(&amp;p3, &amp;r3, sizeof(p3)) == 0) {
     // try to use it to access that
     *r3 = 11;  // is this free of undefined behaviour?
-    printf(&quot;*p1=%d *q3=%d *r1=%d *r3=%d \n&quot;,
-           *p1, *q3, *r1, *r3);
+    printf(&quot;*p1=%d *r1=%d *r3=%d \n&quot;,
+           *p1, *r1, *r3);
   }
   return 0;
 }</code></pre>
@@ -417,7 +417,7 @@ int main() {
   char *p1 = (char*)((unsigned char*)a+1*sizeof(int)+offsetof(st,c));
   int  *p3 = (int *)((unsigned char*)a+3*sizeof(int)+offsetof(st,i));
   *p1 = 'a';
-  *p3 = 33;
+  *p3 = 3;
   // calculate an unsigned char* offset between pointers to those elements
   ptrdiff_t offset=((unsigned char*)p3-offsetof(st,i)) -
                    ((unsigned char*)p1-offsetof(st,c));  // provenance ?
@@ -432,9 +432,8 @@ int main() {
   // if that has the same representation as the pointer to the i member of the third...
   if (memcmp(&amp;p3, &amp;r3, sizeof(p3)) == 0) {
     // try to use it to access that
-    *r3 = 11;  // is this free of undefined behaviour?
-    printf(&quot;*p1=0x%x *q3=%d *r1=0x%x *r3=%d \n&quot;,
-           (unsigned int)*p1, *p3, (unsigned int)*r1, *r3);
+    *r3 = 33;  // is this free of undefined behaviour?
+    printf(&quot;*p3=%d *r3=%d \n&quot;, *p3, *r3);
   }
   return 0;
 }</code></pre>
@@ -771,6 +770,7 @@ int main() {
 }</code></pre>
 <p>However, in implementations some optimisation may be done before alias analysis - in particular, in LLVM, algebraic optimisations are - and those optimisations might erase the escape of <code>&amp;x</code>, replacing it and all the calculation of <code>i3</code> by <code>0x0</code> (a similar example would have <code>i3 = i1-i1</code>).<br />
 But then alias analysis might be unable to see that <code>*q</code> could access <code>x</code>, and so report that it couldn't, and hence enable optimisations that are unsound for this case. The basic point is that escapes are not preserved by optimisation.</p>
+<p>Implementations that take a very conservative view of all pointers formed from integers (deeming them to potentially alias with almost anything) would automatically be ok w.r.t. this, but implementations that do track provenance through integers would need to do more work.</p>
 <p>A possible solution, which would need some implementation work but (we guess) not very much, would be to require those initial optimisation passes to <em>record</em> the escapes involved in computations they erase, so that that could be passed in explicitly to alias analysis.</p>
 <p>This would also be necessary for a more refined treatment of pointers from I/O, in which the source-language semantics permits them to alias only with source-language I/O-escaped pointers - more on that below.</p>
 <h2 id="provenance-escape-hatches-for-io-and-inter-object-arithmetic---and-the-problem-with-wildcards"><span class="header-section-number">2.10</span> Provenance escape hatches, for IO and inter-object arithmetic - and the problem with wildcards</h2>
