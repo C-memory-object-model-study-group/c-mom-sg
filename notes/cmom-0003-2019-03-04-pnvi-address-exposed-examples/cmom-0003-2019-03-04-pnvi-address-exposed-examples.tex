@@ -510,7 +510,7 @@ model}
 This note revisits the examples of 
 \emph{Exploring C Semantics and Pointer Provenance} [POPL 2019] (also
 available as ISO WG14
-N2311 \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2311.pdf}
+N2311 \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2311.pdf})
 for the PNVI address-exposed and PNVI address-exposed
 user-disambiguation models recently discussed in the C memory object
 model study group. 
@@ -980,7 +980,7 @@ implications on optimisation.   We define and explore several
  alternatives:
 
 \begin{itemize}
-\item \textbf{PNVI}: a semantics that does not track provenance via integers,
+\item \textbf{PNVI-plain}: a semantics that does not track provenance via integers,
 but instead, at integer-to-pointer cast points, checks whether the 
 given address points within a live object and, if so, recreates the
 corresponding provenance.  We explain in the next section why this is not as damaging to
@@ -1005,6 +1005,12 @@ particular choices for the provenance results of integer and
 pointer \lstinline{+}/\lstinline{-} integer operations;
 or
 \end{itemize}
+We write PNVI-* for PNVI-plain, PNVI-ae, and PNVI-aeudi.
+The PNVI-plain and PVI semantics were described in the POPL 2019/N2311
+paper.  PNVI-ae and PNVI-aeudi have emerged from discussions in the C
+memory object model study group. 
+
+
 We also mention other variants of PNVI that seem less desirable:
 \begin{itemize}
 \item \textbf{PNVI-address-taken}: a variant that integer-to-pointer
@@ -1018,7 +1024,9 @@ provenance to the results of integer-to-pointer casts, delaying checks
 to access time.
 \end{itemize}
 %
-The PVI semantics, which we developed
+
+
+The PVI semantics, originally developed
 informally in ISO WG14 working papers~\cite{N2090,N2263}, 
 was motivated in part by 
 the GCC documentation~\cite{gcc-arrays}:
@@ -1044,12 +1052,12 @@ the result of casts from integer types as potentially broadly
 aliasing, at least in their GIMPLE IR, and such test results as long-standing
 bugs in the RTL backend.
 
-Shifting to a provenance semantics that does not track provenance via
-integers would be a substantial simplification, in the definition of
-the semantics, in how easy it is for people to understand, and in the
-consequences for existing code (which might otherwise need additional
-annotations for exotic idioms).  That leads us to articulate and explore the various
-options above, to see which could be broadly acceptable.
+% Shifting to a provenance semantics that does not track provenance via
+% integers would be a substantial simplification, in the definition of
+% the semantics, in how easy it is for people to understand, and in the
+% consequences for existing code (which might otherwise need additional
+% annotations for exotic idioms).  That leads us to articulate and explore the various
+% options above, to see which could be broadly acceptable.
 
 \newpage
 
@@ -1070,8 +1078,8 @@ be converted and back, and that \emph{``the result will compare equal to the
 original pointer''}.  As we have seen, in a post-DR260CR
 provenance-aware semantics, \emph{``compare equal''} is not enough to
 guarantee the two are interchangeable, which was clearly the intent of
-that phrasing.  Both PVI and PNVI support this, by preserving or
-reconstructing the original provenance respectively
+that phrasing.  All variants of PNVI-* and PVI  support this, by 
+reconstructing or preserving the original provenance respectively.
 
 \ 
 
@@ -1087,7 +1095,16 @@ with \lstinline{uintptr_t}
 \end{wrapfigure}
 arithmetic.
 %
-In PVI, this remains UB. First,
+In PNVI-*, this has defined behaviour.  For PNVI-plain: the integer
+values are pure integers, and at the \lstinline{int*} cast
+the value of \lstinline{ux+offset} matches the address
+of \lstinline{y} (live and of the right type), so the
+resulting pointer value takes on the provenance of the \lstinline{y}
+allocation.  For PNVI-ae and PNVI-aeudi, the allocation to \lstinline{y}
+is marked as \emph{exposed} at the cast of \lstinline{&y} to an
+integer, and so the above is likewise permitted there. 
+
+In PVI, this is UB. First,
 the integer values of \lstinline{ux}
 and \lstinline{uy} have the provenances of the allocations
 of \lstinline{x} and \lstinline{y} respectively. Then 
@@ -1100,14 +1117,11 @@ the cast to \lstinline{int*}.
 Then the final \lstinline{*p=11} access is via a pointer value whose
 address is not consistent with its provenance.
 
-In PNVI, on the other hand, this has defined behaviour.  The integer
-values are pure integers, and at the \lstinline{int*} cast
-the value of \lstinline{ux+offset} matches the address
-of \lstinline{y} (live and of the right type), so the
-resulting pointer value takes on the provenance of the \lstinline{y}
-allocation.  
-%
-Similarly, PVI forbids while PNVI allows (here contrary to current GCC/ICC O2) \lstinline{uintptr_t} analogues of the
+ 
+
+Similarly, PNVI-* allows
+(here contrary to current GCC/ICC O2) while PVI
+forbids a \lstinline{uintptr_t} analogue of the
 first test of \S\ref{sec:prov}, on the left below.
 %\begin{wrapfigure}{r}{0.55\textwidth}
 
@@ -1126,7 +1140,7 @@ first test of \S\ref{sec:prov}, on the left below.
   \end{center}
 Both choices are defensible here: PVI will permit more aggressive
 alias analysis for pointers computed via integers (though those may be
-relatively uncommon), while PNVI will
+relatively uncommon), while PNVI-* will
 allow not just this test, which as written is probably not idiomatic
 desirable C, but also the essentially identical XOR doubly linked list
 idiom, using only one pointer per
@@ -1164,11 +1178,11 @@ value to store some tag bits.
 To allow this, we 
 suggest that the set of unused bits for pointer types of each alignment
 should be made implementation-defined.
-In PVI we make the binary operations used here, combining an integer value that has some
-provenance ID with a pure integer, preserve that provenance. 
-In PNVI the intermediate value of \lstinline{q} will have empty
+In PNVI-* the intermediate value of \lstinline{q} will have empty
 provenance, but the value of \lstinline{r} used for the access will 
 re-acquire the correct provenance at cast time. 
+In PVI we make the binary operations used here, combining an integer value that has some
+provenance ID with a pure integer, preserve that provenance. 
 
 \
 
@@ -1201,7 +1215,7 @@ in practice, either for C programmers or for compiler optimisation.
 One could conceivably switch to a PVI-multiple variant, allowing
 provenances to be finite sets of allocation IDs.  That would allow the
 \myfooexamplename{pointer_offset_from_int_subtraction_global_xy.c} example above, but perhaps too much else besides.
-PNVI does not suffer from this problem.
+The PNVI-* models do not suffer from this problem.
 
 
 \myparagraph{Copying pointer values with \lstinline{memcpy()}}
@@ -1233,20 +1247,16 @@ but the following questions suggest less ad hoc approaches.
 \myparagraph{Copying pointer values bytewise, with user-\lstinline{memcpy}}
 One of the key aspects of C is that it supports manipulation of object
 representations, e.g.~as in the following naive user implementation of
-a \lstinline{memcpy}-like function, which constructs a pointer value from copied bytes. 
-This too should be allowed.
-PVI makes it legal by regarding each 
-byte (as an integer value) as having the provenance of the original
-pointer, and the result pointer, being composed of representation
-bytes of which at least one has that provenance and none have a conflicting provenance, as having the same.
-%
-PNVI makes it legal in a different way: there, the representation
-bytes have no
+a \lstinline{memcpy}-like function,
 \begin{wrapfigure}{r}{0.57\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_copy_user_dataflow_direct_bytewise.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_dataflow_direct_bytewise.c.html}%
 }
 \vspace*{-1.0\baselineskip}
 \end{wrapfigure}
+which constructs a pointer value from copied bytes. 
+This too should be allowed.
+PNVI-plain makes it legal: the representation
+bytes have no
 provenance, but when reading a pointer value from the
 copied memory, the read will be from multiple representation-byte
 writes.  We use essentially the same semantics for such reads as for
@@ -1254,8 +1264,36 @@ integer-to-pointer casts: checking at read-time that the address is
 within a live object, and giving the result the corresponding
 provenance. 
 %
-One could instead require, more restrictively, that the result has all the
-original bytes of some legitimate pointer. There may not be much reasonable
+PNVI-ae and PNVI-aeudi need additional machinery, not yet developed in
+detail, to permit this.
+
+\
+
+\
+
+\
+
+\
+
+\
+
+
+One could:
+\begin{enumerate}
+\item Mark allocations as exposed whenever representation bytes of
+  pointers to them are read, and use the same semantics for reads of
+  pointer values from representation-byte writes as for
+  integer-to-pointer casts. This is attractively simple, but also
+  means that integer-to-pointer casts become permitted for all such
+  allocations, perhaps over-liberally.
+\item Record symbolically in the semantics of integer values what such
+  representation-byte values are of the form ``byte $n$ of pointer
+  value $v$'', and allow reads of pointer values from
+  representation-byte writes only for such.  This is more complex and
+  rather ad hoc, arbitrarily restricting the integer computation that
+  can be done on such bytes.
+\end{enumerate}
+There may not be much reasonable
 code that would be sensitive to the distinctions between these, but there is some, e.g.~manipulations of pointers where one knows the high-order bytes
 are the same. This is important in some language runtimes,
 using 32- or 48-bit values for pointers in a 64-bit architecture.
@@ -1263,6 +1301,13 @@ using 32- or 48-bit values for pointers in a 64-bit architecture.
 As Lee observes [private communication], to make it legal for
 compilers to replace user-memcpy by the library version, one might
 want the two to have exactly the same semantics.
+
+PVI makes it legal by regarding each 
+byte (as an integer value) as having the provenance of the original
+pointer, and the result pointer, being composed of representation
+bytes of which at least one has that provenance and none have a conflicting provenance, as having the same.
+%
+%
 
 Real \lstinline{memcpy()} implementations are more complex. The glibc \lstinline{memcpy()}\cite{glibc_memcpy}
 involves copying byte-by-byte, as
@@ -1278,18 +1323,24 @@ at present.
 To more clearly delimit what idioms our proposals do and do not
 allow, consider copying pointers via code that encrypts or compresses a block of
 multiple pointers together, decrypting or uncompressing later.
-In PVI, this involves exactly the same combination of distinct-provenance
-values that (to prohibit inter-object arithmetic, and thereby enable
-alias analysis) we above regard as having empty-provenance results.  
-As copying pointers in this way  is a very rare idiom, we believe it reasonable to require such
-code to have additional annotations.
-In PNVI, it would just work, in the same way as \lstinline{user_memcpy()}.
+
+In PNVI-plain, it would just work, in the same way as \lstinline{user_memcpy()}.
+In PNVI-ae and PNVI-aeudi, it would not, and it is not clear that
+there is any reasonable modification that would enable it. 
 
 It has been argued that pointer construction via \lstinline{intptr_t} and back via any
-value-dependent identity function\comment{Stephen says: not sure exactly what this means?} should be required to work.  That
+value-dependent identity function should be required to work.  That
 would admit the above, but defining that notion of ``value-dependent'' is
 exactly what is hard in the concurrency thin-air problem~\cite{BMNPS2015},
 and we do not believe that it is practical to make compilers respect dependencies in general.
+
+In PVI, this involves exactly the same combination of distinct-provenance
+values that (to prohibit inter-object arithmetic, and thereby enable
+alias analysis) we above regard as having empty-provenance results.  
+As copying pointers in this way  is a very rare idiom, one can argue
+that  it is reasonable to require such
+code to have additional annotations.
+
 
 
 \myparagraph{Copying pointer values via control flow} 
@@ -1298,20 +1349,34 @@ also have to ask whether a usable pointer can be constructed via
 non-dataflow control-flow paths, e.g.~if testing
 equality of an unprovenanced integer value against a valid pointer
 permits the integer to be used as if it had the same provenance as the
-pointer.  We do not believe that this is relied on in practice, and our
-proposed PVI semantics does not permit it; it tracks provenance only
-through dataflow.  For example, consider
+pointer.  We do not believe that this is relied on in practice.
+ For example, consider
 exotic versions of
 \lstinline{memcpy}
 that make a control-flow choice on the
 value of each bit or each byte, reconstructing each with constants in
 each control-flow branch
-(\myfooexamplename{pointer_copy_user_ctrlflow_bytewise.c} and \myfooexamplename{pointer_copy_user_ctrlflow_bitwise.c}). 
-These are value-dependent identity functions, and in PNVI would work, while PVI they would give
+
+\
+
+\begin{center}
+  \begin{minipage}{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_copy_user_ctrlflow_bytewise_abbrev.c}{}%
+}
+\vspace*{-0\baselineskip}
+\end{minipage}
+  \begin{minipage}{0.49\textwidth}
+    {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_copy_user_ctrlflow_bitwise.c}{}%
+}
+  \end{minipage}
+  \end{center}
+In PNVI-plain these would both work, while in PNVI-ae and PNVI-aeudi
+only the second would, as the first reads representation bytes rather
+than casting the pointer value to integer. In PVI they would give
 empty-provenance pointer values and hence UB.
 
 
-
+\newpage
 \myparagraph{Integer comparison and provenance}
 If integer values have associated provenance, as in PVI, one has to ask whether
 the result of an integer comparison should also be allowed to be provenance
@@ -1320,26 +1385,57 @@ GCC did do so at one point, but it was regarded as a
 bug and fixed (from 4.7.1 to 4.8).   We propose that the numeric
 results of all operations on integers should be unaffected by the
 provenances of their arguments. 
-.
+For PNVI-*, this question is moot. 
 
 
 \myparagraph{Pointer provenance and union type punning}
 Pointer values can also be constructed in C by type punning, e.g.~writing
 a \lstinline{uintptr_t} union member and then reading it as a
-pointer-type member (\myfooexamplename{provenance_union_punning_2_global_xy.c}). 
+pointer-type member
+\begin{wrapfigure}{r}{0.45\textwidth}
+  \vspace*{-0.0\baselineskip}
+          {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_union_punning_2_global_xy.c}{}
+          }
+  \vspace*{-1.0\baselineskip}
+\end{wrapfigure}%
 The ISO standard says \emph{``the appropriate part of the object
 representation of the value is reinterpreted as an object
 representation in the new type''}, but says little about that
 reinterpretation. %, and DR260 CR does not speak to the provenance of the
 %result.
 We propose that these reinterpretations be required to be
-implementation-defined, (in PVI) that it be
-implementation-defined whether the result preserves the original
-provenance (e.g.~where they are the identity), and (in PNVI) that the
+implementation-defined,
+and, in PNVI-plain, that the
 same integer-to-pointer cast semantics be used at such reads
 (the latter does not match current ICC O2 behaviour). 
+\TODO{PNVI-ae*?}
+For PVI, we propose that it be
+implementation-defined whether the result preserves the original
+provenance (e.g.~where they are the identity).
+
+\
+
+\
+
+\
+
+\
+
+\
 
 
+\
+
+\
+
+\
+
+\
+
+\
+
+
+\TODO{PNVI-ae and PNVI-aeudi considered up to here only}
 
 \myparagraph{Pointer provenance via IO}
 Consider now pointer provenance flowing 
