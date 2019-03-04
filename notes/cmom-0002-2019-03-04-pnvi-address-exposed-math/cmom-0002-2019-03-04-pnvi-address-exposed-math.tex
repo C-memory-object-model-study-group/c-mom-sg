@@ -632,7 +632,7 @@ $(n,\tau_{\text{opt}},a,f,k,t)$:
 \end{itemize}
 \myu{In PNVI-aeudi, $A$ also maps all symbolic storage instance IDs $\iota$,
 to sets of either one or two (non-symbolic) storage instance IDs.
-It looks as if we also need to record a partial equivalence relation
+One might also need to record a partial equivalence relation
 over symbolic storage instance IDs, to cope with the pointer
 subtraction and relational comparison cases where one learns that two
 provenances are equal but both remain ambiguous, but that is not yet
@@ -923,15 +923,17 @@ then if those two sets share a single element which satisfies the other rule
 preconditions, both symbolic storage instance IDs are resolved to
 that.  If the sets have two pairs of elements that satisfy the other
 conditions (which I believe can only happen if the addresses are
-equal), then we should remember an identity of symbolic storage
+equal), then we should should arguably remember an identity of symbolic storage
 instance IDs (this will need an extension to the state we have so
 far, and additional modifications to the rules below beyond what is in
 this draft). Otherwise UB. 
-(This identity information is needed be because you might only know that they are the same, without
- knowing which.  Suppose $p$ and $q$ have been produced by separate casts
+(This identity information is needed in princple because you might only know that they are the same, without
+ knowing which.  Suppose \lstinline{p} and \lstinline{q} have been produced by separate casts
  from an integer which is ambiguously one-past one allocation and at
- the start of another. Then after $p-q$, we know they must have been
- the same provenance, but we still don't know which.)}
+ the start of another. Then after \lstinline{p-q} or \lstinline{p<q} we know they must have been
+ the same provenance, but we still don't know which.  Alternatively,
+ we could permit such subtractions and comparisons, leaving the
+ ambiguity (of both pointers) unresolved.)}
 \[
 \ruleTwo
       {\diffPtr(\tau, p, p')=x}
