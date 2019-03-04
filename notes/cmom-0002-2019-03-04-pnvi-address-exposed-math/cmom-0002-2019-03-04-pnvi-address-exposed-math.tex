@@ -1,0 +1,1280 @@
+
+\documentclass[acmsmall,review,screen]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+
+\citestyle{acmauthoryear}
+
+\newif\ifWGfourteennumber
+\WGfourteennumberfalse
+
+
+\usepackage[normalem]{ulem}
+\usepackage{wrapfig}
+\usepackage{minibox}
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+                        %% http://ctan.org/pkg/booktabs
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+\usepackage{verbatim}
+
+
+\newif\ifmycopyright\mycopyrightfalse
+%\mycopyrighttrue
+\setcopyright{none}
+
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%\citestyle{acmauthoryear}  %% For author/year citations
+%\citestyle{acmnumeric}     %% For numeric citations
+%\setcitestyle{nosort}      %% With 'acmnumeric', to disable automatic
+                            %% sorting of references within a single citation;
+                            %% e.g., \cite{Smith99,Carpenter05,Baker12}
+                            %% rendered as [14,5,2] rather than [2,5,14].
+%\setcitesyle{nocompress}   %% With 'acmnumeric', to disable automatic
+                            %% compression of sequential references within a
+                            %% single citation;
+                            %% e.g., \cite{Baker12,Baker14,Baker16}
+                            %% rendered as [2,3,4] rather than [2-4].
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsthm,amssymb,bm,mathtools}
+
+\usepackage[all]{xy}
+
+% these are useful comments, maybe we should make them footnotes?
+\renewcommand{\comment}[2][comment]{{\color{blue}\bf[#1: #2]}}
+% uncomment the following line to remove comments
+ \renewcommand{\comment}[2][comment]{}
+
+\newcommand{\TODO}[1]{{\color{red}\bf[TODO: #1]}}
+\definecolor{VGcolor}{rgb}{0.9 0.2 0.0}
+\newcommand{\VG}[1]{{\color{VGcolor}\bf[VG: #1]}}
+\definecolor{Kcolour}{rgb}{0.87451 0.5 0.0}
+\newcommand{\K}[1]{{\color{Kcolour}\bf[K: #1]}}
+%\renewcommand{\TODO}[1]{}
+
+\newcommand{\myparagraph}[1]{\vspace{0.5\baselineskip}\par\noindent{\normalsize\bfseries{#1}}\quad}
+\newcommand{\myqs}[1]{\vspace{0.2\baselineskip}\par\noindent{\normalsize\bfseries{#1}}\quad}
+
+\def\elasticquad{\hspace{0em plus 1em}\relax}
+
+\newcommand{\myq}[1]{\vspace{0.2\baselineskip}\par\noindent{\normalsize\emph{#1}}\quad}
+
+\newcommand{\mydemotesturl}[1]{https://cerberus.cl.cam.ac.uk/cerberus?demo/#1}
+\newcommand{\mytesturl}[1]{https://cerberus.cl.cam.ac.uk/cerberus?defacto/#1}
+\newcommand{\mytestlink}[2]{\href{\mytesturl{#1}}{#2}}
+\newcommand{\mylsttestlink}[1]{\mytestlink{#1}{\lstinline{#1}}}
+
+%\newcommand{\mytestlink}[2]{\url{#2}} %\href{\mytesturl{#1}}{\lstinline{#2}}}
+% macros for question-tooling generated latex
+\newcommand{\myqtquestion}[2]{\myparagraph{#1. #2}}
+%\newcommand{\myqtexample}[3]{\myexampleheader{#2}  \url{#3}\lstinputlisting{#1#2}}
+\newcommand{\mylistingmargin}{5mm}
+\newcommand{\myqtlinkexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} #4\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{tests-hand-edited/#2}\vspace*{-0.25\baselineskip}}}}
+
+\newcommand{\myqtexample}[3]{\myqtlinkexample{#1}{#2}{#3}{{\mylsttestlink{#2}}}}
+
+\newcommand{\myfooexamplename}[1]{\mylsttestlink{#1}}
+\newcommand{\myfooexample}[3]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mylsttestlink{#2}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+\newcommand{\myfoolinkexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} #4\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+\newcommand{\mycerbexamplename}[2]{\mytestlink{#2}{\lstinline{#1}}}
+\newcommand{\mycerbexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mycerbexamplename{#2}{#4}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+
+\usepackage{alltt}
+
+\makeatletter
+\newcommand{\manuallabel}[2]{\def\@currentlabel{#2}\label{#1}}
+\makeatother
+
+\usepackage[scaled=0.82]{beramono}
+\usepackage{listings}
+\lstset{basicstyle=\renewcommand{\baselinestretch}{0.9}\tt\small}
+%\lstset{basicstyle=\tt} 
+\lstset{language=c}
+%\lstset{numbers=left}
+% \lstset{basicstyle=\ttfamily} 
+% \lstset{basicstyle=\footnotesize\ttfamily} 
+\lstset{keywordstyle=\bfseries}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{tikz}
+%\usepackage{pgfplots}
+
+\newenvironment{tightenumerate}{%
+\begin{enumerate}%
+\setlength{\partopsep}{0pt}%
+\setlength{\itemsep}{1pt}%
+\setlength{\parskip}{0pt}%
+\setlength{\parsep}{0pt}%
+}{\end{enumerate}
+}
+\newenvironment{vtightenumerate}{%
+\begin{enumerate}%
+\setlength{\topsep}{0pt}%
+\setlength{\partopsep}{0pt}%
+\setlength{\itemsep}{1pt}%
+\setlength{\parskip}{0pt}%
+\setlength{\parsep}{0pt}%
+}{\end{enumerate}
+}
+
+%\setlength{\leftmargini}{0mm}
+
+\newenvironment{tightitemize}{
+% \begin{itemize}
+%   \setlength{\labelwidth}{0pt}
+%   \setlength{\leftmargin}{0pt}
+%   \setlength{\itemsep}{1pt}
+%   \setlength{\parskip}{0pt}
+%   \setlength{\parsep}{0pt}}{\end{itemize}
+% }
+
+% \newenvironment{verytightitemize}{
+ \begin{itemize}
+   \setlength{\itemsep}{0pt}
+   \setlength{\parskip}{0pt}
+   \setlength{\leftmargin}{0pt}
+   \setlength{\leftmargini}{1.5mm}
+   \setlength{\leftmarginii}{3mm}
+   \setlength{\leftmarginiii}{4.5mm}
+   \setlength{\labelwidth}{1.5mm}
+   \setlength{\itemindent}{0mm}
+   \setlength{\labelsep}{1.5mm}
+   \setlength{\rightmargin}{0pt}
+   \setlength{\topsep}{0pt}
+   \setlength{\parsep}{0pt}}{\end{itemize}
+ }
+
+\newenvironment{verytightitemize}{
+\begin{list}{\hspace*{-2mm}$\bullet$}{
+  \setlength{\itemsep}{1pt}
+  \setlength{\topsep}{2pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\leftmargin}{2mm}
+  \setlength{\labelwidth}{0pt}
+%  \settowidth{\labelwidth}{$\bullet$}
+%  \setlength{\itemindent}{0pt}
+  \settowidth{\itemindent}{$\bullet$}
+  \addtolength{\itemindent}{0mm}
+  \setlength{\parsep}{0pt}}}{\end{list}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\ifWithCharonData\WithCharonDatatrue
+\WithCharonDatafalse
+\newif\ifWithCharonSome\WithCharonSometrue
+\WithCharonSomefalse
+
+
+%%%%%%%%%%% typesetting of Charon output %%%%%%%%%%%%
+\newcommand{\charontt}[1]{\texttt{#1}}
+\newcommand{\charonZeroExitCodes}[2]{}
+\newcommand{\charonNonZeroExitCodes}[2]{{\color{red}[*** exit codes #1 / #2 ***]}}
+\newcommand{\charonSourcesMismatch}{{\color{red}SOURCES MISMATCH}}
+
+
+% #1  tool instance name
+% #2  tool command-line name
+% #3  tool args
+% #4  compile stderr    
+% #5  compile and execute exit codes 
+% #6  stdout            
+% #7  stderr            
+% #8  unused
+% #9  execute signals
+\newcommand{\charonSameOutcome}[9]{\noindent\textsc{#1:} %
+ \ldots as above\\}
+\newcommand{\charonSameModuloAddressesOutcome}[9]{\noindent\textsc{#1:} %
+ \ldots as above (modulo addresses)\\%
+%{}[#5/#8]#9\\\charontt{#4}\charontt{#6}\charontt{#7}%
+}
+\newcommand{\charonOutcome}[9]{\noindent\textsc{#1:} %
+#5#9\\\charontt{#4}\charontt{#6}\charontt{#7}}
+
+% #1  flavour (iso/defacto)
+% #2  warnings
+% #3  errors
+% #4  return code
+% #5  stdout
+% #6  stderr
+\newcommand{\charonExpectation}[6]{\noindent\textsc{#1:} %
+\charontt{#2}\charontt{#3}\charontt{#5}}
+% #1  target (iso/defacto)
+% #2  expectation
+\newcommand{\charonNewExpectation}[2]{\noindent\textsc{#1:} %
+\charontt{#2}\\}
+\newcommand{\charonTest}[2]{#2}
+ 
+%%%% typesetting of examples, with and without code and Charon %%%%%% output %%
+\newcommand{\myexamplefontsize}{\fontsize{8pt}{9pt}}
+\newcommand{\myexamplename}[1]{\url{#1}}
+%\newcommand{\myexampleheader}[1]{\medskip\par\noindent\textsc{Example} (\myexamplename{#1}):}
+\newcommand{\myexampleheader}[1]{\medskip\par\noindent\small\textsc{#1}:}
+%\newcommand{\myexamplecode}[1]{\verbatiminput{#1}}
+\newcommand{\myexamplecode}[1]{\lstinputlisting{#1}}
+\ifWithCharonData
+\newcommand{\myexamplecharon}[1]{\input{#1}}
+\else
+\newcommand{\myexamplecharon}[1]{}
+\fi
+\newcommand{\indexTestName}[1]{\index{#1@\url{#1}}}
+
+% just with the name  
+\newcommand{\myjustnameexample}[1]{{%
+\indexTestName{#1}%
+\myexamplename{#1}}}
+
+% with code and Charon output
+\newcommand{\mycexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+%\myexamplecode{examples/#1}%
+\myexamplecode{../charon2/generated_tex/#1.src}%
+%\par\noindent\myexamplefontsize%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% without code; with Charon output
+\newcommand{\mynocodeexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+\\%
+%\myexamplecode{examples/#1}%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% with just code; with no Charon output
+\newcommand{\myjustcodeexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+\\%
+%\myexamplecode{examples/#1}%
+\myexamplecode{../examples/de_facto_memory_model/#1}%
+%\myexamplecode{../charon2/generated_tex/#1.src}%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% with just code; with no Charon output
+\newcommand{\myjustOLDcodeexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+\\%
+%\myexamplecode{examples/#1}%
+\myexamplecode{../charon2/tests/de_facto_memory_model/#1}%
+%\myexamplecode{../charon2/generated_tex/#1.src}%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% with code and Charon output
+\newcommand{\myjustcodeNEWexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+%\myexamplecode{examples/#1}%
+\myexamplecode{#1}%
+%\myexamplecode{../charon2/generated_tex/#1.src}%
+%\par\noindent\myexamplefontsize%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+%\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+
+% with fake code and Charon output
+\newcommand{\myfakecodeexample}[2]{{%
+\indexTestName{#1}%
+\indexTestName{#2}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+%\myexamplecode{examples/#2}%
+\myexamplecode{../charon2/tests/de_facto_memory_model/#2}%
+%\par\noindent\myexamplefontsize%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+
+% pre-charon macro
+\newcommand{\myexample}[1]{{\myexampleheader{#1}\myexamplefontsize\myexamplecode{examples/generated/#1}}}
+
+
+% Cerberus Memory API
+\usepackage{proof}
+\DeclareMathOperator{\allocObject}{allocate\_object}
+\DeclareMathOperator{\allocRegion}{allocate\_region}
+\DeclareMathOperator{\Kill}{kill} % kill already exists
+\DeclareMathOperator{\load}{load}
+\DeclareMathOperator{\store}{store}
+\DeclareMathOperator{\storeLocking}{store\_locking}
+\DeclareMathOperator{\eqPtr}{eq\_ptrval}
+\DeclareMathOperator{\nePtr}{ne\_ptrval}
+\DeclareMathOperator{\diffPtr}{diff\_ptrval}
+\DeclareMathOperator{\relOpPtr}{rel\_op\_ptrval}
+\DeclareMathOperator{\eqOpPtr}{eq\_op\_ptrval}
+\DeclareMathOperator{\ptrcastIval}{cast\_ival\_to\_ptrval} %intcast\_ptrval} %ptrFromInt  cast_int_to_ptr
+\DeclareMathOperator{\intcastPtr}{cast\_ptrval\_to\_ival} %ptrcast\_ival}  %intFromPtr
+\DeclareMathOperator{\combine}{combine\_prov}
+\DeclareMathOperator{\opIval}{op\_ival}
+\DeclareMathOperator{\eqIval}{eq\_ival}
+\DeclareMathOperator{\ltIval}{lt\_ival}
+\DeclareMathOperator{\leIval}{le\_ival}
+\DeclareMathOperator{\offsetofIval}{offsetof\_ival}
+\DeclareMathOperator{\arrayOffset}{array\_offset\_ptrval}
+\DeclareMathOperator{\isoArrayOffset}{iso\_array\_offset\_ptrval}
+\DeclareMathOperator{\memberOffset}{member\_offset\_ptrval}
+\DeclareMathOperator{\wellAligned}{is\_well\_alligned}
+\DeclareMathOperator{\validForDeref}{valid\_for\_deref}
+
+% Types
+\DeclareMathOperator{\type}{Type}
+\DeclareMathOperator{\bytes}{[(Prov, Byte)]}
+\DeclareMathOperator{\byte}{Byte}
+\DeclareMathOperator{\bytemap}{ByteMap}
+\DeclareMathOperator{\addr}{Addr}
+\DeclareMathOperator{\memvalue}{MemValue}
+\DeclareMathOperator{\mbytes}{[(Maybe\ Prov, Byte)]}
+\DeclareMathOperator{\prov}{Prov}
+\DeclareMathOperator{\allocMap}{AllocMap}
+
+% Helper functions
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\newAlloc}{newAlloc}
+\DeclareMathOperator{\sizeof}{sizeof}
+\DeclareMathOperator{\dearray}{dearray}
+\DeclareMathOperator{\alignof}{alignof}
+\DeclareMathOperator{\abst}{abst}
+\DeclareMathOperator{\repr}{repr}
+\DeclareMathOperator{\fetch}{fetch}
+\DeclareMathOperator{\update}{update}
+\DeclareMathOperator{\readDevice}{readDevice}
+\DeclareMathOperator{\storeDevice}{storeDevice}
+\DeclareMathOperator{\getProv}{getProv}
+
+% Constants
+\newcommand{\Null}{\mathtt{null}} % null already defined
+\newcommand{\provNone}{@\mathtt{empty}}
+\newcommand{\true}{\mathtt{true}}
+\newcommand{\false}{\mathtt{false}}
+\newcommand{\readwrite}{\mathtt{readWrite}}
+\newcommand{\readonly}{\mathtt{readOnly}}
+\newcommand{\myobject}{\mathtt{object}}
+\newcommand{\region}{\mathtt{region}}
+\newcommand{\killed}{\mathtt{killed}}
+\newcommand{\unspec}{\mathtt{unspec}}
+\newcommand{\dyn}{\mathtt{dyn}}
+\newcommand{\none}{\mathtt{none}}
+\newcommand{\exposed}{\myt{\mathtt{exposed}}}
+\newcommand{\unexposed}{\myt{\mathtt{unexposed}}}
+
+\newcommand{\ruleOne}[5]{\minibox{[$\textsc{#2}$:\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#4  \rightarrow #5} {#3}}}
+\newcommand{\ruleOneBreak}[5]{\minibox{[$\textsc{#2}$:\\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#4  \rightarrow #5} {#3}}}
+\newcommand{\ruleTwo}[6]{\minibox{[$\textsc{#2}$:\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#5  \rightarrow #6} {\deduce {#4} {#3}}}}
+\newcommand{\ruleThree}[7]{\minibox{[$\textsc{#2}$:\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#6  \rightarrow #7} {\renewcommand{\arraystretch}{1}\begin{array}{c}#3\\#4\\#5\end{array}}}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\sloppy
+\begin{document}
+
+\ifWGfourteennumber
+\fancypagestyle{firstpagestyle}{%
+\fancyhf{} % clear all header and footer fields
+\fancyhead[C]{ISO/IEC JTC1/SC22/WG14 N2311, 2018-11-09} % except the center
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+\thispagestyle{plain}
+\fi
+
+\title[PNVI-ae and PNVI-aeudi]{C provenance semantics: detailed
+semantics for the
+address-exposed and address-exposed 
+user-disambiguation variants of the PNVI provenance-not-via-integers
+model}
+
+
+\authorsaddresses{}
+
+\author{Peter Sewell}
+\affiliation{
+  \institution{University of Cambridge}         
+}
+
+ \author{Kayvan Memarian}
+ \affiliation{
+   \institution{University of Cambridge}            %% \institution is required
+%   \country{UK}
+ }
+% %\authornote{with author1 note}          %% \authornote is optional;
+%                                         %% can be repeated if necessary
+% %\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+% \affiliation{
+% %  \position{Position1}
+% %  \department{Department1}              %% \department is recommended
+%   \institution{University of Cambridge}            %% \institution is required
+% %  \streetaddress{Street1 Address1}
+% %  \city{City1}
+% %  \state{State1}
+% %  \postcode{Post-Code1}
+%   \country{UK}
+% }
+% %\email{first1.last1@inst1.edu}          %% \email is recommended
+% 
+% 
+ \author{Victor B. F. Gomes}
+ \affiliation{
+   \institution{University of Cambridge}            %% \institution is required
+%   \country{UK}
+ }
+
+\renewcommand{\shortauthors}{Sewell, Memarian, Gomes}
+
+% %% Author with two affiliations and emails.
+% \author{First2 Last2}
+% \authornote{with author2 note}          %% \authornote is optional;
+%                                         %% can be repeated if necessary
+% \orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+% \affiliation{
+%   \position{Position2a}
+%   \department{Department2a}             %% \department is recommended
+%   \institution{Institution2a}           %% \institution is required
+%   \streetaddress{Street2a Address2a}
+%   \city{City2a}
+%   \state{State2a}
+%   \postcode{Post-Code2a}
+%   \country{Country2a}
+% }
+% \email{first2.last2@inst2a.com}         %% \email is recommended
+% \affiliation{
+%   \position{Position2b}
+%   \department{Department2b}             %% \department is recommended
+%   \institution{Institution2b}           %% \institution is required
+%   \streetaddress{Street3b Address2b}
+%   \city{City2b}
+%   \state{State2b}
+%   \postcode{Post-Code2b}
+%   \country{Country2b}
+% }
+% \email{first2.last2@inst2b.org}         %% \email is recommended
+
+
+%% Paper note
+%% The \thanks command may be used to create a "paper note" ---
+%% similar to a title note or an author note, but not explicitly
+%% associated with a particular element.  It will appear immediately
+%% above the permission/copyright statement.
+%\thanks{with paper note}                %% \thanks is optional
+                                        %% can be repeated if necesary
+                                        %% contents suppressed with 'anonymous'
+
+
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+
+
+%% \maketitle
+%% Note: \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
+\maketitle
+
+
+
+\definecolor{myudicolor}{rgb}{0.5 0.0 0.8}
+\newcommand{\myt}[1]{{\color{blue}#1}}
+\newcommand{\myu}[1]{{\color{myudicolor}#1}}
+
+\section{Introduction}
+
+This note sketches a mathematical version of the
+provenance-not-via-integer, address-exposed (PNVI-ae)
+and provenance-not-via-integer, address-exposed, user-disambiguation (PNVI-aeudi)
+models, based on:
+\begin{itemize}
+\item the PNVI semantics in the POPL 2019 paper~\cite{cerberus-popl2019}
+\item the mathematical version  by Martin Uecker, 2019-01-18
+\item the text summary by Jens Gustedt, 2019-01-22
+\item email discussion on the C Memory Object Model study group mailing list
+\end{itemize}
+Changes for PNVI-ae from PNVI are \myt{highlighted}.
+Additional changes for PNVI-aeudi are \myu{highlighted}. 
+
+
+{\color{red}This version does not support bytewise copy of a pointer
+ to an unexposed object, which will need quite some additional
+ machinery for PNVI-ae and PNVI-aeudi beyond the base PNVI (where
+ that automatically works).  The design of that machinery should
+ ideally be based on the treatment of representation-byte-accessed
+ pointer values by existing compiler alias analyses and optimisations.}
+
+
+
+\section{The PNVI-aeudi, PNVI-ae, PNVI, and PVI semantics}
+
+The base PVI and PNVI memory object semantics are manually typeset mathematics simplified from the
+executable-as-test-oracle
+Cerberus
+mechanised Lem~\cite{Lem-icfp2014} source. We have removed most subobject details, function
+pointers, and some options.  Neither the typeset models or
+the Lem source consider linking, or pointers constructed via I/O
+(e.g.~via
+\texttt{\%p} or representation-byte I/O).
+
+The memory object semantics can be combined with a semantics for the
+thread-local semantics of the rest of C (expressed in Cerberus as a
+translation from C source to the \emph{Core} intermediate language,
+together with an operational semantics for Core) to give a complete
+semantics for a large fragment of sequential C. 
+
+
+For simplicity, we present the model without the ISO semantics that makes all
+pointers to an object or region indeterminate at the end of its lifetime,
+assume two's complement representations, assume NULL pointers have
+address (and representation) $0$, and allow NULL pointers to be constructed from any
+empty-provenance integer zero, not just integer constant expressions.
+
+
+
+\subsection{The memory object model interface}
+In Cerberus, the memory object model is factored out from Core with a clean 
+interface, roughly as in \citeN[Fig.~2]{Cerberus-PLDI16}.  
+This provides 
+functions for memory operations:
+\begin{itemize}
+\item $\allocObject$ %WAS \texttt{allocate\_static},
+(for objects with automatic or static
+storage duration, i.e.~global and local variables),  
+\item $\allocRegion$ % WAS \texttt{allocate\_dynamic},
+(for the results of \lstinline{malloc}, \lstinline{calloc}, and
+\lstinline{realloc}, i.e.~heap-allocated regions),  
+\item $\Kill$ (for lifetime end of both kinds of allocation),
+\item $\load$, and
+\item $\store$,
+\end{itemize}
+and for pointer/integer operations:
+arithmetic, casts, comparisons,
+offseting pointers by struct-member offsets, etc.
+The interface involves types 
+\texttt{pointer\_value} ($p$),
+\texttt{integer\_value} ($x$),
+\texttt{floating\_value}, 
+and \texttt{mem\_value} ($v$), which are abstract as far as Core is
+concerned.  
+%
+Distinguishing pointer and integer values gives more precise internal
+types. %For example, when loading and storing via a pointer, one
+%needs a case split that does not have to consider all 
+%the ways that the pointer might have been constructed via integer
+%operations. On the other hand, constraints (in symbolic-mode
+%Cerberus) are entirely over
+%unprovenanced integer values. 
+
+
+In PNVI-ae, PNVI, and PVI, a provenance $\pi$ is either
+ $@i$ where $i$ is a storage-instance ID, or the \emph{empty}
+  provenance $\provNone$. 
+%
+\myu{In PNVI-aeudi a provenance can also be a symbolic storage instance ID
+ $\iota$ (iota), initially associated to two storage
+ instance IDs and later resolved to one or the other.}
+  %some other handling of adjacency-ambiguity}
+
+A pointer value can either be $\Null$ or a pair $(\pi, a)$
+of a provenance $\pi$ and address $a$.
+In PNVI*, an integer value is simply a mathematical integer (within the appropriate range for the relevant C type), while in PVI, an
+integer value is a pair $(\pi, n)$ of a provenance $\pi$ and a mathematical integer
+$n$. 
+
+Memory values are the storable entities, either a 
+pointer, integer, floating-point, array, struct, or union value,
+or $\unspec$ for unspecified values, each together with their C type. 
+
+
+
+\section{The memory object model state}
+
+In both PVI and PNVI*, a memory state is a pair $(A, M$). The  $A$ is a partial map from
+storage-instance IDs to either $\killed$ or storage-instance metadata
+$(n,\tau_{\text{opt}},a,f,k,t)$:
+\begin{itemize}
+\item size $n$, 
+\item optional C type $\tau$ (or $\none$ for allocated regions), 
+\item base address $a$, 
+\item permission flag $f\mathord{\in}\{\readwrite,\,\readonly\}$, 
+\item kind $k\mathord{\in}\{\myobject,\,\region\}$, and
+\item \myt{for PNVI-ae and PNVI-aeudi, a taint flag $t\mathord{\in}\{\unexposed,\,\exposed\}$}.
+\end{itemize}
+\myu{In PNVI-aeudi, $A$ also maps all symbolic storage instance IDs $\iota$,
+to sets of either one or two (non-symbolic) storage instance IDs.
+It looks as if we also need to record a partial equivalence relation
+over symbolic storage instance IDs, to cope with the pointer
+subtraction and relational comparison cases where one learns that two
+provenances are equal but both remain ambiguous, but that is not yet
+spelt out.
+}
+
+The $M$ is a partial map from addresses to abstract bytes,
+which are triples of a provenance $\pi$, either a byte $b$ or $\unspec$, and
+an optional integer pointer-byte index $j$ (or $\none$).
+The last is used in PNVI* to distinguish between loads of pointer
+values that were written as whole pointer writes vs those that were written
+byte-wise or in some other way.
+
+
+
+
+\subsection{Mappings between abstract values and representation
+abstract-byte sequences}
+
+The $M$ models the memory state in terms of low-level abstract
+bytes, but   \texttt{store} and \texttt{load} take and return
+the higher-level memory values. We relate the two with functions
+$\repr(v)$, mapping a memory value to a list of abstract bytes, and
+$\abst(\tau, bs)$, mapping a list of abstract bytes $bs$ to its
+interpretation as a memory value with C type $\tau$.
+
+
+The $\repr(v)$ function is defined by induction over the structure of its memory value
+parameter and returns a list of $\sizeof(\tau)$ abstract bytes, where
+$\tau$ is the C type of the parameter. The base cases are values with
+scalar types (integer, floating and pointers) and unspecified values.
+%
+For an unspecified value of type $\tau$, it returns a list with abstract bytes of the form
+$(\provNone, \unspec, \none)$.
+%
+Non-null pointer values are represented with lists of abstract bytes that
+each have the provenance of the pointer value, 
+the appropriate part of the two's complement encoding of the address,
+and the $0..\sizeof(\tau)-1$ index of each byte. 
+Null pointers are represented with lists of abstract bytes of the form $(\provNone, 0,
+\none)$. 
+In PVI, integer values are represented similarly to pointer values
+except that the third component of each abstract byte is $\none$.
+In PNVI*, integer values are represented by lists of abstract bytes,
+with each of their first components always the empty provenance,  and
+each of their third components again $\none$.
+%
+Floating-point values are similar, in all the models, except that the provenance of the
+abstract bytes
+is always empty.
+%
+%
+For array and struct/union values the function is inductively
+applied to each subvalue and the resulting byte-lists concatenated.
+%into
+%a single list.
+The layout of structs and unions follow an
+implementation-defined ABI, with padding bytes like those
+of unspecified values.
+
+
+The $\abst(\tau, bs)$ function is defined by induction over
+$\tau$. The base cases are again the scalar types. For these, $\sizeof(\tau)$
+abstract bytes are consumed from $bs$ and a scalar memory value is
+constructed from their second components: if any abstract byte has an
+$\unspec$ value, an unspecified value is constructed; otherwise,
+depending on $\tau$, a pointer, integer or floating-point value is
+constructed using the two's complement or floating-point encoding.
+%
+For pointers with address $0$, the provenance is empty. For non-$0$ pointer
+values and integer values, in PVI the provenance is constructed as
+follows: if 
+%all the abstract bytes have the same provenance, 
+at least one abstract byte has non-empty provenance and all others
+have either the same or empty provenance, 
+that
+provenance is taken, otherwise the empty provenance is taken.
+In PNVI*, when constructing a pointer value, 
+if the third components of the bytes all carry the appropriate
+index, the provenance of the result is the provenance of the bytes
+(which will all have the same provenance). Otherwise, the $A$ part of the memory state is examined to find whether a live
+storage instance exists with a footprint containing the pointer value that
+is being constructed. If so, its storage instance ID
+is used for the provenance of the pointer value, otherwise the empty
+provenance is used.
+\myt{In PNVI-ae and PNVI-aeudi, when constructing a pointer value, if $A$ has to
+be examined then, following the relevant integer-to-pointer cast
+semantics below, the storage instance must have been exposed,
+otherwise  the memory
+  action that was doing the $\abst()$ is UB.}
+\myu{In PNVI-aeudi, if there are two such live storage instances, with
+IDs $i_1$ and $i_2$, the resulting pointer value is given a fresh
+symbolic storage instance ID $\iota$, and $A$ is updated to map
+$\iota$ to $\{i_1,i_2\}$.  This can only happen if the two storage
+instances are adjacent and the address is one-past the first and at the
+start of the second.}
+For array/struct types, $abst()$ recurses on %calls itself for each subtype on
+the progressively shrinking list of abstract bytes.
+
+
+
+
+\subsection{Memory operations}
+
+The successful semantics of memory operations is expressed as a transition
+relation between memory states, with transitions labelled by the
+operation (including its arguments) and return value:
+\[
+(A,M)\xrightarrow{\textsc{label}} (A',M')
+\]
+For example, the transitions 
+\[
+(A,M) \xrightarrow{\load(\tau,p)=v} (A',M')
+\]
+describe the semantics of a $\load(\tau,p)$ in memory state $(A,M)$,
+returning value $v$ and with resulting memory state $(A',M')$. 
+%
+The semantics also defines when each operation flags an out-of-memory
+(OOM) or undefined behaviour (UB) in a memory state $(A,M)$. 
+
+\myparagraph{Storage instance creation}
+When a new storage instance is created, either with 
+$\allocRegion$ 
+(for the results of \lstinline{malloc}, \lstinline{calloc}, and
+\lstinline{realloc}, i.e.~heap-allocated regions),
+or with 
+ $\allocObject$ 
+(for objects with automatic or static
+storage duration, i.e.~global and local variables), in
+ non-\texttt{const} and \texttt{const} variants:
+a fresh storage-instance ID $i$ is chosen;
+an address $a$ is chosen from
+  $\newAlloc(A, al, n)$, defined to be the set of addresses of blocks of size $n$
+  aligned by $al$ that do not overlap with $0$ or any other allocation
+  in $A$;
+  and the pointer value $p = (@i, a)$ is returned.
+In all three cases the storage-instance metadata $A$ is updated with a
+new record for $i$, \myt{and this is initially marked as $\unexposed$}. 
+In the $\allocObject$ case the size $n$ of the allocation is the
+representation size of the C type $\tau$.
+In the $\allocRegion(al, \tau, \readonly(v))$  case, the last of the
+ three rules, the memory $M$ is updated to contain the representation
+ of $v$ at the addresses $a..a+\sizeof(\tau)-1$. 
+\[\renewcommand{\arraystretch}{2}\begin{array}{@{}l@{}} %{\hspace*{33mm}}r@{}}
+    \ruleTwo
+      {\allocRegion(al, n)=p}
+      {label}
+      {i \notin \dom(A) \qquad a \in \newAlloc(A, al, n)}
+      {p = (@i, a)}
+      {A, M} {A[i \mapsto (n, \none, a, \readwrite, \region, \unexposed)], M}
+\\
+    \ruleTwo
+      {\allocObject(al, \tau, \readwrite)=p}
+      {label}
+      {i \notin \dom(A) \qquad a \in \newAlloc(A, al, n)}
+      {n = \sizeof(\tau) \qquad p = (@i, a)}
+      {A, M} {A(i \mapsto (n, \tau, a, \readwrite, \myobject, \unexposed)), M}
+\\
+    \ruleTwo
+      {\allocObject(al, \tau, \readonly(v))=p}
+      {label}
+      { i \notin \dom(A) \qquad a \in \newAlloc(A, al, n)}
+      {n = \sizeof(\tau) \qquad p = (@i, a)}
+      {A, M} {A(i \mapsto (n, \tau, a, \readonly, \myobject, \unexposed)),
+              M([a..a + n-1] \mapsto \repr(v))}
+\end{array}
+\]
+
+
+\myparagraph{Storage instance lifetime end}  When the storage instance of
+      a pointer value $(@i,a)$ 
+is killed, either by a \texttt{free()} for a heap-allocated region or at
+the end of lifetime of an object with automatic storage duration, the
+storage-instance metadata $A$ of storage instance $i$ is updated to record that $i$ has been killed.
+\[
+\ruleTwo
+      {\Kill(p, k)}
+      {label}
+      {p = (@i, a) \qquad k=k'}
+      {A(i) = (n, \_, a, f, k', \myt{\_})}
+      {A, M} {A(i \mapsto \killed), M}
+\]
+
+
+
+\myparagraph{Load} To load a value $v$ of type $\tau$ from a pointer value $p=(@i,a)$, there must
+      be a live storage instance for $i$ in $A$, the footprint of
+      $\tau$ at $a$ must be within the footprint of that allocation,
+      and the value $v$ must be the abstract value obtained from the
+      appropriate memory bytes from $M$.
+\[\ruleThree
+      {\load(\tau, p)=v}
+      {label}
+      {p = (@i, a) \qquad A(i) = (n, \_, a', f, k, \myt{\_})}
+      {{}[a..a+\sizeof(\tau)-1] \subseteq [a'..a' + n-1]{}}
+      {v = \abst(\tau, M[a..a+\sizeof(\tau)-1])}
+      {A, M} {A, M}
+\]
+
+\myparagraph{Store} To store a value $v$ of type $\tau$ to a pointer value $p=(@i,a)$, there must
+      be a live storage instance for $i$ in $A$, which must be
+      writable, and the footprint of
+      $\tau$ at $a$ must be within the footprint of that allocation.
+      The memory $M$ is updated with the representation bytes of the
+      value $v$. 
+\[
+\ruleTwo
+      {\store(\tau, p, v)}
+      {label}
+      {p = (@i, a) \qquad A(i) = (n, \_, a', \readwrite, k, \myt{\_})}
+      {{}[a..a+\sizeof(\tau)-1] \subseteq [a'..a' + n-1]{}}
+      {A, M} {A, M([a..a+\sizeof(\tau)-1] \mapsto \repr(v))}
+\]
+
+
+\myu{For PNVI-aeudi, the $\Kill$, $\load$, and $\store$  rules above must be adapted.  If $p=(\iota,a)$
+      and $A(\iota)=\{i\}$, the other premises and conclusion of the
+      appropriate above rule apply.
+      If $A(\iota)=\{i_1,i_2\}$ and the premises are
+      satisfied for one of the two, say $i_j$, the rest of the rule applies
+      except that in the
+      final state $A$ is additionally updated to map $\iota$ to $\{i_j\}$.}
+
+
+
+The memory operations flag out-of-memory (OOM) and undefined behaviour
+(UB) as follows:
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}\hline
+\multicolumn{3}{@{}l@{}}{$\allocRegion(al, n)$ / $\allocObject(al, \tau, \mathtt{readwrite})$
+/ $\allocObject(al, \tau, \readonly(v))$:} \\
+& OOM out of memory & if $\newAlloc(A, al, n)=\{\} $ or $\newAlloc(A, al, \sizeof(\tau))=\{\} $\\\hline
+\multicolumn{3}{@{}l@{}}{$\load(\tau, p)$ / $\store(\tau, p, v)$ / $\Kill(p)$:}\\
+& UB null pointer & if $p = \Null $\\
+& UB empty provenance & if $p = (\provNone, a) $\\
+& UB killed provenance & if $p = (@i, a)$ and $A(i)=\killed$\\\hline
+%P I made the above dead provenance up. It cannot happen with pointer-lifetime-zap?
+\multicolumn{3}{@{}l@{}}{$\load(\tau, p)$ / $\store(\tau, p, v)$:}\\
+& UB out of bounds & if
+      $p=(@i,a)$, $A(i) = (n, \_, a', f, k, \myt{\_})$, and
+      ${}[a..a+\sizeof(\tau)-1] \not\subseteq [a'..a' + n-1] {} $ \\\hline
+\multicolumn{3}{@{}l@{}}{$\store(\tau, p, v)$:}\\
+& UB read-only & if  $p=(@i,a)$ and $A(i) = (n, \_, a', \readonly, k, \myt{\_})$\\\hline
+\multicolumn{3}{@{}l@{}}{$\Kill(p)$:}\\
+& UB non-alloc-address & if
+      $p=(@i,a)$, $A(i) = (n, \_, a', f, k, \myt{\_})$, and $a\not=a'$ \\\hline
+\end{tabular}
+\end{center}
+% 
+
+\myu{For PNVI-aeudi, the rules above must be adapted. In the case where $p=(\iota,a)$
+      and $A(\iota)=\{i\}$, the semantics is exactly as for $p=(i,a)$,
+      while if $A(\iota)=\{i_1,i_2\}$, one has UB only if the
+      conditions above apply to both $i_1$ and $i_2$.}
+
+
+
+
+
+
+\subsection{Pointer / Integer operations}
+
+
+\myparagraph{Pointer subtraction} Pointers $p=(@i,a)$ and
+      $p'=(@i',a')$ can be subtracted if they have the same provenance
+      ($i=i'$), there is a live storage instance for $i$ in $A$, and
+      both $a$ and $a'$ are within or one-past the footprint of that
+      allocation (in ISO C the last will always hold, otherwise UB
+      would have been flagged in earlier pointer arithmetic).
+The result is the numerical difference $a-a'$ divided by
+      $\sizeof(\dearray(\tau)))$, where 
+$\dearray(\tau)$ returns $\tau$ if it is not an array type,
+and otherwise returns its element type.
+%
+This rule is stated for PNVI \myt{and PNVI-ae}, returning pure integer.
+For PVI,  $\diffPtr$ constructs the same integer
+but with $\provNone$ provenance.
+\myu{For PNVI-aeudi, because subtraction of pointers with different
+provenance should be UB, if one of the two pointers has a symbolic storage
+instance ID $\iota$, mapped by $A$ to $\{i_1,i_2\}$, while the other
+either has a provenance $@i'$ or an $\iota'$ mapped to a singleton
+$\{i'\}$,
+then $i'$ must be either $i_1$ or $i_2$, and $\iota$ is resolved to
+that in the $A$ of the final state. Otherwise UB.
+If both pointers are ambiguous, say mapped to $\{i_1,i_2\}$ and $\{i'_1,i'_2\}$,
+then if those two sets share a single element which satisfies the other rule
+preconditions, both symbolic storage instance IDs are resolved to
+that.  If the sets have two pairs of elements that satisfy the other
+conditions (which I believe can only happen if the addresses are
+equal), then we should remember an identity of symbolic storage
+instance IDs (this will need an extension to the state we have so
+far, and additional modifications to the rules below beyond what is in
+this draft). Otherwise UB. 
+(This identity information is needed be because you might only know that they are the same, without
+ knowing which.  Suppose $p$ and $q$ have been produced by separate casts
+ from an integer which is ambiguously one-past one allocation and at
+ the start of another. Then after $p-q$, we know they must have been
+ the same provenance, but we still don't know which.)}
+\[
+\ruleTwo
+      {\diffPtr(\tau, p, p')=x}
+      {label}
+      {p = (@i, a) 
+        \qquad p' = (@i', a') \qquad i=i' \qquad A(i) = (n, \_, \hat{a}, f, k, \myt{\_})}
+      {x = (a - a') / \sizeof(\dearray(\tau))
+%        \qquad \hat{a} \le a \le \hat{a} + n \qquad \hat{a} \le a' \le \hat{a} + n}
+        \qquad a \in [\hat{a}..\hat{a}+n] \qquad a' \in [\hat{a}..\hat{a}+n]{}}
+      {A, M} {A, M}
+\]
+
+\myparagraph{Pointer relational comparison}
+Pointers $p=(@i,a)$ and
+      $p'=(@i',a')$ can be compared with a relational operator
+      (\verb+<+, \verb+<=+, etc.) if they have the same provenance
+      ($i=i'$).  The result is the boolean result of the mathematical
+      comparison of $a$ and $a'$.
+\myu{For PNVI-aeudi, this has to be adapted in much the same way as the
+      pointer subtraction rule above.}
+\[
+\ruleTwo
+      {\relOpPtr(p,p',\mathit{op})=b}
+      {label}
+      {p = (@i, a) \qquad p' = (@i', a') \qquad i=i'}
+      {b = \mathit{op}(a, a') \qquad \mathit{op} \in \{\le, <, >, \ge\}}
+      {A, M} {A, M}
+\]
+
+\myparagraph{Pointer equality comparison}
+Pointers $p$ and $p'$ can always be compared with an equality operator
+      (\verb+=+, \verb+!=+). 
+       The result is true if they are either both null or both
+      non-null and have the same provenance and
+      address; nondeterministically either $a=a'$ or $\texttt{false}$
+      if they are both non-null and have different provenances; and
+      false otherwise.
+\myu{For PNVI-aeudi, because equality comparison is permitted (without
+      UB) irrespective of the provenances of the pointers, if the two pointers both have determined single
+      provenances after looking up any symbolic IDs in A, this should
+      give $\mathtt{true}$, otherwise the middle (nondeterministic)
+      clause should apply.  The final $A$ should not resolve any
+      symbolic IDs.}
+ \[
+\ruleOne
+      {\eqOpPtr(p,p')=b}
+      {label}
+      {\begin{cases}
+       b=\mathtt{true} & \text{if $p=p'$} \\
+       b \in \{(a=a'),\mathtt{false}\} & \text{if $p=(\pi,a)$, $p'=(\pi',a')$, and $\pi\not=\pi'$}\\
+       b=\mathtt{false} & \text{otherwise} 
+    \end{cases}
+}
+      {A, M} {A, M}
+\]
+Note that the above nondeterminism appears to be necessary to admit the
+observable behaviour of current compilers, but a simpler
+provenance-oblivious semantics is arguably desirable:
+ \[
+\ruleOne
+      {\eqOpPtr(p,p')=b}
+      {label}
+      {\begin{cases}
+       b=\mathtt{true} & \text{if $p=p'=\texttt{null}$}\\
+       b=\mathtt{true} & \text{if $p=(\pi,a)$, $p'=(\pi',a')$, and $a=a'$}\\
+       b=\mathtt{false} & \text{otherwise} 
+    \end{cases}
+}
+      {A, M} {A, M}
+\]
+
+
+
+
+\myparagraph{Pointer array offset} Given a pointer $p$ at C type
+      $\tau$, the result of offsetting $p$ by integer $x$ (either by array
+      indexing or explicit pointer/integer addition) is as follows,
+where $x=n$ in PNVI*, or   $x=(\pi', n)$ in PVI.
+For the operation to succeed, $p$ must be some non-null $(@i,a)$.
+Then there must be a live storage instance for $i$, and the numeric
+      result of the addition of $a+n*\sizeof(\tau)$ must be within or
+      one-past the footprint of that storage instance.
+      Otherwise the operation flags UB.
+      \myu{For PNVI-aeudi, if $p$ is ambiguous (i.e., $p=(\iota,a)$ and
+      $A(\iota)=\{i_1,i_2\}$ then if $x$ is non-zero this should only
+      be defined behaviour for (at most) one of the two, and then
+      $\iota$ should be resolved to that one in the final state.  If
+      $x=0$ it does not resolve the ambiguity. }
+\[
+\isoArrayOffset(A, p, \tau, x) =
+    \begin{cases}
+      (@i, a') &% %\text{if} 
+\begin{array}{@{}l@{}}
+\text{if } p = (@i, a)   \text{ and}\\
+a'=a + n*\sizeof(\tau) \text{ and}\\
+A(i) = (n'', \_, a'', \_, \_, \myt{\_}) \text{ and}\\
+a'\in [a''..a''+n'']
+\end{array}\\
+      \text{UB: out of bounds}
+        &\text{if all except the last conjunct}\\
+        &\text{ above hold}\\
+      \text{UB: empty prov}
+        &\text{if $p=(\provNone,a)$}\\
+      \text{UB: killed prov}
+        &\text{if $p=(@i,a)$ and $A(i)=\killed$}\\  
+      \text{UB: null pointer}
+        &\text{if $p = \Null$} \\
+    \end{cases}
+\]
+
+
+
+\myparagraph{Pointer member offset} Given a pointer $p$ at C type
+        $\tau$,
+        which is a struct or union type with a member $m$,
+        if $p$ is some non-null $(\pi,a)$,
+the result of offsetting the pointer to member $m$ has the same
+        provenance $\pi$ and the suitably offset $a$.
+If $p$ is null, the result is a pointer with empty provenance and the
+        integer offset of $m$ within $\tau$'s representation
+        (this is de facto C behaviour, in the sense that the GCC torture tests rely
+        on it; it does not exactly match ISO C).
+
+For this to be sensible,  
+$p$ should point to the start of an object of type $\tau$, with UB otherwise
+(ISO C suggests this, writing \emph{``The value is that of the named
+member of the object to which the first expression points''}). 
+However, without a
+subobject-aware effective-type semantics, we cannot check that
+here. We could check the storage instance of $p$'s provenance has
+a footprint large enough to accommodate an object of type $\tau$
+starting at $a$, which would guarantee that the result of the offset
+is within the storage instance. 
+\[
+    \memberOffset(p, \tau, m) =
+    \begin{cases}
+      (\pi, a + \offsetofIval(\tau, m)),
+        &\text{if $p = (\pi, a)$;} \\
+      \offsetofIval(\tau, m),
+        &\text{if $p = \Null$.}
+    \end{cases}
+\]
+
+
+
+%
+%
+
+\myparagraph{Casts (PNVI)}
+In PNVI, a cast of a pointer value $p$  to an integer value (at type $\tau$)
+just converts null pointers to zero and non-null pointer values to the
+address $a$ of the pointer, if that is representable in $\tau$,
+otherwise flagging UB.  The provenance of the pointer is discarded. 
+\[ \begin{array}{@{}r@{\,}c@{\,}l@{}}
+\intcastPtr(\tau, p) &=&
+    \begin{cases}
+       0,
+        &\text{if } p = \Null; \\
+       a,
+        &\text{if } p = (\pi, a) \text{ and } a \in \mathtt{value\_range}(\tau) \\
+      \text{UB},
+        &\text{otherwise}
+    \end{cases}
+\end{array}
+\]
+
+In PNVI, an integer-to-pointer cast of $0$ returns the null pointer.
+For a non-$0$ integer $x$, casting to a pointer to $\tau$, if there is a storage instance $i$ in the
+current memory model state $(A,M)$ for which the 
+address of the pointer would be properly within the
+footprint of the storage instance, it returns a pointer $(@i,x)$ with
+the provenance of that storage instance.  (The ``properly within''
+prevents the one-past ambiguous case.)  If there is no such storage
+instance, it returns a pointer with empty provenance. 
+\[  \begin{array}{@{}l@{}}
+    \ptrcastIval(\tau, x) \\
+\multicolumn{1}{@{}r@{}}{ \hspace*{10mm}=    \begin{cases}
+      \Null,
+        &\text{if $x = 0$} \\
+      (@i,x),
+%        &\text{if $A(i) = (n, \_, a, f, k, \myt{\_})$ and $[x..x+\sizeof(\tau)-1] \subseteq [a..a+n-1]$}\\
+        &\text{if $A(i) = (n, \_, a, f, k, \myt{\_})$ and $x \in [a..a+n-1]$}\\
+      (\provNone,x),
+        &\text{if there is no such $i$}
+    \end{cases}}
+\end{array} 
+\]
+%It is debatable whether we should check the just the address $x \in
+%[a..a+n-1]$, or that the footprint of an instance of tau is there.
+%But the latter one make some one-past casts and back invalid.
+
+\myt{
+\myparagraph{Casts (PNVI-ae)}
+In PNVI-ae, the result of a cast of a pointer value $p$  to an
+integer value is exactly as in PNVI.  In addition, 
+for a cast of pointer value $p=(@i,a)$ with provenance $@i$, 
+where $A(i) = (n,\tau_{\text{opt}},a,f,k,t)$ is the storage instance
+metadata for $i$, 
+the memory state
+$(A,M)$ is updated to 
+$(A(i\mapsto (n,\tau_{\text{opt}},a,f,k,\exposed)),M)$ to mark the
+that storage instance as exposed. 
+}
+
+In PNVI-ae, an integer-to-pointer cast of $0$ returns the null pointer.
+For a non-$0$ integer $x$, casting to a pointer to $\tau$, if there is a storage instance $i$ in the
+current memory model state $(A,M)$ for which 
+the address of the pointer would
+be \myt{\sout{properly}} within the
+footprint of the storage instance, \myt{and storage instance $i$ is
+exposed}, it returns a pointer $(@i,x)$ with
+the provenance of that storage instance.  If there is no such storage
+instance, it returns a pointer with empty provenance. 
+\[  \begin{array}{l}
+    \ptrcastIval(\tau, x)\\
+\multicolumn{1}{@{}r@{}}{ \hspace*{10mm} =    \begin{cases}
+      \Null,
+        &\text{if $x = 0$} \\
+      (@i,x),
+%        &\text{if $A(i) = (n, \_, a, f, k, \myt{\exposed})$ and $[x..x+\sizeof(\tau)-1] \subseteq [a..a+n]$}\\
+        &\text{if $A(i) = (n, \_, a, f, k, \myt{\exposed})$ and $x \in
+      [a..a+\myt{n}]$}\\
+      (\provNone,x),
+        &\text{if there is no such $i$}
+    \end{cases}}
+\end{array}
+\]
+
+\myu{
+\myparagraph{Casts (PNVI-aeudi)}
+In PNVI-aeudi, a cast of a pointer value $p$ to an integer is just like
+PNVI-ae.
+
+In PNVI-aeudi, a cast of an integer value to a pointer,
+as in the definition of $\repr$, 
+can create a pointer with ambiguous provenance: 
+if it could be within or one-past two live storage instances, with
+IDs $i_1$ and $i_2$, 
+and both storage instances have been marked as exposed,
+the resulting pointer value is given a fresh
+symbolic storage instance ID $\iota$, and $A$ is updated to map
+$\iota$ to $\{i_1,i_2\}$.  This can only happen if the two storage
+instances are adjacent and the address is one-past the first and at the
+start of the second.
+}
+
+
+\myparagraph{Casts (PVI)}
+\[  \begin{array}{rcl}
+    \ptrcastIval(\tau, x) &=&
+    \begin{cases}
+      \Null,
+        &\text{if $x = (\provNone, 0)$} \\
+      (\pi,n),
+        &\text{otherwise, where $x = (\pi, n)$}
+    \end{cases}
+\\[4mm]
+\intcastPtr(\tau, p) &=&
+    \begin{cases}
+      (\provNone, 0),
+        &\text{if } p = \Null; \\
+      (\pi, a),
+        &\text{if } p = (\pi, a) \text{ and } a \in \mathtt{value\_range}(\tau) \\
+      \text{UB},
+        &\text{otherwise}
+    \end{cases}
+  \end{array}\]
+
+\myparagraph{Integer operations (PVI)}
+In PVI one also has to define the provenance results of all the other
+operations returning integer values.  Below we do so for the basic
+operations, though this would also be needed for all the
+integer-returning library functions.  Most would give integers with
+empty provenance. 
+\[  \begin{array}{rcl}
+   \pi \oplus \pi' &=&
+    \begin{cases}
+      \pi,           &\text{if $\pi = \pi' \text{ or } \pi' = \provNone$;} \\
+      \pi',          &\text{if $\pi = \provNone$;} \\
+      \provNone,     &\text{otherwise.}
+    \end{cases}
+    \\[6mm]
+    \opIval(op, (\pi, n), (\pi', m)) &=& (\pi \oplus \pi', op(n, m)),
+      \text{ where } op \in \{+, *, /, \%, \&, |, \wedge\} \\
+ \opIval(-, (\pi, n), (\pi', m)) &=&
+    \begin{cases}
+      (\provNone,n-m),           &\text{if $\pi = @i$  and 
+    $\pi' = @i'$, whether $i=i'$ or not;} \\
+      (@i,n-m),         &\text{if $\pi=@i$ and $\pi' = \provNone$;} \\
+      (\provNone,n-m),     &\text{if $\pi=\provNone$.}
+    \end{cases}
+\\[6mm]
+    \eqIval((\pi, n), (\pi', m)) &=& (n = m) \\
+    \ltIval((\pi, n), (\pi', m)) &=& (n < m) \\
+    \leIval((\pi, n), (\pi', m)) &=& (n \le m)
+  \end{array}\]
+
+
+\subsection{Provenance of other operations}
+In addition to the operations defined above, 
+some operations are desugared/elaborated to simpler
+expressions by the Cerberus pipeline. 
+Their PVI results have
+provenance  as follows; their PNVI* results are the same except that
+there integers have no provenance:
+\begin{tightitemize}
+  \item
+    the result of address-of (\lstinline{&}) has the provenance of the
+    object associated with the lvalue, for non-function-pointers, or
+  empty for function pointers.
+  \item
+    prefix increment and decrement operators follow the corresponding pointer or
+    integer arithmetic rules.
+  \item
+    the conditional operator has the provenance of the second or third
+    operand as appropriate;
+    simple assignment has the provenance of
+    the expression; compound assignment follows the pointer or integer
+    arithmetic rules; the comma operator has the provenance of
+    the second operand.
+  \item
+    integer unary \lstinline{+}, unary \lstinline{-}, and
+    \lstinline{~} operators preserve the original
+    provenance; logical negation \lstinline{!} has a value with empty provenance.
+  \item
+    \lstinline{sizeof} and \lstinline{_Alignof} operators give values with
+    empty provenance.
+  \item
+    bitwise shifts has the provenance of their first operand.
+
+\item
+Jens Gustedt highlights that atomic operations have their own specific provenance
+properties, not yet discussed here.
+
+\end{tightitemize}
+
+
+
+\bibliography{csembib-fullnames}
+
+
+
+
+
+
+\end{document}
