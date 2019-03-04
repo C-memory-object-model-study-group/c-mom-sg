@@ -307,7 +307,7 @@
 \myexamplefontsize%
 \myexampleheader{#1}%
 %\myexamplecode{examples/#2}%
-\myexamplecode{../../../rsem/csem/charon2/tests/de_facto_memory_model/#2}%
+\myexamplecode{charon_tests/#2}%
 %\par\noindent\myexamplefontsize%
 %\myexamplecharon{examples/generated_tex/#1.out}%
 \myexamplecharon{../../../rsem/csem/charon2/generated_tex/#1.out}%
@@ -420,6 +420,8 @@ model}
 
 \authorsaddresses{}
 
+
+
 \author{Peter Sewell}
 \affiliation{
   \institution{University of Cambridge}         
@@ -452,6 +454,13 @@ model}
 %   \country{UK}
  }
 
+ \author{...more?}
+ \affiliation{
+   \institution{...?}            %% \institution is required
+%   \country{UK}
+ }
+
+ 
 \renewcommand{\shortauthors}{Sewell, Memarian, Gomes}
 
 % %% Author with two affiliations and emails.
@@ -520,6 +529,7 @@ model study group.
 \newcommand{\myt}[1]{{\color{blue}#1}}
 \newcommand{\myu}[1]{{\color{myudicolor}#1}}
 
+\tableofcontents
 
 \section{Introduction}
 
@@ -653,7 +663,7 @@ the construction and use of pointers,
 
 %
 \begin{wrapfigure}{r}{0.6\textwidth}
-{\renewcommand{\mylistingmargin}{0mm}\myfoolinkexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{provenance_basic_global_yx.c}{}{\mytestlink{provenance_basic_global_yx.c}{\lstinline{provenance_basic_global_yx.c}}
+{\renewcommand{\mylistingmargin}{0mm}\myfoolinkexample{charon_tests/}{provenance_basic_global_yx.c}{}{\mytestlink{provenance_basic_global_yx.c}{\lstinline{provenance_basic_global_yx.c}}
 (and an \mytestlink{provenance_basic_global_xy.c}{\texttt{xy} variant})}%
 }
 \vspace*{-\baselineskip}
@@ -787,7 +797,8 @@ On the right is a provenance-semantics memory-state snapshot
 for \myfooexamplename{provenance_basic_global_xy.c},
 %(identical in this case for PVI and PNVI),
 just before the invalid access via \lstinline{p}, showing how the
-provenance mismatch makes it UB.
+provenance mismatch makes it UB: at the attempted access via
+\lstinline{p}, its pointer-value address 0x4c is not 
 %
 
 All this is for the \emph{C abstract machine} as defined in the
@@ -811,7 +822,7 @@ This can be captured using the
 provenance of the pointer value to determine the relevant bounds.
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace*{-0.0\baselineskip}
-{\renewcommand{\mylistingmargin}{2mm}\myqtexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{cheri_03_ii.c}{}}
+{\renewcommand{\mylistingmargin}{2mm}\myqtexample{charon_tests/}{cheri_03_ii.c}{}}
   \vspace*{-1.0\baselineskip}
 \end{wrapfigure}%
 %
@@ -824,8 +835,9 @@ representable at the particular pointer type, or for hardware that does
 less than the obvious word size (e.g.~``near'' or ``huge'' 8086 pointers).
 %
 However, transiently out-of-bounds pointer construction
-seems to be common in practice, as we see in \S\ref{sec:comp}, and 
-in \citeN{Chisnall:2015:BPA:2694344.2694367}. 
+seems to be common in practice.
+%, as we see in \S\ref{sec:comp}, and 
+%in \citeN{Chisnall:2015:BPA:2694344.2694367}. 
 %
 It may be desirable to make it implementation-defined 
 whether such pointer construction is allowed. 
@@ -836,6 +848,7 @@ that may be surprising to programmers. Cerberus supports both
 semantics, with a switch. 
 %
 
+\newpage
 
 \myparagraph{Inter-object pointer arithmetic}
 The first example in this section relied on guessing (and then
@@ -843,9 +856,9 @@ checking) the offset between two allocations.   What if one instead
 calculates the offset, with pointer subtraction; should that let
 one move between objects, as below?
 \begin{wrapfigure}{r}{0.55\textwidth}
-{\renewcommand{\mylistingmargin}{0mm}\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{pointer_offset_from_ptr_subtraction_global_xy.c}{}%
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_offset_from_ptr_subtraction_global_xy.c}{}%
 }
-\vspace*{-\baselineskip}
+\vspace*{-0\baselineskip}
 \end{wrapfigure}
 In ISO C11, the \lstinline{q-p} is UB
 (as a pointer subtraction between pointers to different objects, which
@@ -864,13 +877,24 @@ and the freedom that forbidding it gives to alias analysis and
 optimisation seems significant. 
 
 
+\
+
+\ 
+
+
 \myparagraph{Pointer equality comparison and provenance}
 %
 A priori, pointer equality comparison (with \lstinline{==} or \lstinline{!=}) might be expected
 to just compare their numeric addresses, but 
 we observe GCC 8.1 -O2 sometimes
-regarding two pointers with the same address but different provenance
-as nonequal (\myfooexamplename{provenance_equality_global_xy.c}). Unsurprisingly, this happens in
+regarding two pointers
+\begin{wrapfigure}{r}{0.55\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_equality_global_xy.c}{}%
+}
+\vspace*{-0\baselineskip}
+\end{wrapfigure}
+with the same address but different provenance
+as nonequal. Unsurprisingly, this happens in
 some circumstances but not others, e.g.~if the test is pulled into a
 simple separate function, but not if in a separate compilation unit.
 To be conservative w.r.t.~current compiler behaviour, pointer
@@ -912,8 +936,10 @@ substantial bodies of code that rely on it, e.g.~for lock orderings
 It may be desirable to make it implementation-defined 
 whether such pointer construction is allowed. 
 
+\newpage
 
-\section{Pointer Construction via Casts, Representation Accesses, etc.}
+\section{Refining the basic provenance model to support pointer
+  construction via casts, representation Accesses, etc.}
 
 To support low-level systems programming, C provides many other ways
 to construct and manipulate pointer values:
@@ -950,10 +976,27 @@ memory-mapped devices.
 \end{itemize}
 %
 A satisfactory semantics has to address all these, together with the
-implications on optimisation.   We define and explore two main
+implications on optimisation.   We define and explore several 
  alternatives:
 
 \begin{itemize}
+\item \textbf{PNVI}: a semantics that does not track provenance via integers,
+but instead, at integer-to-pointer cast points, checks whether the 
+given address points within a live object and, if so, recreates the
+corresponding provenance.  We explain in the next section why this is not as damaging to
+optimisation as it may sound.
+
+\item \textbf{PNVI-ae (PNVI exposed-address)}: a variant of PNVI that
+  allows integer-to-pointer casts to recreate provenance only for
+  provenances for which an address has previously been cast to
+  integer. 
+
+  \item \textbf{PNVI-aeudi (PNVI exposed-address
+    user-disambiguation)}: a further refinement of PNVI-ae that
+supports casts of integers that are one-past an allocation.
+This is the currently preferred option in the C memory object model
+study group. 
+
 \item \textbf{PVI}: a semantics that tracks provenance via integer computation,
 associating a provenance with all integer values (not just pointer
 values),
@@ -961,19 +1004,15 @@ preserving provenance through integer/\break{}pointer casts, and making some
 particular choices for the provenance results of integer and
 pointer \lstinline{+}/\lstinline{-} integer operations;
 or
-\item \textbf{PNVI}: a semantics that does not track provenance via integers,
-but instead, at integer-to-pointer cast points, checks whether the 
-given address points within a live object and, if so, recreates the
-corresponding provenance.  We explain in the next section why this is not as damaging to
-optimisation as it may sound.
 \end{itemize}
-For the latter, we also mention three variants:
+We also mention other variants of PNVI that seem less desirable:
 \begin{itemize}
-\item \textbf{PNVI-address-taken}: a variant that restricts the above to objects
-whose address has been taken; 
-\item \textbf{PNVI-escaped}: potential variants that
-additionally restrict to objects whose address has been taken and (in
-some sense) escaped; and
+\item \textbf{PNVI-address-taken}: a variant that integer-to-pointer
+  casts  to objects
+whose address has been taken;  and
+%\item \textbf{PNVI-escaped}: potential variants that
+%additionally restrict to objects whose address has been taken and (in
+%some sense) escaped; and
 \item \textbf{PNVI-wildcard}: a variant that gives a ``wildcard''
 provenance to the results of integer-to-pointer casts, delaying checks
 to access time.
@@ -1012,11 +1051,19 @@ consequences for existing code (which might otherwise need additional
 annotations for exotic idioms).  That leads us to articulate and explore the various
 options above, to see which could be broadly acceptable.
 
+\newpage
+
+\section{Refining the basic provenance model: phenomena and examples}
 
 \myparagraph{Pointer/integer casts}
 The ISO standard (6.3.2.3) leaves conversions between pointer and integer types
 almost entirely implementation-defined, except for conversion of
 integer constant \texttt{0} and null pointers, and for the
+\begin{wrapfigure}{r}{0.55\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{provenance_roundtrip_via_intptr_t.c}{}%
+}
+\vspace*{-2\baselineskip}
+\end{wrapfigure}
 optional \lstinline{intptr_t} and \lstinline{uintptr_t} types, for
 which it guarantees that any \emph{``valid pointer to \lstinline{void}''} can
 be converted and back, and that \emph{``the result will compare equal to the
@@ -1025,20 +1072,22 @@ provenance-aware semantics, \emph{``compare equal''} is not enough to
 guarantee the two are interchangeable, which was clearly the intent of
 that phrasing.  Both PVI and PNVI support this, by preserving or
 reconstructing the original provenance respectively
-(\myfooexamplename{provenance_roundtrip_via_intptr_t.c}). 
 
+\ 
 
+ 
 \myparagraph{Inter-object integer arithmetic}
-Below is a \lstinline{uintptr_t} analogue of the last test
-of \S\ref{sec:prov}, attempting to move between objects
-with \lstinline{uintptr_t} arithmetic.
-%
-In PVI, this remains UB. First,
+Below is a \lstinline{uintptr_t} analogue of the \S\ref{sec:prov} example
+\texttt{pointer\_offset\_from\_ptr\_subtraction\_global\_xy.c}, attempting to move between objects
+with \lstinline{uintptr_t}
 \begin{wrapfigure}{r}{0.55\textwidth}
-{\renewcommand{\mylistingmargin}{0mm}\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model}{pointer_offset_from_int_subtraction_global_xy.c}{}%
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_offset_from_int_subtraction_global_xy.c}{}%
 }
 \vspace*{-2\baselineskip}
 \end{wrapfigure}
+arithmetic.
+%
+In PVI, this remains UB. First,
 the integer values of \lstinline{ux}
 and \lstinline{uy} have the provenances of the allocations
 of \lstinline{x} and \lstinline{y} respectively. Then 
@@ -1059,15 +1108,29 @@ resulting pointer value takes on the provenance of the \lstinline{y}
 allocation.  
 %
 Similarly, PVI forbids while PNVI allows (here contrary to current GCC/ICC O2) \lstinline{uintptr_t} analogues of the
-first test of \S\ref{sec:prov} (\myfooexamplename{provenance_basic_using_uintptr_t_global_xy.c}).
+first test of \S\ref{sec:prov}, on the left below.
+%\begin{wrapfigure}{r}{0.55\textwidth}
 
+\
+
+\begin{center}
+  \begin{minipage}{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{provenance_basic_using_uintptr_t_global_xy.c}{}%
+}
+\vspace*{-0\baselineskip}
+\end{minipage}
+  \begin{minipage}{0.49\textwidth}
+    {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_offset_xor_global.c}{}%
+}
+  \end{minipage}
+  \end{center}
 Both choices are defensible here: PVI will permit more aggressive
 alias analysis for pointers computed via integers (though those may be
 relatively uncommon), while PNVI will
 allow not just this test, which as written is probably not idiomatic
 desirable C, but also the essentially identical XOR doubly linked list
 idiom, using only one pointer per
-node by storing the XOR of two (\myfooexamplename{pointer_offset_xor_global.c}).  Opinions differ as to
+node by storing the XOR of two, on the right above.  Opinions differ as to
 whether that idiom matters for modern code. 
 
 There are other real-world but rare cases of inter-object arithmetic,
@@ -1081,14 +1144,13 @@ source annotation, or some other mechanism, to prevent compilers
 implicitly assuming that uses of such pointers as undefined. 
 
 
-
 \myparagraph{Pointer provenance for pointer bit manipulations}
 It is a standard idiom in systems code to use otherwise unused bits of
 pointers: low-order bits for pointers known 
 %
 to be aligned,
 \begin{wrapfigure}{r}{0.57\textwidth}
-{\renewcommand{\mylistingmargin}{0mm}\myqtexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{provenance_tag_bits_via_uintptr_t_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_tag_bits_via_uintptr_t_1.c.html}
+{\renewcommand{\mylistingmargin}{0mm}\myqtexample{charon_tests/}{provenance_tag_bits_via_uintptr_t_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_tag_bits_via_uintptr_t_1.c.html}
 }
 \vspace*{-1.0\baselineskip}
 \end{wrapfigure}
@@ -1110,14 +1172,27 @@ re-acquire the correct provenance at cast time.
 
 \
 
+\
+
+\
+
+\
+
 \myparagraph{Algebraic properties of integer operations}
 The PVI definitions of the provenance results of integer operations,
 chosen to make the previous two examples respectively forbidden and
 allowed, has an unfortunate consequence:  it makes those operations no
-longer associative
-(compare \mytestlink{pointer_arith_algebraic_properties_2_global.c}{this} and
-\mytestlink{pointer_arith_algebraic_properties_3_global.c}{this}; the
-latter is UB in PVI).
+longer associative. Compare the examples below:
+
+\
+
+\begin{center}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_arith_algebraic_properties_2_global.c}{}%
+}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_arith_algebraic_properties_3_global.c}{}%
+}
+\end{center}
+The latter is UB in PVI.
 %\TODO{make example
 %\url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2263.htm#q12.-for-arithmetic-over-provenanced-integer-values-is-the-provenance-of-the-result-invariant-under-commutativity-and-under-plusminus-associativity}
 %}.
@@ -1130,9 +1205,16 @@ PNVI does not suffer from this problem.
 
 
 \myparagraph{Copying pointer values with \lstinline{memcpy()}}
-This clearly has to be allowed (\myfooexamplename{pointer_copy_memcpy.c}), and so, to make the results usable for
+This clearly has to be allowed, and so, to make the results usable for
 accessing memory without UB, \lstinline{memcpy()} and similar functions have to preserve the original
 provenance.
+%
+\begin{wrapfigure}{r}{0.55\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_copy_memcpy.c}{}%
+}
+\vspace*{-2\baselineskip}
+\end{wrapfigure}
+%
 %
 The ISO C11 text does not explicitly address this (in a
 pre-provenance semantics, before DR260, it did not need to).
@@ -1140,6 +1222,13 @@ One could do so by special-casing \lstinline{memcpy()} and similar
 functions to preserve provenance,
 but the following questions suggest less ad hoc approaches.
 
+\
+
+\
+
+\
+
+\
 
 \myparagraph{Copying pointer values bytewise, with user-\lstinline{memcpy}}
 One of the key aspects of C is that it supports manipulation of object
@@ -1154,7 +1243,7 @@ bytes of which at least one has that provenance and none have a conflicting prov
 PNVI makes it legal in a different way: there, the representation
 bytes have no
 \begin{wrapfigure}{r}{0.57\textwidth}
-{\renewcommand{\mylistingmargin}{0mm}\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{pointer_copy_user_dataflow_direct_bytewise.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_dataflow_direct_bytewise.c.html}%
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_copy_user_dataflow_direct_bytewise.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_dataflow_direct_bytewise.c.html}%
 }
 \vspace*{-1.0\baselineskip}
 \end{wrapfigure}
@@ -1271,7 +1360,7 @@ not.
 % SKIP FOR SPACE
 %Giving just the first in full:
 %
-%\myqtexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{provenance_via_io_percentp_global.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_via_io_percentp_global.c.html}
+%\myqtexample{charon_tests/}{provenance_via_io_percentp_global.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_via_io_percentp_global.c.html}
 %
 Somewhat exotic though they are, these idioms are used in practice: in 
 graphics code for
@@ -1394,7 +1483,7 @@ assume its absence.  Consider first the
 example below, where
 \begin{wrapfigure}{r}{0.4\textwidth}
 \vspace*{-0.25\baselineskip}
-{\renewcommand{\mylistingmargin}{0mm}\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{pointer_from_integer_1pg.c}{}%{pointer_from_integer_1i.c}%
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_from_integer_1pg.c}{}%{pointer_from_integer_1i.c}%
 }
 \vspace*{-0.75\baselineskip}
 \end{wrapfigure}
@@ -1417,12 +1506,20 @@ the \lstinline{(int*)i} cast the \lstinline{j} allocation does not yet
 exist, so the cast gives a pointer with empty provenance; any
 execution that goes into the \lstinline{if} would thus flag UB. 
 
+\
 
+
+
+\begin{wrapfigure}{r}{0.4\textwidth}
+\vspace*{-0.25\baselineskip}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_from_integer_1ig.c}{}%{pointer_from_integer_1i.c}%
+}
+\vspace*{-0.75\baselineskip}
+\end{wrapfigure}
 Varying to do the cast to \lstinline{int*}
 in \lstinline{f()} instead of \lstinline{main()}, passing in an
 integer \lstinline{i}
 instead of a pointer
-(\myfooexamplename{pointer_from_integer_1ig.c}),
 this remains UB in PVI, but in PNVI becomes defined, as \lstinline{j}
 exists at the point when the abstract machine does
 the \lstinline{(int*)i} cast.
@@ -1432,15 +1529,39 @@ for the results of integer-to-pointer casts where they cannot see the
 source of the integer, which we imagine to be a rare case --- but this
 does not match current O2 or O3 compilation for GCC, Clang, or ICC.
 
+\
 
+\
+
+\
+
+\
+
+\
+
+\
+
+\newpage
 
 \myparagraph{Allocation-address nondeterminism}
 Note that both of the previous examples take the address
 of \lstinline{j} to guard their \lstinline{*p=7} accesses.
 Removing the conditional guards gives tests that one would surely like
 to forbid
-(tests \myfooexamplename{pointer_from_integer_1p.c}
-and \myfooexamplename{pointer_from_integer_1i.c}).
+
+\
+
+\begin{center}
+  \begin{minipage}{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_integer_1p.c}{}%
+}
+\vspace*{-0\baselineskip}
+\end{minipage}
+  \begin{minipage}{0.49\textwidth}
+    {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_integer_1i.c}{}%
+}
+  \end{minipage}
+  \end{center}
 Both are forbidden in PVI for the same reason as before, and the first
 is forbidden in PNVI again because \lstinline{j} does not exist at the
 cast point.  
@@ -1482,14 +1603,27 @@ access flags UB --- hence the whole program is UB, as desired.
 
 \myparagraph{Can a function access local variables of its parent?}
 This too should be forbidden in general. 
-The example on the right is forbidden by PVI, again for the simple reason that
-\begin{wrapfigure}{r}{0.5\textwidth}
-{\renewcommand{\mylistingmargin}{5mm}\vspace*{-0.25\baselineskip}\mycerbexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{pointer_from_integer_2.c}{}{pointer_from_integer_2.c}\vspace*{-0.5\baselineskip}%
-}
-\vspace*{-2\baselineskip}
-\end{wrapfigure}
+The example on the left below is forbidden by PVI, again for the simple reason that
  \lstinline{p}
-has the empty provenance, and by PNVI by allocation-address
+has the empty provenance, and 
+
+\
+
+\begin{center}
+  \begin{minipage}{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{5mm}\vspace*{-0.25\baselineskip}\mycerbexample{charon_tests/}{pointer_from_integer_2.c}{}{pointer_from_integer_2.c}\vspace*{-0.5\baselineskip}%
+}
+\vspace*{-0\baselineskip}
+\end{minipage}
+  \begin{minipage}{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{5mm}\vspace*{-0.25\baselineskip}\mycerbexample{charon_tests/}{pointer_from_integer_2g.c}{}{pointer_from_integer_2g.c}\vspace*{-0.5\baselineskip}%
+}
+\vspace*{-0\baselineskip}
+  \end{minipage}
+  \end{center}
+%
+%
+by PNVI by allocation-address
 nondeterminism, as there exist abstract-machine
 executions in which the guessed address
 is wrong. 
@@ -1541,11 +1675,11 @@ allows the bytewise copying and the bitwise manipulation of pointers
 above.  In other words, it is not clear how it could be forbidden
 simply in PVI.
 
-%\myqtexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{provenance_lost_escape_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_lost_escape_2.c.html}
+%\myqtexample{charon_tests/}{provenance_lost_escape_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_lost_escape_2.c.html}
 %
 \begin{wrapfigure}{r}{0.67\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\vspace*{-0.0\baselineskip}
-\mycerbexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{provenance_lost_escape_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_lost_escape_1.c.html}{provenance_lost_escape_1.c}
+\mycerbexample{charon_tests/}{provenance_lost_escape_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_lost_escape_1.c.html}{provenance_lost_escape_1.c}
 \vspace*{-1.5\baselineskip}
 }
 \end{wrapfigure}
@@ -1615,7 +1749,7 @@ balance we think PNVI is preferable.
 % It is debatable
 % \begin{wrapfigure}{r}{0.5\textwidth}
 %   \vspace*{-1.0\baselineskip}
-% {\renewcommand{\mylistingmargin}{5mm}\myqtexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{pointer_arithmetic_at_intptr_t_1.c}{}}
+% {\renewcommand{\mylistingmargin}{5mm}\myqtexample{charon_tests/}{pointer_arithmetic_at_intptr_t_1.c}{}}
 %   \vspace*{-1.0\baselineskip}
 % \end{wrapfigure}%
 % whether this should be allowed: the ISO text is
