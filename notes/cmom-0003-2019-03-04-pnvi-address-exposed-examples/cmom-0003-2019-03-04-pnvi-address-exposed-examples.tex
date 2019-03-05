@@ -411,7 +411,7 @@
 \thispagestyle{plain}
 \fi
 
-\title[PNVI-ae and PNVI-aeudi: Examples]{C provenance semantics: examples
+\title[PNVI-ae and PNVI-ae-udi: Examples]{C provenance semantics: examples
 for the
 address-exposed and address-exposed 
 user-disambiguation variants of the PNVI provenance-not-via-integers
@@ -533,6 +533,10 @@ model study group.
 
 \section{Introduction}
 
+The new material for PNVI-address-exposed and PNVI address-exposed
+user-disambiguation models starts in \S\ref{sec:refinemodel}, but
+first we introduce introduce the problem in general and describe the
+basic pointer provenance semantics. 
 
 The semantics of pointers and memory objects in C has been a vexed 
 question for many years. 
@@ -920,6 +924,12 @@ immediately follow the first array object in the address space''},
 which requires such pointers to compare equal -- reasonable pre-DR260CR,
 but debatable after it.
 
+Pointer equality should not be confused with alias analysis: we could
+require \lstinline{==} to return true for pointers with the same
+address but different provenance, while still permitting alias
+analysis to regard the two as distinct by making accesses via pointers
+with the wrong provenance UB.
+
 
 
 
@@ -939,7 +949,7 @@ whether such pointer construction is allowed.
 \newpage
 
 \section{Refining the basic provenance model to support pointer
-  construction via casts, representation Accesses, etc.}
+  construction via casts, representation Accesses, etc.}\label{sec:refinemodel}
 
 To support low-level systems programming, C provides many other ways
 to construct and manipulate pointer values:
@@ -991,7 +1001,7 @@ optimisation as it may sound.
   provenances for which an address has previously been cast to
   integer. 
 
-  \item \textbf{PNVI-aeudi (PNVI exposed-address
+  \item \textbf{PNVI-ae-udi (PNVI exposed-address
     user-disambiguation)}: a further refinement of PNVI-ae that
 supports casts of integers that are one-past an allocation.
 This is the currently preferred option in the C memory object model
@@ -1005,9 +1015,9 @@ particular choices for the provenance results of integer and
 pointer \lstinline{+}/\lstinline{-} integer operations;
 or
 \end{itemize}
-We write PNVI-* for PNVI-plain, PNVI-ae, and PNVI-aeudi.
+We write PNVI-* for PNVI-plain, PNVI-ae, and PNVI-ae-udi.
 The PNVI-plain and PVI semantics were described in the POPL 2019/N2311
-paper.  PNVI-ae and PNVI-aeudi have emerged from discussions in the C
+paper.  PNVI-ae and PNVI-ae-udi have emerged from discussions in the C
 memory object model study group. 
 
 
@@ -1100,7 +1110,7 @@ values are pure integers, and at the \lstinline{int*} cast
 the value of \lstinline{ux+offset} matches the address
 of \lstinline{y} (live and of the right type), so the
 resulting pointer value takes on the provenance of the \lstinline{y}
-allocation.  For PNVI-ae and PNVI-aeudi, the allocation to \lstinline{y}
+allocation.  For PNVI-ae and PNVI-ae-udi, the allocation to \lstinline{y}
 is marked as \emph{exposed} at the cast of \lstinline{&y} to an
 integer, and so the above is likewise permitted there. 
 
@@ -1184,7 +1194,9 @@ re-acquire the correct provenance at cast time.
 In PVI we make the binary operations used here, combining an integer value that has some
 provenance ID with a pure integer, preserve that provenance. 
 
-\
+(A separate question is the behaviour if the integer value with tag
+bits set is converted back to pointer type.  In ISO the result is
+implementation-defined, per 6.3.2.3p\{5,6\} and 7.20.1.4.)
 
 \
 
@@ -1264,7 +1276,7 @@ integer-to-pointer casts: checking at read-time that the address is
 within a live object, and giving the result the corresponding
 provenance. 
 %
-PNVI-ae and PNVI-aeudi need additional machinery, not yet developed in
+PNVI-ae and PNVI-ae-udi need additional machinery, not yet developed in
 detail, to permit this.
 
 \
@@ -1318,6 +1330,19 @@ violates the effective type rules, but we believe C2x should support
 it for suitably annotated code. Virtual memory manipulation is outside our scope
 at present. 
 
+\myparagraph{Pointer provenance for bytewise pointer representation manipulations}
+
+\TODO{}
+\begin{center}
+  \begin{minipage}{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{provenance_tag_bits_via_repr_byte_1.c}{}%
+}
+\vspace*{-0\baselineskip}
+\end{minipage}
+\end{center}
+
+\TODO{example that illustrates the byte-index metadata of PNVI}
+
 
 \myparagraph{Copying pointer values via encryption}
 To more clearly delimit what idioms our proposals do and do not
@@ -1325,7 +1350,7 @@ allow, consider copying pointers via code that encrypts or compresses a block of
 multiple pointers together, decrypting or uncompressing later.
 
 In PNVI-plain, it would just work, in the same way as \lstinline{user_memcpy()}.
-In PNVI-ae and PNVI-aeudi, it would not, and it is not clear that
+In PNVI-ae and PNVI-ae-udi, it would not, and it is not clear that
 there is any reasonable modification that would enable it. 
 
 It has been argued that pointer construction via \lstinline{intptr_t} and back via any
@@ -1370,7 +1395,7 @@ each control-flow branch
 }
   \end{minipage}
   \end{center}
-In PNVI-plain these would both work, while in PNVI-ae and PNVI-aeudi
+In PNVI-plain these would both work, while in PNVI-ae and PNVI-ae-udi
 only the second would, as the first reads representation bytes rather
 than casting the pointer value to integer. In PVI they would give
 empty-provenance pointer values and hence UB.
@@ -1435,7 +1460,7 @@ provenance (e.g.~where they are the identity).
 \
 
 
-\TODO{PNVI-ae and PNVI-aeudi considered up to here only}
+\TODO{PNVI-ae and PNVI-ae-udi considered up to here only}
 
 \myparagraph{Pointer provenance via IO}
 Consider now pointer provenance flowing 
