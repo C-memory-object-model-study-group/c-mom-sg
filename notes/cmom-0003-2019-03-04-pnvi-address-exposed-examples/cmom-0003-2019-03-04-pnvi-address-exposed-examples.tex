@@ -1692,7 +1692,6 @@ libraries return pointers that are treated as having fresh provenance
 outside (but not inside) their abstraction boundaries.
 
 
-\TODO{PNVI-ae and PNVI-ae-udi considered up to here only}
 
 
 \section{Implications of Provenance Semantics for Optimisations}\label{sec:opt}
@@ -1714,7 +1713,7 @@ We now consider some other important cases, by example.
 
 
 \myparagraph{Optimisation based on equality tests}
-Both provenance semantics let \lstinline{p==q} hold in some cases
+Both PNVI-* and PVI let \lstinline{p==q} hold in some cases
 where \lstinline{p} and \lstinline{q} are not interchangeable. 
 As \citeN{oopslaTwin} observe in the LLVM 
 IR context, that
@@ -1748,15 +1747,19 @@ constant is the same as the \lstinline{printf}'d address
 We believe that compiler behaviour should be permitted, and hence that
 this program should be deemed to have UB --- or, in other words, that
 code should not normally be allowed to rely on implementation facts about the
-allocation addresses of C variables.  The PVI semantics flags UB
-for the simple reason that \lstinline{j} is created with the empty
-provenance, and hence \lstinline{p} inherits that.  The PNVI semantics
-also deems this to be UB, because at the point of
-the \lstinline{(int*)i} cast the \lstinline{j} allocation does not yet
-exist, so the cast gives a pointer with empty provenance; any
-execution that goes into the \lstinline{if} would thus flag UB. 
+allocation addresses of C variables.
 
-\
+The PNVI-* semantics
+deems this to be UB, because at the point of
+the \lstinline{(int*)i} cast the \lstinline{j} allocation does not yet
+exist (let alone, for PNVI-ae and PNVI-ae-udi, having been exposed by having one of its
+addresses taken and cast to integer), so the cast gives a pointer with empty provenance; any
+execution that goes into the \lstinline{if} would thus flag UB. 
+The PVI semantics flags UB
+for the simple reason that \lstinline{j} is created with the empty
+provenance, and hence \lstinline{p} inherits that.  
+
+\newpage
 
 
 
@@ -1769,51 +1772,49 @@ execution that goes into the \lstinline{if} would thus flag UB.
 Varying to do the cast to \lstinline{int*}
 in \lstinline{f()} instead of \lstinline{main()}, passing in an
 integer \lstinline{i}
-instead of a pointer
-this remains UB in PVI, but in PNVI becomes defined, as \lstinline{j}
+instead of a pointer,
+this becomes defined in PNVI-plain, as \lstinline{j}
 exists at the point when the abstract machine does
 the \lstinline{(int*)i} cast.
-At present we do not see any strong reason why making this defined would not be
-acceptable --- it amounts to requiring compilers to be conservative
-for the results of integer-to-pointer casts where they cannot see the
-source of the integer, which we imagine to be a rare case --- but this
-does not match current O2 or O3 compilation for GCC, Clang, or ICC.
+But in PNVI-ae and PNVI-ae-udi, the storage instance of \lstinline{j}
+is not exposed, so the cast to \lstinline{int*} gives a pointer with
+empty provenance and the access via it is UB. 
+This example is also UB in PVI.
+
+At present we do not see any strong reason why making this defined
+would not be acceptable --- it amounts to requiring compilers to be
+conservative for the results of integer-to-pointer casts where they
+cannot see the source of the integer, which we imagine to be a rare
+case --- but this does not match current O2 or O3 compilation for GCC,
+Clang, or ICC.
 
 \
 
-\
-
-\
-
-\
-
-\
-
-\
-
-\newpage
 
 \myparagraph{Allocation-address nondeterminism}
 Note that both of the previous examples take the address
 of \lstinline{j} to guard their \lstinline{*p=7} accesses.
-Removing the conditional guards gives tests that one would surely like
-to forbid
+Removing the conditional guards gives the left and middle tests below, that one would surely like
+to forbid:
 
-\
 
 \begin{center}
-  \begin{minipage}[t]{0.49\textwidth}
+  \begin{minipage}[t]{0.33\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_integer_1p.c}{}%
 }
 \vspace*{-0\baselineskip}
 \end{minipage}
-  \begin{minipage}[t]{0.49\textwidth}
+  \begin{minipage}[t]{0.33\textwidth}
     {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_integer_1i.c}{}%
+}
+  \end{minipage}
+  \begin{minipage}[t]{0.33\textwidth}
+    {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_integer_1ie.c}{}%
 }
   \end{minipage}
   \end{center}
 Both are forbidden in PVI for the same reason as before, and the first
-is forbidden in PNVI again because \lstinline{j} does not exist at the
+is forbidden in PNVI-*, again because \lstinline{j} does not exist at the
 cast point.  
 
 But the second forces us to think about how much allocation-address
@@ -1843,19 +1844,35 @@ can always be masked by that arbitrary observable behaviour.
 Accordingly, our semantics nondeterministically chooses an arbitrary
 address for each allocation, subject only to alignment and no-overlap
 constraints (ultimately one would also need to build in constraints
-from programmer linking commands).  Then in PNVI, the \lstinline{..._1i.c} example is UB because, even
+from programmer linking commands).
+%
+This is equivalent to noting that the ISO standard does not constrain
+how implementations choose allocation addresses in any way (subject to
+alignment and no-overlap), and hence that programmers of
+standard-conforming code cannot assume anything about those choices.
+%
+Then in PNVI-plain, the \lstinline{..._1i.c} example is UB because, even
 though there is one execution in which the guess is correct, there is
 another (in fact many others) in which it is not. In those, the cast
 to \lstinline{int*} gives a pointer with empty provenance, so the
 access flags UB --- hence the whole program is UB, as desired.
+%
+In PNVI-ae and PNVI-ae-udi, the \lstinline{..._1i.c} example is UB for
+a different reason: the storage instance of \lstinline{j} is not
+exposed before the cast \lstinline{(int*)i}, and so the result of that
+cast has empty provenance and the access \lstinline{*p=7} flags UB, in every execution. 
+%
+However, if \lstinline{j} is exposed, as in the example on the right,
+these models still make it UB, now for the same reason as PNVI-plain.
 
-
+\newpage
 
 \myparagraph{Can a function access local variables of its parent?}
 This too should be forbidden in general. 
 The example on the left below is forbidden by PVI, again for the simple reason that
  \lstinline{p}
 has the empty provenance, and 
+by 
 
 \
 
@@ -1873,7 +1890,7 @@ has the empty provenance, and
   \end{center}
 %
 %
-by PNVI by allocation-address
+PNVI-plain by allocation-address
 nondeterminism, as there exist abstract-machine
 executions in which the guessed address
 is wrong. 
@@ -1883,15 +1900,25 @@ the address of \lstinline{j} is not available there.  Guarding the
 call to \lstinline{f()} with 
 %\makebox[0.4\textwidth][l]{
 \lstinline{if ((uintptr_t)&j == ADDRESS_PFI_2)} %}
-(\mycerbexamplename{pointer_from_integer_2g.c}{pointer_from_integer_2g.c})
-again makes the example well-defined in PNVI, as the address is
+(\mycerbexamplename{pointer_from_integer_2g.c}{pointer_from_integer_2g.c}
+on the right above)
+again makes the example well-defined in PNVI-plain, as the address is
 correct and \lstinline{j} exists at the \lstinline{int*} cast point,
 but notice again that the
 guard necessarily involves \lstinline{&j}. 
 This does not match current Clang at O2 or O3, which print \lstinline{j=5}.
 
-\myparagraph{The PNVI-address-taken, PNVI-escaped, and PNVI-wildcard alternatives}
-An obvious refinement to PNVI is to restrict integer-to-pointer casts
+In PNVI-ae and PNVI-ae-udi,
+\mycerbexamplename{pointer_from_integer_2.c}{pointer_from_integer_2g.c}
+is forbidden simply because \lstinline{j} is never exposed (and if it
+were, it would be forbidden for the same reason as in PNVI-plain).
+PNVI-ae and PNVI-ae-udi allow 
+\mycerbexamplename{pointer_from_integer_2g.c}{pointer_from_integer_2g.c},
+because the \lstinline{j} storage instance is exposed by the
+\lstinline{(uinptr_t)&j} cast.  
+
+\myparagraph{The PNVI-address-taken and PNVI-wildcard alternatives}
+A different obvious refinement to PNVI would be to restrict integer-to-pointer casts
 to recover the provenance only of objects that have had their address
 taken, recording that in the memory state.  
 Perhaps surprisingly, that seems not to make much difference to the
@@ -1901,14 +1928,20 @@ of an object to use it in a guard.  PNVI-address-taken has the conceptual advant
 identifying these UBs without requiring examination of multiple
 executions, but the disadvantage that whether an address has been
 taken is a fragile syntactic property, e.g.~not preserved
-by dead code elimination.  One can also restrict further, to addresses
-that have in some sense escaped, but precisely defining a particular
-such sense is complex and somewhat arbitrary. 
+by dead code elimination.
+PNVI-address-exposed is based on PNVI-address-taken but with the
+tighter condition that the address must also have been cast to integer.
+
 A rather different model is to make the results of integer-to-pointer
 casts have a ``wildcard'' provenance, deferring the check that the
 address matches a live object from cast-time to access-time.  This
 would make \mycerbexamplename{pointer_from_integer_1pg.c}{pointer_from_integer_1pg.c} defined,
 which is surely not desirable. 
+
+\newpage
+
+\TODO{PNVI-ae and PNVI-ae-udi considered up to here only}
+
 
 \myparagraph{The problem with lost address-takens and escapes}
 Our PVI proposal allows computations that erase the numeric
