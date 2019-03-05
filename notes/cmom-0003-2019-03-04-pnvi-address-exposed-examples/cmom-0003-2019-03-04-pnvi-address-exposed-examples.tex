@@ -1940,7 +1940,6 @@ which is surely not desirable.
 
 \newpage
 
-\TODO{PNVI-ae and PNVI-ae-udi considered up to here only}
 
 
 \myparagraph{The problem with lost address-takens and escapes}
@@ -1987,36 +1986,99 @@ In contrast to the difficulties of preserving dependencies to avoid
 thin-air concurrency, this does not forbid optimisations that remove
 dependencies; it merely requires them to describe what they do.
 
-In PNVI, the example is also allowed, but for a simpler reason that is
+In PNVI-plain, the example is also allowed, but for a simpler reason that is
 not affected by such integer optimisation: the object exists at
 the \lstinline{int*} cast.  Implementations that  take a conservative view of all pointers
 formed from integers  would automatically be sound w.r.t.~this. At
 present ICC is not, at O2 or O3.
 
+
+PNVI-ae and PNVI-ae-udi are more like PVI here: they allow the
+example, but only because the address of \lstinline{p} is both taken
+and cast to an integer type.   If these semantics were used for
+alias analysis in an intermediate language after such optimisation,
+this would likewise require the optimsation passes to record which
+addresses have been taken and cast to integer, to be explicitly passed
+in to alias analysis. 
+
 %
 
+\newpage
+
 \myparagraph{Should PNVI allow one-past integer-to-pointer casts?}
-For PNVI, one has to choose whether an integer that is one-past a live
+For PNVI*, one has to choose whether an integer that is one-past a live
 object (and not strictly within another) can be cast to a pointer with valid provenance,
 or whether this should give an empty-provenance pointer value. 
 Lee observes that the latter may be necessary to make some
 optimisation sound [personal communication], and we imagine that this is
-not a normal idiom in practice, so we follow the stricter semantics here. 
+not a common idiom in practice, so for PNVI-plain and PNVI-ae we follow the
+stricter semantics.
+
+PNVI-ae-udi, however, is designed to permit a cast of a one-past pointer to
+integer and back to recover the original provenance, replacing the
+integer-to-pointer semantic check that $x$ is properly within the footprint of
+the storage instance by a check that it is properly within or
+one-past. That makes the following example allowed in PNVI-ae-udi,
+while it is forbidden in PNVI-ae and PNVI-plain.
+
+\
+
+\begin{center}
+{\renewcommand{\mylistingmargin}{5mm}\myfooexample{charon_tests/}{provenance_roundtrip_via_intptr_t_onepast.c}{}}
+\vspace*{-0\baselineskip}
+\end{center}
+The downside of this is that one has to handle pointer-to-integer
+casts for integer values that are ambiguously both one-past one
+storage instance and at the start of the next.
+The PNVI-ae-udi approach to that is to leave the provenance of 
+pointer values resulting from such casts unknown until the first
+operation (e.g.~an access or pointer arithmetic) that disambiguates
+them.  This makes the following two, each of which uses the result of
+the cast in one consistent way, well defined:
+
+\begin{center}
+  \begin{minipage}[t]{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_int_disambiguation_1.c}{}%
+}
+\vspace*{-0\baselineskip}
+\end{minipage}
+  \begin{minipage}[t]{0.49\textwidth}
+    {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_int_disambiguation_2.c}{}%
+}
+  \end{minipage}
+\end{center}
+while making the following, which tries to use the result of the cast
+to access both objects, UB. 
+
+\vfill
+
+\begin{center}
+  \begin{minipage}[t]{0.49\textwidth}
+{\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_int_disambiguation_3.c}{}%
+}
+\vspace*{-0\baselineskip}
+\end{minipage}
+  \end{center}
+In this, the \lstinline{*r=11} will resolve the provenance of the
+value in one way, making the \lstinline{r-1} UB. 
 
 
-\myparagraph{Summary of pros and cons}
-Both semantics handle many cases as one would desire.
-Both suffer from the non-interchangeability of pointers that have
-compared equal (with \lstinline{==}) and PVI also from the same
-problem for integers.
-PVI suffers from the loss of algebraic properties of integer
-arithmetic operations, the difficulty of accommodating pointer I/O,
-and the problem with lost address-takens and escapes.   PNVI makes some currently
-observable compiler behaviours
-unsound, though at least for GCC some of these are viewed by some
-developers as buggy in any case. 
-PNVI is considerably simpler to define and explain than PVI, and on
-balance we think PNVI is preferable. 
+
+
+
+% \myparagraph{Summary of pros and cons}
+% Both semantics handle many cases as one would desire.
+% Both suffer from the non-interchangeability of pointers that have
+% compared equal (with \lstinline{==}) and PVI also from the same
+% problem for integers.
+% PVI suffers from the loss of algebraic properties of integer
+% arithmetic operations, the difficulty of accommodating pointer I/O,
+% and the problem with lost address-takens and escapes.   PNVI makes some currently
+% observable compiler behaviours
+% unsound, though at least for GCC some of these are viewed by some
+% developers as buggy in any case. 
+% PNVI is considerably simpler to define and explain than PVI, and on
+% balance we think PNVI is preferable. 
 
 
 % % SKIP THIS, AS NO SPACE
