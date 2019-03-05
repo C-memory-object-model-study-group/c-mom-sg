@@ -517,12 +517,13 @@ provenance-not-via-integer, address-exposed (PNVI-ae)
 and provenance-not-via-integer, address-exposed, user-disambiguation (PNVI-ae-udi)
 models, based on:
 \begin{itemize}
-\item the PNVI semantics in the POPL 2019 paper~\cite{cerberus-popl2019}
+\item the PNVI semantics in the POPL 2019
+  paper~\cite{cerberus-popl2019}, here called PNVI-plain
 \item the mathematical version  by Martin Uecker, 2019-01-18
 \item the text summary by Jens Gustedt, 2019-01-22
 \item email discussion on the C Memory Object Model study group mailing list
 \end{itemize}
-Changes for PNVI-ae from PNVI are \myt{highlighted}.
+Changes for PNVI-ae from PNVI-plain are \myt{highlighted}.
 Additional changes for PNVI-ae-udi are \myu{highlighted}. 
 
 
@@ -535,9 +536,9 @@ Additional changes for PNVI-ae-udi are \myu{highlighted}.
 
 
 
-\section{The PNVI-ae-udi, PNVI-ae, PNVI, and PVI semantics}
+\section{The PNVI-ae-udi, PNVI-ae, PNVI-plain, and PVI semantics}
 
-The base PVI and PNVI memory object semantics are manually typeset mathematics simplified from the
+The base PVI and PNVI-plain memory object semantics are manually typeset mathematics simplified from the
 executable-as-test-oracle
 Cerberus
 mechanised Lem~\cite{Lem-icfp2014} source. We have removed most subobject details, function
@@ -1083,8 +1084,8 @@ is within the storage instance.
 %
 %
 
-\myparagraph{Casts (PNVI)}
-In PNVI, a cast of a pointer value $p$  to an integer value (at type $\tau$)
+\myparagraph{Casts (PNVI-plain)}
+In PNVI-plain, a cast of a pointer value $p$  to an integer value (at type $\tau$)
 just converts null pointers to zero and non-null pointer values to the
 address $a$ of the pointer, if that is representable in $\tau$,
 otherwise flagging UB.  The provenance of the pointer is discarded. 
@@ -1101,7 +1102,7 @@ otherwise flagging UB.  The provenance of the pointer is discarded.
 \end{array}
 \]
 
-In PNVI, an integer-to-pointer cast of $0$ returns the null pointer.
+In PNVI-plain, an integer-to-pointer cast of $0$ returns the null pointer.
 For a non-$0$ integer $x$, casting to a pointer to $\tau$, if there is a storage instance $i$ in the
 current memory model state $(A,M)$ for which the 
 address of the pointer would be properly within the
@@ -1129,7 +1130,7 @@ instance, it returns a pointer with empty provenance.
 \myt{
 \myparagraph{Casts (PNVI-ae)}
 In PNVI-ae, the result of a cast of a pointer value $p$  to an
-integer value is exactly as in PNVI.  In addition, 
+integer value is exactly as in PNVI-plain.  In addition, 
 for a cast of pointer value $p=(@i,a)$ with provenance $@i$, 
 where $A(i) = (n,\tau_{\text{opt}},a,f,k,t)$ is the storage instance
 metadata for $i$, 
