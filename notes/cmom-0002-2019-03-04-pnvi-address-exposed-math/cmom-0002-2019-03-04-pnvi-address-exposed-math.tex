@@ -411,7 +411,7 @@
 \thispagestyle{plain}
 \fi
 
-\title[PNVI-ae and PNVI-aeudi: detailed semantics]{C provenance semantics: detailed
+\title[PNVI-ae and PNVI-ae-udi: detailed semantics]{C provenance semantics: detailed
 semantics for the
 address-exposed and address-exposed 
 user-disambiguation variants of the PNVI provenance-not-via-integers
@@ -514,7 +514,7 @@ model}
 
 This note sketches a mathematical version of the
 provenance-not-via-integer, address-exposed (PNVI-ae)
-and provenance-not-via-integer, address-exposed, user-disambiguation (PNVI-aeudi)
+and provenance-not-via-integer, address-exposed, user-disambiguation (PNVI-ae-udi)
 models, based on:
 \begin{itemize}
 \item the PNVI semantics in the POPL 2019 paper~\cite{cerberus-popl2019}
@@ -523,19 +523,19 @@ models, based on:
 \item email discussion on the C Memory Object Model study group mailing list
 \end{itemize}
 Changes for PNVI-ae from PNVI are \myt{highlighted}.
-Additional changes for PNVI-aeudi are \myu{highlighted}. 
+Additional changes for PNVI-ae-udi are \myu{highlighted}. 
 
 
 {\color{red}This version does not support bytewise copy of a pointer
  to an unexposed object, which will need quite some additional
- machinery for PNVI-ae and PNVI-aeudi beyond the base PNVI (where
+ machinery for PNVI-ae and PNVI-ae-udi beyond the base PNVI (where
  that automatically works).  The design of that machinery should
  ideally be based on the treatment of representation-byte-accessed
  pointer values by existing compiler alias analyses and optimisations.}
 
 
 
-\section{The PNVI-aeudi, PNVI-ae, PNVI, and PVI semantics}
+\section{The PNVI-ae-udi, PNVI-ae, PNVI, and PVI semantics}
 
 The base PVI and PNVI memory object semantics are manually typeset mathematics simplified from the
 executable-as-test-oracle
@@ -600,7 +600,7 @@ In PNVI-ae, PNVI, and PVI, a provenance $\pi$ is either
  $@i$ where $i$ is a storage-instance ID, or the \emph{empty}
   provenance $\provNone$. 
 %
-\myu{In PNVI-aeudi a provenance can also be a symbolic storage instance ID
+\myu{In PNVI-ae-udi a provenance can also be a symbolic storage instance ID
  $\iota$ (iota), initially associated to two storage
  instance IDs and later resolved to one or the other.}
   %some other handling of adjacency-ambiguity}
@@ -628,9 +628,9 @@ $(n,\tau_{\text{opt}},a,f,k,t)$:
 \item base address $a$, 
 \item permission flag $f\mathord{\in}\{\readwrite,\,\readonly\}$, 
 \item kind $k\mathord{\in}\{\myobject,\,\region\}$, and
-\item \myt{for PNVI-ae and PNVI-aeudi, a taint flag $t\mathord{\in}\{\unexposed,\,\exposed\}$}.
+\item \myt{for PNVI-ae and PNVI-ae-udi, a taint flag $t\mathord{\in}\{\unexposed,\,\exposed\}$}.
 \end{itemize}
-\myu{In PNVI-aeudi, $A$ also maps all symbolic storage instance IDs $\iota$,
+\myu{In PNVI-ae-udi, $A$ also maps all symbolic storage instance IDs $\iota$,
 to sets of either one or two (non-symbolic) storage instance IDs.
 One might also need to record a partial equivalence relation
 over symbolic storage instance IDs, to cope with the pointer
@@ -718,12 +718,12 @@ storage instance exists with a footprint containing the pointer value that
 is being constructed. If so, its storage instance ID
 is used for the provenance of the pointer value, otherwise the empty
 provenance is used.
-\myt{In PNVI-ae and PNVI-aeudi, when constructing a pointer value, if $A$ has to
+\myt{In PNVI-ae and PNVI-ae-udi, when constructing a pointer value, if $A$ has to
 be examined then, following the relevant integer-to-pointer cast
 semantics below, the storage instance must have been exposed,
 otherwise  the memory
   action that was doing the $\abst()$ is UB.}
-\myu{In PNVI-aeudi, if there are two such live storage instances, with
+\myu{In PNVI-ae-udi, if there are two such live storage instances, with
 IDs $i_1$ and $i_2$, the resulting pointer value is given a fresh
 symbolic storage instance ID $\iota$, and $A$ is updated to map
 $\iota$ to $\{i_1,i_2\}$.  This can only happen if the two storage
@@ -848,7 +848,7 @@ storage-instance metadata $A$ of storage instance $i$ is updated to record that 
 \]
 
 
-\myu{For PNVI-aeudi, the $\Kill$, $\load$, and $\store$  rules above must be adapted.  If $p=(\iota,a)$
+\myu{For PNVI-ae-udi, the $\Kill$, $\load$, and $\store$  rules above must be adapted.  If $p=(\iota,a)$
       and $A(\iota)=\{i\}$, the other premises and conclusion of the
       appropriate above rule apply.
       If $A(\iota)=\{i_1,i_2\}$ and the premises are
@@ -884,7 +884,7 @@ The memory operations flag out-of-memory (OOM) and undefined behaviour
 \end{center}
 % 
 
-\myu{For PNVI-aeudi, the rules above must be adapted. In the case where $p=(\iota,a)$
+\myu{For PNVI-ae-udi, the rules above must be adapted. In the case where $p=(\iota,a)$
       and $A(\iota)=\{i\}$, the semantics is exactly as for $p=(i,a)$,
       while if $A(\iota)=\{i_1,i_2\}$, one has UB only if the
       conditions above apply to both $i_1$ and $i_2$.}
@@ -911,7 +911,7 @@ and otherwise returns its element type.
 This rule is stated for PNVI \myt{and PNVI-ae}, returning pure integer.
 For PVI,  $\diffPtr$ constructs the same integer
 but with $\provNone$ provenance.
-\myu{For PNVI-aeudi, because subtraction of pointers with different
+\myu{For PNVI-ae-udi, because subtraction of pointers with different
 provenance should be UB, if one of the two pointers has a symbolic storage
 instance ID $\iota$, mapped by $A$ to $\{i_1,i_2\}$, while the other
 either has a provenance $@i'$ or an $\iota'$ mapped to a singleton
@@ -952,7 +952,7 @@ Pointers $p=(@i,a)$ and
       (\verb+<+, \verb+<=+, etc.) if they have the same provenance
       ($i=i'$).  The result is the boolean result of the mathematical
       comparison of $a$ and $a'$.
-\myu{For PNVI-aeudi, this has to be adapted in much the same way as the
+\myu{For PNVI-ae-udi, this has to be adapted in much the same way as the
       pointer subtraction rule above.}
 \[
 \ruleTwo
@@ -971,7 +971,7 @@ Pointers $p$ and $p'$ can always be compared with an equality operator
       address; nondeterministically either $a=a'$ or $\texttt{false}$
       if they are both non-null and have different provenances; and
       false otherwise.
-\myu{For PNVI-aeudi, because equality comparison is permitted (without
+\myu{For PNVI-ae-udi, because equality comparison is permitted (without
       UB) irrespective of the provenances of the pointers, if the two pointers both have determined single
       provenances after looking up any symbolic IDs in A, this should
       give $\mathtt{true}$, otherwise the middle (nondeterministic)
@@ -1017,7 +1017,7 @@ Then there must be a live storage instance for $i$, and the numeric
       result of the addition of $a+n*\sizeof(\tau)$ must be within or
       one-past the footprint of that storage instance.
       Otherwise the operation flags UB.
-      \myu{For PNVI-aeudi, if $p$ is ambiguous (i.e., $p=(\iota,a)$ and
+      \myu{For PNVI-ae-udi, if $p$ is ambiguous (i.e., $p=(\iota,a)$ and
       $A(\iota)=\{i_1,i_2\}$ then if $x$ is non-zero this should only
       be defined behaviour for (at most) one of the two, and then
       $\iota$ should be resolved to that one in the final state.  If
@@ -1163,11 +1163,11 @@ instance, it returns a pointer with empty provenance.
 \]
 
 \myu{
-\myparagraph{Casts (PNVI-aeudi)}
-In PNVI-aeudi, a cast of a pointer value $p$ to an integer is just like
+\myparagraph{Casts (PNVI-ae-udi)}
+In PNVI-ae-udi, a cast of a pointer value $p$ to an integer is just like
 PNVI-ae.
 
-In PNVI-aeudi, a cast of an integer value to a pointer,
+In PNVI-ae-udi, a cast of an integer value to a pointer,
 as in the definition of $\repr$, 
 can create a pointer with ambiguous provenance: 
 if it could be within or one-past two live storage instances, with
