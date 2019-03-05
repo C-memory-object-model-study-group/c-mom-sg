@@ -9,7 +9,7 @@ int main() {
   // check the bottom two bits of an int* are not used
   assert(_Alignof(int) >= 4);
   assert((i & 3u) == 0u);
-  // set the low-order bit of 
+  // set the low-order bit of the byte
   i = i | 1u;  
   // write the representation byte back
   *(unsigned char*)&p = i; 
@@ -17,7 +17,7 @@ int main() {
   // clear the low-order bits again
   *(unsigned char*)&p = (*(unsigned char*)&p) & ~((unsigned char)3u);
   // are p and q now equivalent?  
-  *p = 11;           //  does this have defined behaviour? 
-  _Bool b = (p==q);  //  is this true?
+  *p = 11;          // does this have defined behaviour? 
+  _Bool b = (p==q); // is this true?
   printf("x=%i *p=%i (p==q)=%s\n",x,*p,b?"true":"false");  
 }

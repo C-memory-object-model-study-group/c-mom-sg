@@ -859,13 +859,14 @@ The first example in this section relied on guessing (and then
 checking) the offset between two allocations.   What if one instead
 calculates the offset, with pointer subtraction; should that let
 one move between objects, as below?
+In ISO C11, the \lstinline{q-p} is UB
+(as a pointer subtraction between pointers to
 \begin{wrapfigure}{r}{0.55\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_offset_from_ptr_subtraction_global_xy.c}{}%
 }
 \vspace*{-0\baselineskip}
 \end{wrapfigure}
-In ISO C11, the \lstinline{q-p} is UB
-(as a pointer subtraction between pointers to different objects, which
+different objects, which
 in some abstract-machine executions are not one-past-related).
 In a variant semantics that allows construction of more-than-one-past
 pointers,  one would have to
@@ -880,6 +881,8 @@ example idioms that intentionally use inter-object pointer arithmetic,
 and the freedom that forbidding it gives to alias analysis and
 optimisation seems significant. 
 
+
+\
 
 \
 
@@ -1126,24 +1129,24 @@ provenance of the latter, as does
 the cast to \lstinline{int*}.
 Then the final \lstinline{*p=11} access is via a pointer value whose
 address is not consistent with its provenance.
-
- 
-
+%
+ %
+%
 Similarly, PNVI-* allows
-(here contrary to current GCC/ICC O2) while PVI
+(contrary to current GCC/ICC O2) while PVI
 forbids a \lstinline{uintptr_t} analogue of the
 first test of \S\ref{sec:prov}, on the left below.
 %\begin{wrapfigure}{r}{0.55\textwidth}
 
-\
+
 
 \begin{center}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{provenance_basic_using_uintptr_t_global_xy.c}{}%
 }
 \vspace*{-0\baselineskip}
 \end{minipage}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
     {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_offset_xor_global.c}{}%
 }
   \end{minipage}
@@ -1198,11 +1201,6 @@ provenance ID with a pure integer, preserve that provenance.
 bits set is converted back to pointer type.  In ISO the result is
 implementation-defined, per 6.3.2.3p\{5,6\} and 7.20.1.4.)
 
-\
-
-\
-
-\
 
 \myparagraph{Algebraic properties of integer operations}
 The PVI definitions of the provenance results of integer operations,
@@ -1218,6 +1216,7 @@ longer associative. Compare the examples below:
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_arith_algebraic_properties_3_global.c}{}%
 }
 \end{center}
+\vspace*{-\baselineskip}
 The latter is UB in PVI.
 %\TODO{make example
 %\url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2263.htm#q12.-for-arithmetic-over-provenanced-integer-values-is-the-provenance-of-the-result-invariant-under-commutativity-and-under-plusminus-associativity}
@@ -1246,9 +1245,9 @@ The ISO C11 text does not explicitly address this (in a
 pre-provenance semantics, before DR260, it did not need to).
 One could do so by special-casing \lstinline{memcpy()} and similar
 functions to preserve provenance,
-but the following questions suggest less ad hoc approaches.
-
-\
+but the following questions suggest less ad hoc approaches,
+for PNVI-plain or PVI.  For PNVI-ae and PNVI-ae-udi, the best approach
+is not yet clear.
 
 \
 
@@ -1300,21 +1299,23 @@ One could:
   allocations, perhaps over-liberally.
 \item Record symbolically in the semantics of integer values what such
   representation-byte values are of the form ``byte $n$ of pointer
-  value $v$'', and allow reads of pointer values from
+  value $v$'', or perhaps ``byte $n$ of pointer value of type $t$'', and allow reads of pointer values from
   representation-byte writes only for such.  This is more complex and
   rather ad hoc, arbitrarily restricting the integer computation that
   can be done on such bytes.
 \end{enumerate}
-There may not be much reasonable
-code that would be sensitive to the distinctions between these, but there is some, e.g.~manipulations of pointers where one knows the high-order bytes
-are the same. This is important in some language runtimes,
-using 32- or 48-bit values for pointers in a 64-bit architecture.
+%There may not be much reasonable
+%code that would be sensitive to the distinctions between these, but there is some, e.g.~manipulations of pointers where one knows the high-order bytes
+%are the same. This is important in some language runtimes,
+%using 32- or 48-bit values for pointers in a 64-bit architecture.
 
 As Lee observes [private communication], to make it legal for
 compilers to replace user-memcpy by the library version, one might
-want the two to have exactly the same semantics.
+want the two to have exactly the same semantics.  Though strictly
+speaking that is a question about the compiler intermediate language
+semantics, not C source semantics. 
 
-PVI makes it legal by regarding each 
+PVI makes user-memcpy legal by regarding each 
 byte (as an integer value) as having the provenance of the original
 pointer, and the result pointer, being composed of representation
 bytes of which at least one has that provenance and none have a conflicting provenance, as having the same.
@@ -1330,18 +1331,127 @@ violates the effective type rules, but we believe C2x should support
 it for suitably annotated code. Virtual memory manipulation is outside our scope
 at present. 
 
-\myparagraph{Pointer provenance for bytewise pointer representation manipulations}
 
-\TODO{}
+\myparagraph{Reading pointer values from byte writes in PNVI-*}
+In all these provenance semantics, pointer values carry their
+provenance unchanged, both while manipulated in expressions (e.g.~with pointer
+arithmetic) and when stored or loaded as values of pointer type.
+%
+In the detailed semantics, memory contains abstract bytes rather than
+general C language values, and so we record provenance in memory by attaching
+a provenance to each abstract byte.  For pointer values stored by
+single writes, this will usually be identical in each abstract byte of
+the value.
+
+However, in PNVI-*,
+if one reads a pointer value that has been partially or completely
+written by (integer) representation-byte writes, we use the same
+semantics as for integer-to-pointer casts, reading the address and
+reconstructing the associated provenance iff a live storage
+instance covering that address exists (and, for PNVI-ae and
+PNVI-ae-udi, if that instance has been exposed).
+%
+To determine whether a pointer value read is from a single write (and
+thus should retain its original provenance when read), or from a combination of
+representation byte writes and perhaps also a pointer value write (and
+thus should use the integer-to-pointer cast semantics when read),
+we also record, in each abstract byte, an optional pointer-byte index
+(e.g.~in $0..7$ on an implementation with 8-byte pointer values). 
+Pointer value writes will set these to the consecutive sequence
+$0,1,..,7$, while other writes will clear them. 
+%
+For example, the code on the left below sets the fourth byte of
+\lstinline{p} to \lstinline{0}. The memory state on the right, just
+after the \lstinline{*q=2}, shows the pointer-byte indices of
+\lstinline{p}, one of which has been cleared (shown as ?).  When the
+value of \lstinline{p} is read (e.g.~in the \lstinline{q=p}), the fact
+that there is not a consecutive sequence $0,1,..,7$ means that PNVI-*
+will apply the integer-to-pointer cast semantics, here successfully
+recovering the provenance \lstinline{@3} of the storage instance
+\lstinline{x}.  Then the write of \lstinline{q} will itself have a
+consecutive sequence (its pointer-byte indices are therefore
+suppressed in the diagram).  Any non-pointer write overlapping the
+footprint of \lstinline{p}, or any pointer write that overlaps that
+footprint but does not cover it all, would remove the consecutive
+sequence of indices.  
 \begin{center}
-  \begin{minipage}{0.49\textwidth}
+  \begin{tabular}{cc}
+{\begin{lstlisting}
+int x=1;
+int main() {
+  int *p = &x;
+  if (*((unsigned char*)&p+4)==0)
+    *((unsigned char*)&p+4)=0;
+  int *q = p;
+  *q=2;
+}
+\end{lstlisting}}
+&
+\raisebox{-3cm}{\includegraphics[width=0.2\textwidth]{pointer_byte.png}}
+  \end{tabular}
+  \end{center}
+In PNVI-plain a representation-byte copy of a pointer value thus is
+subtly different from a copy done at pointer type: the latter retains
+the original provenance, while the former, when it is loaded, will
+take on the provenance of whatever storage instance is live (and covers
+its address) \emph{at load time}.  
+
+The conditional in the example is needed to avoid UB: the semantics
+does not constrain the allocation
+address of \lstinline{x}, so there are executions in which byte 4 is
+not \lstinline{0}, in which case the read of \lstinline{p} would have
+a wild address and the empty provenance, and the write
+\lstinline{*q=2} would flag UB. 
+
+\newpage
+\myparagraph{Pointer provenance for bytewise pointer representation manipulations}
+To examine the possible semantics for pointer representation bytes
+more closely, especially for PNVI-ae and PNVI-ae-udi, consider the
+following.
+As in
+\myfooexamplename{provenance_tag_bits_via_uintptr_t_1.c}, it
+manipulates the low-order bits of a pointer value, but now it
+does so
+by manipulating one of its representation bytes (as in
+\myfooexamplename{pointer_copy_user_dataflow_direct_bytewise.c})
+\begin{wrapfigure}{r}{0.67\textwidth}
+%\begin{center}
+%  \begin{minipage}[t]{0.49\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{provenance_tag_bits_via_repr_byte_1.c}{}%
 }
 \vspace*{-0\baselineskip}
-\end{minipage}
-\end{center}
+%\end{minipage}
+%\end{center}
+  \vspace*{-1.0\baselineskip}
+\end{wrapfigure}
+instead of by casting to \lstinline{uintptr_t} and back. 
+In PNVI-plain and PVI this will just work, respectively
+reconstructing the original provenance and tracking it through the
+(changed and unchanged) integer bytes.  But in PNVI-ae and
+PNVI-ae-udi,
+the address of \lstinline{x} has not been exposed by any
+pointer-to-integer casts.  What should the semantics of the last reads
+of the value of \lstinline{p}, from a combination of the original
+\lstinline{p=&x} write and later integer byte writes, be?  
 
-\TODO{example that illustrates the byte-index metadata of PNVI}
+\
+
+\
+
+\
+
+\
+
+\
+
+\
+
+\
+
+\
+
+\ 
+
 
 
 \myparagraph{Copying pointer values via encryption}
@@ -1350,12 +1460,15 @@ allow, consider copying pointers via code that encrypts or compresses a block of
 multiple pointers together, decrypting or uncompressing later.
 
 In PNVI-plain, it would just work, in the same way as \lstinline{user_memcpy()}.
-In PNVI-ae and PNVI-ae-udi, it would not, and it is not clear that
-there is any reasonable modification that would enable it. 
+In PNVI-ae and PNVI-ae-udi, it would work if the pointer values are
+cast to integer types, but if not, and they are encrypted by reading
+their representation bytes, then for the models as currently stated it
+would not work, just as for
+\myfooexamplename{provenance_tag_bits_via_repr_byte_1.c}. 
 
 It has been argued that pointer construction via \lstinline{intptr_t} and back via any
 value-dependent identity function should be required to work.  That
-would admit the above, but defining that notion of ``value-dependent'' is
+would admit these, but defining that notion of ``value-dependent'' is
 exactly what is hard in the concurrency thin-air problem~\cite{BMNPS2015},
 and we do not believe that it is practical to make compilers respect dependencies in general.
 
@@ -1366,7 +1479,7 @@ As copying pointers in this way  is a very rare idiom, one can argue
 that  it is reasonable to require such
 code to have additional annotations.
 
-
+\newpage
 
 \myparagraph{Copying pointer values via control flow} 
 We
@@ -1385,12 +1498,12 @@ each control-flow branch
 \
 
 \begin{center}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_copy_user_ctrlflow_bytewise_abbrev.c}{}%
 }
 \vspace*{-0\baselineskip}
 \end{minipage}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
     {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_copy_user_ctrlflow_bitwise.c}{}%
 }
   \end{minipage}
@@ -1433,7 +1546,10 @@ implementation-defined,
 and, in PNVI-plain, that the
 same integer-to-pointer cast semantics be used at such reads
 (the latter does not match current ICC O2 behaviour). 
-\TODO{PNVI-ae*?}
+
+For PNVI-ae and PNVI-ae-udi, it's not clear what the best semantics
+would be. 
+
 For PVI, we propose that it be
 implementation-defined whether the result preserves the original
 provenance (e.g.~where they are the identity).
@@ -1460,7 +1576,6 @@ provenance (e.g.~where they are the identity).
 \
 
 
-\TODO{PNVI-ae and PNVI-ae-udi considered up to here only}
 
 \myparagraph{Pointer provenance via IO}
 Consider now pointer provenance flowing 
@@ -1500,12 +1615,23 @@ and the text for \lstinline{uintptr_t} and the presence of
 
 But then what can compiler alias analyses assume about such a pointer
 read?  
-In PNVI, this is simple: at \lstinline{scanf}-time, for the \lstinline{%p}
+In PNVI-plain, this is simple: at \lstinline{scanf}-time, for the \lstinline{%p}
 version, or when a pointer is read from memory written by the
 other two, we can do a runtime check and potential acquisition of
 provenance exactly like an integer-to-pointer cast.
 %
-For PVI, however, there are several options, none of which seem ideal:
+
+In PNVI-ae and PNVI-ae-udi, for the \lstinline{%p}
+  case we could mark the associated storage instance as exposed by the
+  output, and
+  use
+  the same semantics as integer-to-pointer casts on the input.
+  The \lstinline{uintptr_t} case would also work straightforwardly.
+  However, the representation-byte output and input is problematic,
+  just as for bytewise memcpy above.   
+
+
+For PVI, there are several options, none of which seem ideal:
 we could use a PNVI-like semantics, but that would be
 stylistically inconsistent with the rest of PVI; or (only for the first) we could restrict that to provenances that have been output via
 \lstinline{%p}), or
@@ -1564,6 +1690,9 @@ them, but it would be better for C to support a general-purpose
 annotation, to let both \lstinline{stdlib} implementations and other
 libraries return pointers that are treated as having fresh provenance
 outside (but not inside) their abstraction boundaries.
+
+
+\TODO{PNVI-ae and PNVI-ae-udi considered up to here only}
 
 
 \section{Implications of Provenance Semantics for Optimisations}\label{sec:opt}
@@ -1673,12 +1802,12 @@ to forbid
 \
 
 \begin{center}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_integer_1p.c}{}%
 }
 \vspace*{-0\baselineskip}
 \end{minipage}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
     {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests}{pointer_from_integer_1i.c}{}%
 }
   \end{minipage}
@@ -1731,12 +1860,12 @@ has the empty provenance, and
 \
 
 \begin{center}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
 {\renewcommand{\mylistingmargin}{5mm}\vspace*{-0.25\baselineskip}\mycerbexample{charon_tests/}{pointer_from_integer_2.c}{}{pointer_from_integer_2.c}\vspace*{-0.5\baselineskip}%
 }
 \vspace*{-0\baselineskip}
 \end{minipage}
-  \begin{minipage}{0.49\textwidth}
+  \begin{minipage}[t]{0.49\textwidth}
 {\renewcommand{\mylistingmargin}{5mm}\vspace*{-0.25\baselineskip}\mycerbexample{charon_tests/}{pointer_from_integer_2g.c}{}{pointer_from_integer_2g.c}\vspace*{-0.5\baselineskip}%
 }
 \vspace*{-0\baselineskip}
