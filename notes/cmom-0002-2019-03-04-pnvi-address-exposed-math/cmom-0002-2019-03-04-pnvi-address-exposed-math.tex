@@ -635,8 +635,9 @@ to sets of either one or two (non-symbolic) storage instance IDs.
 One might also need to record a partial equivalence relation
 over symbolic storage instance IDs, to cope with the pointer
 subtraction and relational comparison cases where one learns that two
-provenances are equal but both remain ambiguous, but that is not yet
-spelt out.
+provenances are equal but both remain ambiguous, but that is debatable
+and not
+spelt out in this document.
 }
 
 The $M$ is a partial map from addresses to abstract bytes,
@@ -1142,7 +1143,7 @@ In PNVI-ae, an integer-to-pointer cast of $0$ returns the null pointer.
 For a non-$0$ integer $x$, casting to a pointer to $\tau$, if there is a storage instance $i$ in the
 current memory model state $(A,M)$ for which 
 the address of the pointer would
-be \myt{\sout{properly}} within the
+be properly within the
 footprint of the storage instance, \myt{and storage instance $i$ is
 exposed}, it returns a pointer $(@i,x)$ with
 the provenance of that storage instance.  If there is no such storage
@@ -1155,7 +1156,7 @@ instance, it returns a pointer with empty provenance.
       (@i,x),
 %        &\text{if $A(i) = (n, \_, a, f, k, \myt{\exposed})$ and $[x..x+\sizeof(\tau)-1] \subseteq [a..a+n]$}\\
         &\text{if $A(i) = (n, \_, a, f, k, \myt{\exposed})$ and $x \in
-      [a..a+\myt{n}]$}\\
+      [a..a+n-1]$}\\
       (\provNone,x),
         &\text{if there is no such $i$}
     \end{cases}}
@@ -1167,9 +1168,27 @@ instance, it returns a pointer with empty provenance.
 In PNVI-ae-udi, a cast of a pointer value $p$ to an integer is just like
 PNVI-ae.
 
-In PNVI-ae-udi, a cast of an integer value to a pointer,
-as in the definition of $\repr$, 
-can create a pointer with ambiguous provenance: 
+Unlike PNVI-ae, PNVI-ae-udi permits a cast of a one-past pointer to
+integer and back to recover the original provenance, replacing the
+integer-to-pointer check that $x$ is properly within the footprint of
+the storage instance by a check that it is properly within or one-past:
+\[  \begin{array}{l}
+    \ptrcastIval(\tau, x)\\
+\multicolumn{1}{@{}r@{}}{ \hspace*{10mm} =    \begin{cases}
+      \Null,
+        &\text{if $x = 0$} \\
+      (@i,x),
+%        &\text{if $A(i) = (n, \_, a, f, k, \myt{\exposed})$ and $[x..x+\sizeof(\tau)-1] \subseteq [a..a+n]$}\\
+        &\text{if $A(i) = (n, \_, a, f, k, \myt{\exposed})$ and $x \in
+      [a..a+\myu{n}]$}\\
+      (\provNone,x),
+        &\text{if there is no such $i$}
+    \end{cases}}
+\end{array}
+\]
+But then a PNVI-ae-udi cast of an integer value to a pointer
+can create a pointer with ambiguous provenance (as in the definition of $\repr$)
+: 
 if it could be within or one-past two live storage instances, with
 IDs $i_1$ and $i_2$, 
 and both storage instances have been marked as exposed,
