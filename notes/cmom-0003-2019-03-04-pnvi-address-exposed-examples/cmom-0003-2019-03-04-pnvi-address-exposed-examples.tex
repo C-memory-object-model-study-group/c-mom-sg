@@ -1395,12 +1395,12 @@ after the \lstinline{*q=2}, shows the pointer-byte indices of
 value of \lstinline{p} is read (e.g.~in the \lstinline{q=p}), the fact
 that there is not a consecutive sequence $0,1,..,7$ means that PNVI-*
 will apply the integer-to-pointer cast semantics, here successfully
-recovering the provenance \lstinline{@3} of the storage instance
+recovering the provenance \lstinline{@68} of the storage instance
 \lstinline{x}.  Then the write of \lstinline{q} will itself have a
 consecutive sequence (its pointer-byte indices are therefore
 suppressed in the diagram).  Any non-pointer write overlapping the
 footprint of \lstinline{p}, or any pointer write that overlaps that
-footprint but does not cover it all, would remove the consecutive
+footprint but does not cover it all, would interrupt the consecutive
 sequence of indices.  
 \begin{center}
   \begin{tabular}{cc}
@@ -1415,7 +1415,8 @@ int main() {
 }
 \end{lstlisting}}
 &
-\raisebox{-3cm}{\includegraphics[width=0.2\textwidth]{pointer_byte.png}}
+%\raisebox{-3cm}{\includegraphics[width=0.2\textwidth]{pointer_byte.png}}
+\raisebox{-5cm}{\includegraphics[width=0.7\textwidth]{pointer_byte.pdf}}
   \end{tabular}
   \end{center}
 In PNVI-plain a representation-byte copy of a pointer value thus is

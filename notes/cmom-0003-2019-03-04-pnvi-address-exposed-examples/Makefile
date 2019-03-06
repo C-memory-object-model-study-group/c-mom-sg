@@ -2,7 +2,7 @@ TOP=cmom-0003-2019-03-04-pnvi-address-exposed-examples
 
 all: $(TOP).pdf
 
-$(TOP).pdf: $(TOP).tex acmart.cls csembib-fullnames.bib
+$(TOP).pdf: $(TOP).tex acmart.cls csembib-fullnames.bib pointer_byte.pdf
 	pdflatex $(TOP).tex
 	bibtex $(TOP)
 	pdflatex $(TOP).tex
@@ -20,6 +20,11 @@ clean:
 
 install: $(TOP).pdf
 	cp $(TOP).pdf ../built_doc
+
+
+
+pointer_byte.pdf: pointer_byte.dot
+	dot -Tpdf pointer_byte.dot > pointer_byte.pdf
 
 ################## build figures from .fig #########
 
