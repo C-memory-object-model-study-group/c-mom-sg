@@ -623,6 +623,23 @@ the lifetime-end of the object it pointed to.
 % PS: not sure why?  For me, ``undefined behaviour'' makes very clear
 % that we're talking about the C-standard-specific notion, while
 % ``undefined'' can easily be (mis)read as just ``not defined''.
+%
+% JG: It is by explicit definition of the term in the standard the
+% same thing:
+%
+%     [some phrase about shall and shall not ... and then]
+%     Undefined behavior is otherwise indicated in this document by the
+%     words "undefined behavior" or by the omission of any explicit
+%     definition of behavior. There is no difference in emphasis among
+%     these three; they all describe "behavior that is undefined".
+%
+% What I don't like is the use of the term UB as some sort of magic
+% wand or even worse some sort of woodoo. It is not more than that: the
+% behavior of a program with such a construct is not defined. And the
+% boundary of UB that you refer to somewhere is nothing else than the
+% scope of the definition of the C language as given by the
+% standard. Everything outside is just not C.
+%
 There is also not a unique de facto standard: in reality, one has
 to consider
 the expectations of expert C programmers and compiler writers,
@@ -851,8 +868,6 @@ provenance mismatch makes it UB: at the attempted access via
 \lstinline{p}, its pointer-value address 0x4c is not within the
 storage instance with the ID \lstinline{@5} of the provenance of
 \lstinline{p}.
-%\textbf{JG: end of phrase missing?}
-%PS: y, fixed. 
 
 All this is for the \emph{C abstract machine} as defined in the
 standard: compilers might rely on provenance in their alias analysis and
@@ -1591,6 +1606,11 @@ pointer-type member
 % switch endianess of integers around.)
 % PS: hmm.  Good point - so there should be two separate
 % implementation-defined mappings?
+% JG: I don't think so, actually endianess is only an example. The
+% standard gives no connection between the object representations of
+% pointers and integer values, so we should not open that can of
+% worms. Probably the best would just be to clearly state the
+% assumption that they are the same, here.
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace*{-0.0\baselineskip}
           {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_union_punning_2_global_xy.c}{}
@@ -1601,7 +1621,11 @@ The ISO standard says \emph{``the appropriate part of the object
 representation of the value is reinterpreted as an object
 representation in the new type''}, but says little about that
 reinterpretation. %, and DR260 CR does not speak to the provenance of the
-%result.
+% result.
+The example actually assumes that the object representation of the
+pointer and the integer are identical. This property is not guaranteed
+by the C standard, but holds for many implementations.
+%
 We propose that these reinterpretations be required to be
 implementation-defined,
 and, in PNVI-plain, that the
@@ -1613,6 +1637,12 @@ would be.
 % JG: I think the best semantics here are UB.
 % PS: I.e., the load u.p should give an empty-provenance pointer
 % value?  Maybe, but I don't see a compelling reason?
+% JG, maybe: Other than for conversions from pointer to integer or
+% return, storing a value in one of the members is only a conversions
+% if the other member is also read. The effects of such combined
+% actions might be difficult to trace, in particular when they occur
+% in different translation units.
+
 
 For PVI, we propose that it be
 implementation-defined whether the result preserves the original
