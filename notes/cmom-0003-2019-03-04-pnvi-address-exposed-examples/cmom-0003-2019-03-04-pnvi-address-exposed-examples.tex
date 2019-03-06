@@ -610,6 +610,16 @@ some idioms are UB in ISO C but
 relied on in practice, e.g.~comparing against a pointer value after 
 the lifetime-end of the object it pointed to.
 %
+% JG: I'd vote to merely use "undefined" as a term where language
+% permits, and reduce the use of UB to cases where we describe the
+% consequences (behavior) of the lack of definition. E.g instead of
+%
+% // does this have undefined behaviour?
+%
+% it should read
+%
+% // is this undefined?
+%
 There is also not a unique de facto standard: in reality, one has
 to consider
 the expectations of expert C programmers and compiler writers,
@@ -675,6 +685,11 @@ These proposals cover many of the interactions between abstract and concrete
 views in C: casts between pointers and integers, access to the byte
 representations of values, etc.
 %
+
+% JG: somehow we should also mention that models that give UB in some
+% special, borderline cases are not "bad". UB is a way to allow
+% implementations to extend use patterns by not constraining others.
+
 
 \section{Basic Pointer Provenance}\label{sec:prov}
 
@@ -744,8 +759,7 @@ program to be deemed to have undefined behaviour.
 %
 %
 The current ISO standard text does not explicitly speak to this, but
-the 2004 ISO WG14 C standards committee response to Defect Report
-260 (DR260 CR)~\cite{dr260}
+the 2004 ISO WG14 C standards committee response to Defect Report~260 (DR260~CR)~\cite{dr260}
 hints at a notion of provenance associated to values that
 keeps track of their "origins":
 
@@ -756,7 +770,7 @@ pointers based on different origins as distinct even though they are
 bitwise identical.''}
 
 \end{quote}
-However, DR260 CR has never been
+However, DR260~CR has never been
 incorporated in the standard text, and it gives no more detail.  This leaves many specific
 questions unclear: it is ambiguous whether some programming idioms are allowed or
 not, and exactly what compiler alias analysis and optimisation
@@ -771,8 +785,8 @@ are allowed to do.
 
 
 \myparagraph{Basic provenance semantics for pointer values}
-For simple cases of the construction and use of pointers, 
-capturing the basic intuition suggested by DR260 CR in a precise semantics is straightforward: we associate a \emph{provenance} with every pointer value,
+For simple cases of the construction and use of pointers,
+capturing the basic intuition suggested by DR260~CR in a precise semantics is straightforward: we associate a \emph{provenance} with every pointer value,
 identifying the original allocation the pointer is derived
 from.  In more detail: 
 \begin{itemize}
@@ -827,7 +841,7 @@ for \myfooexamplename{provenance_basic_global_xy.c},
 just before the invalid access via \lstinline{p}, showing how the
 provenance mismatch makes it UB: at the attempted access via
 \lstinline{p}, its pointer-value address 0x4c is not 
-%
+\textbf{JG: end of phrase missing?}
 
 All this is for the \emph{C abstract machine} as defined in the
 standard: compilers might rely on provenance in their alias analysis and
@@ -848,7 +862,7 @@ Consider the example below, where \lstinline{q} is transiently (more
 than one-past) out of
 bounds but brought back into bounds before being used for access. 
 In ISO C, constructing such a pointer value is clearly stated to be undefined
-behaviour~\cite[6.5.6p8]{c11}.
+behaviour~\cite[6.5.6p8]{c18}.
 This can be captured using the
 provenance of the pointer value to determine the relevant bounds.
 \begin{wrapfigure}{r}{0.45\textwidth}
@@ -887,7 +901,7 @@ The first example in this section relied on guessing (and then
 checking) the offset between two allocations.   What if one instead
 calculates the offset, with pointer subtraction; should that let
 one move between objects, as below?
-In ISO C11, the \lstinline{q-p} is UB
+In ISO~C18, the \lstinline{q-p} is UB
 (as it is a pointer subtraction between pointers to
 \begin{wrapfigure}{r}{0.55\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_offset_from_ptr_subtraction_global_xy.c}{}%
@@ -946,13 +960,13 @@ break loops that test against a one-past pointer, or
 requiring equality to \emph{always} take provenance into account, but
 that would require implementations to track provenance at runtime.
 
-The current ISO C11 standard text is too strong here unless numeric
+The current ISO~C18 standard text is too strong here unless numeric
 comparison is required: 6.5.9p6 says \emph{``Two
 pointers compare equal {\bfseries{}if and only if} both are [...] or one is a
 pointer to one past the end of one array object and the other is a
 pointer to the start of a different array object that happens to
 immediately follow the first array object in the address space''},
-which requires such pointers to compare equal -- reasonable pre-DR260CR,
+which requires such pointers to compare equal -- reasonable pre-DR260~CR,
 but debatable after it.
 
 Pointer equality should not be confused with alias analysis: we could
@@ -1116,7 +1130,7 @@ integer constant \texttt{0} and null pointers, and for the
 optional \lstinline{intptr_t} and \lstinline{uintptr_t} types, for
 which it guarantees that any \emph{``valid pointer to \lstinline{void}''} can
 be converted and back, and that \emph{``the result will compare equal to the
-original pointer''}.  As we have seen, in a post-DR260CR
+original pointer''}.  As we have seen, in a post-DR260~CR
 provenance-aware semantics, \emph{``compare equal''} is not enough to
 guarantee the two are interchangeable, which was clearly the intent of
 that phrasing.  All variants of PNVI-* and PVI  support this, by 
@@ -1269,7 +1283,7 @@ provenance.
 \end{wrapfigure}
 %
 %
-The ISO C11 text does not explicitly address this (in a
+The ISO~C18 text does not explicitly address this (in a
 pre-provenance semantics, before DR260, it did not need to).
 One could do so by special-casing \lstinline{memcpy()} and similar
 functions to preserve provenance,
@@ -1558,6 +1572,11 @@ For PNVI-*, this question is moot.
 Pointer values can also be constructed in C by type punning, e.g.~writing
 a \lstinline{uintptr_t} union member and then reading it as a
 pointer-type member
+% JG: This example is flawed, because it suppose that converting to
+% uintptr_t is the same as reinterpreting the bytes of a pointer as
+% uintptr_t. These are not the same. In particular, and practically,
+% endianess of the integer type may intervene. (On arm, e.g, you can
+% switch endianess of integers around.)
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace*{-0.0\baselineskip}
           {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_union_punning_2_global_xy.c}{}
@@ -1577,6 +1596,7 @@ same integer-to-pointer cast semantics be used at such reads
 
 For PNVI-ae and PNVI-ae-udi, it's not clear what the best semantics
 would be. 
+% JG: I think the best semantics here are UB.
 
 For PVI, we propose that it be
 implementation-defined whether the result preserves the original
@@ -1607,7 +1627,7 @@ provenance (e.g.~where they are the identity).
 
 \myparagraph{Pointer provenance via IO}
 Consider now pointer provenance flowing 
-via IO, e.g.~writing the address of an object to a pipe or file and reading it
+via IO, e.g.~writing the address of an object to a string, pipe or file and reading it
 back in.
 We have three versions: one using \lstinline{fprintf}/\lstinline{fscanf} and
 the \lstinline{%p} format, one using \lstinline{fwrite}/\lstinline{fread} on
@@ -1719,7 +1739,9 @@ annotation, to let both \lstinline{stdlib} implementations and other
 libraries return pointers that are treated as having fresh provenance
 outside (but not inside) their abstraction boundaries.
 
-
+% JG: Two possibilities:
+% - C's new attribute feature. Gcc already has such attributes.
+% - Allow/use `restrict` as a qualification for pointer returns.
 
 
 \section{Implications of Provenance Semantics for Optimisations}\label{sec:opt}
