@@ -704,9 +704,13 @@ In contrast, Clang 6.0 -O2 just outputs the
 semantics.
 Note that this example does not involve type-based alias analysis, and
 the outcome is not affected by GCC or ICC's \lstinline{-fno-strict-aliasing}
-flag;
-note also that the mere formation of the \lstinline{&x+1} one-past pointer 
-is explicitly permitted by the ISO standard.
+flag.
+Note also that the mere formation of the \lstinline{&x+1} one-past pointer 
+is explicitly permitted by the ISO standard, and, because the
+\lstinline{*p=11} access
+is guarded by the \lstinline{memcmp} conditional check on the representation bytes of the
+pointer, it will not be attempted (and hence flag UB) in executions in
+which the two allocations are not adjacent. 
 
 
 These GCC and ICC outcomes would not be correct with respect to a concrete
@@ -814,6 +818,9 @@ C). Provenances therefore do not have program-accessible runtime representations
 machine.  
 
 
+Even for the basic provenance semantics, there are some open design
+questions, which we now discuss.
+
 
 \myparagraph{Can one construct out-of-bounds (by more than one) pointer values by pointer arithmetic?}
 %
@@ -848,8 +855,9 @@ whether such pointer construction is allowed.
 That would continue to permit implementations in which it would go
 wrong to forbid it, but give a clear way for other implementations
 to document that they do not exploit this UB in compiler optimisations
-that may be surprising to programmers. Cerberus supports both
-semantics, with a switch. 
+that may be surprising to programmers. 
+%Cerberus supports both
+%semantics, with a switch. 
 %
 
 \newpage
@@ -860,7 +868,7 @@ checking) the offset between two allocations.   What if one instead
 calculates the offset, with pointer subtraction; should that let
 one move between objects, as below?
 In ISO C11, the \lstinline{q-p} is UB
-(as a pointer subtraction between pointers to
+(as it is a pointer subtraction between pointers to
 \begin{wrapfigure}{r}{0.55\textwidth}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_offset_from_ptr_subtraction_global_xy.c}{}%
 }
@@ -869,7 +877,7 @@ In ISO C11, the \lstinline{q-p} is UB
 different objects, which
 in some abstract-machine executions are not one-past-related).
 In a variant semantics that allows construction of more-than-one-past
-pointers,  one would have to
+pointers (which allows the evaluation of \lstinline{p + offset}),  one would have to
 to choose whether the \lstinline{*r=11} access is UB or not. 
 %
 The basic provenance semantics will forbid it, because \lstinline{r}
