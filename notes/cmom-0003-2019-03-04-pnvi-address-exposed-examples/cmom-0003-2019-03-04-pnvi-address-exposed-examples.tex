@@ -411,11 +411,9 @@
 \thispagestyle{plain}
 \fi
 
-\title[PNVI-ae and PNVI-ae-udi: Examples]{C provenance semantics: examples
-for the
-address-exposed and address-exposed 
-user-disambiguation variants of the PNVI provenance-not-via-integers
-model}
+\title[C provenance semantics: examples]{C provenance semantics: examples
+(for PNVI-plain, PNVI address-exposed, PNVI address-exposed 
+user-disambiguation, and PVI models)}
 
 
 \authorsaddresses{}
@@ -507,13 +505,26 @@ model}
 %% before \maketitle command
 
 \begin{abstract}
-This note revisits the examples of 
+  This note discusses the design of provenance semantics for C,
+  looking at a
+  series of  examples.
+We consider three variants of the provenance-not-via-integer
+(PNVI) model: PNVI plain, PNVI address-exposed (PNVI-ae) and PNVI
+address-exposed k
+user-disambiguation (PNVI-ae-udi), and
+also the provenance-via-integers (PVI) model.
+The examples include those of
 \emph{Exploring C Semantics and Pointer Provenance} [POPL 2019] (also
 available as ISO WG14
-N2311 \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2311.pdf})
-for the PNVI address-exposed and PNVI address-exposed
-user-disambiguation models recently discussed in the C memory object
+N2311 \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2311.pdf}),
+with several additions.
+%
+This is based on recent discussion in the C memory object
 model study group. 
+%
+It should be read together with the two companion notes, one giving detailed
+semantics for these variants, and another giving detailed diffs to the
+C standard text. 
 \end{abstract}
 
 

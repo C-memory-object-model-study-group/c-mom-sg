@@ -19,7 +19,7 @@ clean:
 	rm -rf *.bak
 
 install: $(TOP).pdf
-	cp $(TOP).pdf built_doc
+	cp $(TOP).pdf ../built_doc
 
 ################## build figures from .fig #########
 
