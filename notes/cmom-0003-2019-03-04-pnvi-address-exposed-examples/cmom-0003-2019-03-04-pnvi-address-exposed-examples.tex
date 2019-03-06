@@ -620,6 +620,9 @@ the lifetime-end of the object it pointed to.
 %
 % // is this undefined?
 %
+% PS: not sure why?  For me, ``undefined behaviour'' makes very clear
+% that we're talking about the C-standard-specific notion, while
+% ``undefined'' can easily be (mis)read as just ``not defined''.
 There is also not a unique de facto standard: in reality, one has
 to consider
 the expectations of expert C programmers and compiler writers,
@@ -689,7 +692,12 @@ representations of values, etc.
 % JG: somehow we should also mention that models that give UB in some
 % special, borderline cases are not "bad". UB is a way to allow
 % implementations to extend use patterns by not constraining others.
-
+%
+% PS: we already say in the intro that one point of UB is "supporting
+% implementation variation beyond the UB boundary".  We could have a
+% more nuanced discussion of that, making the point that where code
+% really relies on such behaviour, it can be useful to bring it within
+% the standard.
 
 \section{Basic Pointer Provenance}\label{sec:prov}
 
@@ -840,8 +848,11 @@ for \myfooexamplename{provenance_basic_global_xy.c},
 %(identical in this case for PVI and PNVI),
 just before the invalid access via \lstinline{p}, showing how the
 provenance mismatch makes it UB: at the attempted access via
-\lstinline{p}, its pointer-value address 0x4c is not 
-\textbf{JG: end of phrase missing?}
+\lstinline{p}, its pointer-value address 0x4c is not within the
+storage instance with the ID \lstinline{@5} of the provenance of
+\lstinline{p}.
+%\textbf{JG: end of phrase missing?}
+%PS: y, fixed. 
 
 All this is for the \emph{C abstract machine} as defined in the
 standard: compilers might rely on provenance in their alias analysis and
@@ -1578,6 +1589,8 @@ pointer-type member
 % uintptr_t. These are not the same. In particular, and practically,
 % endianess of the integer type may intervene. (On arm, e.g, you can
 % switch endianess of integers around.)
+% PS: hmm.  Good point - so there should be two separate
+% implementation-defined mappings?
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace*{-0.0\baselineskip}
           {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_union_punning_2_global_xy.c}{}
@@ -1598,6 +1611,8 @@ same integer-to-pointer cast semantics be used at such reads
 For PNVI-ae and PNVI-ae-udi, it's not clear what the best semantics
 would be. 
 % JG: I think the best semantics here are UB.
+% PS: I.e., the load u.p should give an empty-provenance pointer
+% value?  Maybe, but I don't see a compelling reason?
 
 For PVI, we propose that it be
 implementation-defined whether the result preserves the original
@@ -1743,7 +1758,7 @@ outside (but not inside) their abstraction boundaries.
 % JG: Two possibilities:
 % - C's new attribute feature. Gcc already has such attributes.
 % - Allow/use `restrict` as a qualification for pointer returns.
-
+% PS: y
 
 \section{Implications of Provenance Semantics for Optimisations}\label{sec:opt}
 
