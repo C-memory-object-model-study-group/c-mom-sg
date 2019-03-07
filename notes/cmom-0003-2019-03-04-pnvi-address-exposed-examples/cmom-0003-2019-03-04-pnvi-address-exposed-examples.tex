@@ -640,6 +640,11 @@ the lifetime-end of the object it pointed to.
 % scope of the definition of the C language as given by the
 % standard. Everything outside is just not C.
 %
+% PS: all true, but still, I think ``undefined behaviour'' is clear,
+% and is clearly a specific term with (more or less, ahem) well
+% understood meaning, while ``undefined'' is easily misread as
+% something else - eg ``this hasn't been defined yet but it should
+% be'', or as some kind of unspecified value.  
 There is also not a unique de facto standard: in reality, one has
 to consider
 the expectations of expert C programmers and compiler writers,
@@ -1611,6 +1616,9 @@ pointer-type member
 % pointers and integer values, so we should not open that can of
 % worms. Probably the best would just be to clearly state the
 % assumption that they are the same, here.
+% PS: ok. But the standard does implicitly have such an interpretation
+% function, from object representations to values, already, and any
+% precise semantics certainly needs it.
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace*{-0.0\baselineskip}
           {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_union_punning_2_global_xy.c}{}
@@ -1623,7 +1631,7 @@ representation in the new type''}, but says little about that
 reinterpretation. %, and DR260 CR does not speak to the provenance of the
 % result.
 The example actually assumes that the object representation of the
-pointer and the integer are identical. This property is not guaranteed
+pointer and the object representation of the result of the cast to integer are identical. This property is not guaranteed
 by the C standard, but holds for many implementations.
 %
 We propose that these reinterpretations be required to be
@@ -1642,7 +1650,8 @@ would be.
 % if the other member is also read. The effects of such combined
 % actions might be difficult to trace, in particular when they occur
 % in different translation units.
-
+% PS: um.  Maybe we should make it implementation-defined whether the
+% identity above (which I tweaked slightly) holds?
 
 For PVI, we propose that it be
 implementation-defined whether the result preserves the original
