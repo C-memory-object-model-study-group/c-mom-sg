@@ -1470,6 +1470,17 @@ the original provenance, while the former, when it is loaded, will
 take on the provenance of whatever storage instance is live (and covers
 its address) \emph{at load time}.  
 
+% 
+% int x=1; int y;
+% int main() {
+%   int *p = &x;
+%   if (*((unsigned char*)&p+4)==0)
+%     *(int*)((unsigned char*)&p+4)=&y;
+%   int *q = p;
+%   *q=2;
+% }
+% 
+
 The conditional in the example is needed to avoid UB: the semantics
 does not constrain the allocation
 address of \lstinline{x}, so there are executions in which byte 4 is
