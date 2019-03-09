@@ -717,17 +717,16 @@ that
 provenance is taken, otherwise the empty provenance is taken.
 In PNVI*, when constructing a pointer value, 
 if the third components of the bytes all carry the appropriate
-index, the provenance of the result is the provenance of the bytes
-(which will all have the same provenance). Otherwise, the $A$ part of the memory state is examined to find whether a live
+index, and all have the same provenance (which will be guaranteed if
+pointer types all have the same size), the provenance of the result is that provenance. Otherwise, the $A$ part of the memory state is examined to find whether a live
 storage instance exists with a footprint containing the pointer value that
-is being constructed. If so, its storage instance ID
+is being constructed. If so, in PNVI-plain, its storage instance ID
 is used for the provenance of the pointer value, otherwise the empty
 provenance is used.
 \myt{In PNVI-ae and PNVI-ae-udi, when constructing a pointer value, if $A$ has to
-be examined then, following the relevant integer-to-pointer cast
+be examined then, matching the relevant integer-to-pointer cast
 semantics below, the storage instance must have been exposed,
-otherwise  the memory
-  action that was doing the $\abst()$ is UB.}
+otherwise  the result have the empty provenance.}
 \myu{In PNVI-ae-udi, if there are two such live storage instances, with
 IDs $i_1$ and $i_2$, the resulting pointer value is given a fresh
 symbolic storage instance ID $\iota$, and $A$ is updated to map
@@ -836,7 +835,16 @@ storage-instance metadata $A$ of storage instance $i$ is updated to record that 
       {v = \abst(\tau, M[a..a+\sizeof(\tau)-1])}
       {A, M} {A, M}
 \]
-
+\myt{For PNVI-ae and PNVI-ae-udi, if the recursive-on-$\tau$ computation of 
+  $\abst(\tau, M[a..a+\sizeof(\tau)-1])$
+  involves a call of $\abst$ at any non-pointer scalar type for a
+  region of $M$ including an abstract byte with non-empty provenance,
+  and the corresponding storage instance is live, it is marked as
+  exposed.
+  This applies e.g.~for reads of pointer values via \lstinline{char*}
+  pointers, and for union type punning reads at \lstinline{uintptr_t}
+  of pointer values.}
+  
 \myparagraph{Store} To store a value $v$ of type $\tau$ to a pointer value $p=(@i,a)$, there must
       be a live storage instance for $i$ in $A$, which must be
       writable, and the footprint of
@@ -926,19 +934,19 @@ that in the $A$ of the final state. Otherwise UB.
 If both pointers are ambiguous, say mapped to $\{i_1,i_2\}$ and $\{i'_1,i'_2\}$,
 then if those two sets share a single element which satisfies the other rule
 preconditions, both symbolic storage instance IDs are resolved to
-that.  If the sets have two pairs of elements that satisfy the other
-conditions (which I believe can only happen if the addresses are
-equal), then we should should arguably remember an identity of symbolic storage
-instance IDs (this will need an extension to the state we have so
-far, and additional modifications to the rules below beyond what is in
-this draft). Otherwise UB. 
-(This identity information is needed in princple because you might only know that they are the same, without
- knowing which.  Suppose \lstinline{p} and \lstinline{q} have been produced by separate casts
+that. Otherwise UB. If the sets have two pairs of elements that satisfy the other
+conditions (which we believe can only happen if the addresses are
+equal), then subtraction is permitted but the symbolic storage
+instance IDs are left unresolved. Otherwise UB.
+For example, suppose \lstinline{p} and \lstinline{q} have been produced by separate casts
  from an integer which is ambiguously one-past one allocation and at
  the start of another. Then after \lstinline{p-q} or \lstinline{p<q} we know they must have been
- the same provenance, but we still don't know which.  Alternatively,
- we could permit such subtractions and comparisons, leaving the
- ambiguity (of both pointers) unresolved.)}
+ the same provenance, but we still don't know which. 
+ (Alternatively, we could change the semantics to record an identity
+ relation over  symbolic storage
+instance IDs, and additional modifications to the rules below beyond what is in
+this draft, but that seems to be unwarranted complexity). 
+}
 \[
 \ruleTwo
       {\diffPtr(\tau, p, p')=x}
@@ -1255,6 +1263,27 @@ empty provenance.
   \end{array}\]
 
 
+\myt{
+\subsection{No-expose annotation}
+For PNVI-ae and PNVI-ae-udi,
+to permit implementations, e.g.~of \lstinline{memcpy}-like functions,
+to operate on representation bytes but without needlessly leaving all
+the storage instances that were pointed to in those bytes exposed,
+we envisaged some ``\lstinline{no-expose}'' annotation that
+users could apply to such code.   
+%
+But now it's not so clear how that could work.
+We can turn off exposure during execution of annotated code easily
+enough (though Jens points out that this might not be the right thing
+for code which is passed a function pointer).
+But if the user-memcpy code
+copies bytes via a \lstinline{char *} pointer, then the resulting
+abstract types in memory still have empty provenance (because we're
+not tracking provenance via the intervening integer values), so when
+a pointer value is read (after the user-memcpy) from the copy, it will
+still get empty provenance.  
+}
+
 \subsection{Provenance of other operations}
 In addition to the operations defined above, 
 some operations are desugared/elaborated to simpler
@@ -1290,6 +1319,10 @@ there integers have no provenance:
 \item
 Jens Gustedt highlights that atomic operations have their own specific provenance
 properties, not yet discussed here.
+
+
+\subsection{Provenance for other library functions}
+TBD
 
 \end{tightitemize}
 
