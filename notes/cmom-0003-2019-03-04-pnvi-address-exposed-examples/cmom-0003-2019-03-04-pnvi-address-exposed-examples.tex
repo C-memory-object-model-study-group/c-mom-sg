@@ -1074,12 +1074,16 @@ optimisation as it may sound.
 
 \item \textbf{PNVI-ae (PNVI exposed-address)}: a variant of PNVI that
   allows integer-to-pointer casts to recreate provenance only for
-  provenances for which an address has previously been cast to
-  integer. 
+  storage instances that have previously been \emph{exposed}.  A storage instance
+  is deemed exposed by a cast 
+  of a pointer to it to an integer type, by a read (at non-pointer
+  type) of the representation of the pointer, or by an output of the
+  pointer using \lstinline{%p}. 
 
   \item \textbf{PNVI-ae-udi (PNVI exposed-address
     user-disambiguation)}: a further refinement of PNVI-ae that
-supports casts of integers that are one-past an allocation.
+supports roundtrip casts, from pointer to integer and back, of
+pointers that are one-past a storage instance.
 This is the currently preferred option in the C memory object model
 study group. 
 
@@ -1099,9 +1103,10 @@ memory object model study group.
 
 We also mention other variants of PNVI that seem less desirable:
 \begin{itemize}
-\item \textbf{PNVI-address-taken}: a variant that integer-to-pointer
-  casts  to objects
-whose address has been taken;  and
+\item \textbf{PNVI-address-taken}: an earlier variant of PNVI-ae that
+  allowed integer-to-pointer
+  casts  to recreate provenance for objects
+whose address has been taken (irrespective of whether it has been exposed);  and
 %\item \textbf{PNVI-escaped}: potential variants that
 %additionally restrict to objects whose address has been taken and (in
 %some sense) escaped; and
@@ -1206,9 +1211,9 @@ address is not consistent with its provenance.
  %
 %
 Similarly, PNVI-* allows
-(contrary to current GCC/ICC O2) while PVI
-forbids a \lstinline{uintptr_t} analogue of the
+(contrary to current GCC/ICC O2) a \lstinline{uintptr_t} analogue of the
 first test of \S\ref{sec:prov}, on the left below.
+PVI forbids this test.
 %\begin{wrapfigure}{r}{0.55\textwidth}
 
 
@@ -1277,8 +1282,11 @@ implementation-defined, per 6.3.2.3p\{5,6\} and 7.20.1.4.)
 
 \myparagraph{Algebraic properties of integer operations}
 The PVI definitions of the provenance results of integer operations,
-chosen to make the previous two examples respectively forbidden and
-allowed, has an unfortunate consequence:  it makes those operations no
+chosen to make 
+\myfooexmaplename{pointer_offset_from_int_subtraction_global_xy.c}
+forbidden and 
+\myfooexamplename{provenance_tag_bits_via_uintptr_t_1.c} allowed,
+ has an unfortunate consequence:  it makes those operations no
 longer associative. Compare the examples below:
 
 \
@@ -1348,35 +1356,45 @@ integer-to-pointer casts: checking at read-time that the address is
 within a live object, and giving the result the corresponding
 provenance. 
 %
-PNVI-ae and PNVI-ae-udi need additional machinery, not yet developed in
-detail, to permit this.
-
-\
-
-\
-
-\
-
-\
-
-\
-
-
-One could:
-\begin{enumerate}
-\item Mark allocations as exposed whenever representation bytes of
+For PNVI-ae and PNVI-ae-udi,
+the current proposal is to mark allocations as exposed whenever representation bytes of
   pointers to them are read, and use the same semantics for reads of
   pointer values from representation-byte writes as for
-  integer-to-pointer casts. This is attractively simple, but also
-  means that integer-to-pointer casts become permitted for all such
-  allocations, perhaps over-liberally.
-\item Record symbolically in the semantics of integer values what such
-  representation-byte values are of the form ``byte $n$ of pointer
-  value $v$'', or perhaps ``byte $n$ of pointer value of type $t$'', and allow reads of pointer values from
-  representation-byte writes only for such.  This is more complex and
+  integer-to-pointer casts. This is attractively simple, but it does
+  means that integer-to-pointer casts become permitted for all storage
+  instances for which a pointer has been copied via
+  \lstinline{user_memcpy}, which is arguably too liberal.   
+%
+It may be possible to add additional annotations for code like 
+\lstinline{user_memcpy} to indicate (to alias analysis) that (a) their
+target memory should have the same provenance as their source memory,
+and (b) the storage instances of any copied pointers should not be
+marked as exposed, despite the reads of their representation bytes. 
+This machinery has not yet been designed. 
+
+One might instead think of 
+record symbolically in the semantics of integer values (e.g.~for
+representation-byte values) whether they are of the form ``byte $n$ of pointer
+value $v$'', or perhaps ``byte $n$ of pointer value of type $t$'', and allow reads of pointer values from
+representation-byte writes only for such.  This is more complex and
   rather ad hoc, arbitrarily restricting the integer computation that
-  can be done on such bytes.
-\end{enumerate}
+  can be done on such bytes.  If one wanted to allow (e.g.)
+  bitwise operations on such bytes, as in
+  \myfooexamplename{provenance_tag_bits_via_repr_byte_1.c}, one would
+  essentially have to adopt a PVI model. 
+%
+However, note that to capture the 6.5p6 preservation of effective
+types by character-type array copy (\emph{``If a value is copied into an object having no declared type using
+memcpy or memmove, or is copied as an array of character type, then
+the effective type
+of the modified object for that access and for subsequent accesses
+that do not modify the
+ value is the effective type of the object from which the value is
+copied, if it has one.''}), we might need something like a very
+restricted version of PVI: some effective-type information attached to
+integer values of character type, to say``byte $n$ of pointer value of type $t$'', with all integer
+operations except character-type stores clearing that info. 
+
 %There may not be much reasonable
 %code that would be sensitive to the distinctions between these, but there is some, e.g.~manipulations of pointers where one knows the high-order bytes
 %are the same. This is important in some language runtimes,
@@ -1405,7 +1423,7 @@ it for suitably annotated code. Virtual memory manipulation is outside our scope
 at present. 
 
 
-\myparagraph{Reading pointer values from byte writes in PNVI-*}
+\myparagraph{Reading pointer values from byte writes}
 In all these provenance semantics, pointer values carry their
 provenance unchanged, both while manipulated in expressions (e.g.~with pointer
 arithmetic) and when stored or loaded as values of pointer type.
@@ -1416,15 +1434,17 @@ a provenance to each abstract byte.  For pointer values stored by
 single writes, this will usually be identical in each abstract byte of
 the value.
 
-However, in PNVI-*,
-if one reads a pointer value that has been partially or completely
-written by (integer) representation-byte writes, we use the same
-semantics as for integer-to-pointer casts, reading the address and
+However, we also have to define the result of reading a pointer value that has been partially or completely
+written by (integer) representation-byte writes. 
+In PNVI-*,
+ we use the same
+semantics as for integer-to-pointer casts, reading the numeric address and
 reconstructing the associated provenance iff a live storage
 instance covering that address exists (and, for PNVI-ae and
 PNVI-ae-udi, if that instance has been exposed).
 %
-To determine whether a pointer value read is from a single write (and
+To determine whether a pointer value read is from a single pointer
+value write (and
 thus should retain its original provenance when read), or from a combination of
 representation byte writes and perhaps also a pointer value write (and
 thus should use the integer-to-pointer cast semantics when read),
@@ -1436,7 +1456,7 @@ $0,1,..,7$, while other writes will clear them.
 For example, the code on the left below sets the fourth byte of
 \lstinline{p} to \lstinline{0}. The memory state on the right, just
 after the \lstinline{*q=2}, shows the pointer-byte indices of
-\lstinline{p}, one of which has been cleared (shown as ?).  When the
+\lstinline{p}, one of which has been cleared (shown as -).  When the
 value of \lstinline{p} is read (e.g.~in the \lstinline{q=p}), the fact
 that there is not a consecutive sequence $0,1,..,7$ means that PNVI-*
 will apply the integer-to-pointer cast semantics, here successfully
@@ -1512,12 +1532,17 @@ by manipulating one of its representation bytes (as in
 instead of by casting to \lstinline{uintptr_t} and back. 
 In PNVI-plain and PVI this will just work, respectively
 reconstructing the original provenance and tracking it through the
-(changed and unchanged) integer bytes.  But in PNVI-ae and
-PNVI-ae-udi,
-the address of \lstinline{x} has not been exposed by any
-pointer-to-integer casts.  What should the semantics of the last reads
+(changed and unchanged) integer bytes.  
+
+In PNVI-ae and PNVI-ae-udi, we regard
+the storage instance of \lstinline{x} as having been exposed by the 
+read of a pointer value (with non-empty provenance in its abstract
+bytes in memory) at an integer (really, non-pointer) type. 
+Then the last reads
 of the value of \lstinline{p}, from a combination of the original
-\lstinline{p=&x} write and later integer byte writes, be?  
+\lstinline{p=&x} write and later integer byte writes, 
+use the same semantics as integer-to-pointer casts, and thus 
+recreate the original provenance. 
 
 \
 
@@ -1545,19 +1570,26 @@ allow, consider copying pointers via code that encrypts or compresses a block of
 multiple pointers together, decrypting or uncompressing later.
 
 In PNVI-plain, it would just work, in the same way as \lstinline{user_memcpy()}.
-In PNVI-ae and PNVI-ae-udi, it would work if the pointer values are
-cast to integer types, but if not, and they are encrypted by reading
-their representation bytes, then for the models as currently stated it
-would not work, just as for
-\myfooexamplename{provenance_tag_bits_via_repr_byte_1.c}. 
+In PNVI-ae and PNVI-ae-udi, it would work but leave storage instances
+pointed to by those pointers exposed  (irrespective of whether the
+encryption
+is done via casts to integer types or by reads of representation
+bytes), 
+similar to \lstinline{user_memcpy} and \myfooexamplename{provenance_tag_bits_via_repr_byte_1.c}. 
+%
+%if the pointer values are
+%cast to integer types, but if not, and they are encrypted by reading
+%their representation bytes, then for the models as currently stated it
+%would not work, just as for
+%
 
-It has been argued that pointer construction via \lstinline{intptr_t} and back via any
+One might argue that pointer construction via \lstinline{intptr_t} and back via any
 value-dependent identity function should be required to work.  That
 would admit these, but defining that notion of ``value-dependent'' is
 exactly what is hard in the concurrency thin-air problem~\cite{BMNPS2015},
 and we do not believe that it is practical to make compilers respect dependencies in general.
 
-In PVI, this involves exactly the same combination of distinct-provenance
+In PVI, this case involves exactly the same combination of distinct-provenance
 values that (to prohibit inter-object arithmetic, and thereby enable
 alias analysis) we above regard as having empty-provenance results.  
 As copying pointers in this way  is a very rare idiom, one can argue
@@ -1593,9 +1625,10 @@ each control-flow branch
 }
   \end{minipage}
   \end{center}
-In PNVI-plain these would both work, while in PNVI-ae and PNVI-ae-udi
-only the second would, as the first reads representation bytes rather
-than casting the pointer value to integer. In PVI they would give
+In PNVI-plain these would both work. In PNVI-ae and PNVI-ae-udi
+they would also work, as the first exposes the storage instance of the
+copied pointer value by  representation-byte reads and the second by
+a pointer-to-integer cast. In PVI they would give
 empty-provenance pointer values and hence UB.
 
 
@@ -1608,13 +1641,18 @@ GCC did do so at one point, but it was regarded as a
 bug and fixed (from 4.7.1 to 4.8).   We propose that the numeric
 results of all operations on integers should be unaffected by the
 provenances of their arguments. 
-For PNVI-*, this question is moot. 
+For PNVI-*, this question is moot, as there integer values have no
+provenance. 
 
 
 \myparagraph{Pointer provenance and union type punning}
 Pointer values can also be constructed in C by type punning, e.g.~writing
-a \lstinline{uintptr_t} union member and then reading it as a
-pointer-type member
+a pointer-type union member, reading it as a \lstinline{uintptr_t}
+union member, and then casting back to a pointer type. 
+(The example assumes that the object representation of the
+pointer and the object representation of the result of the cast to integer are identical. This property is not guaranteed
+by the C standard, but holds for many implementations.)
+
 % JG: This example is flawed, because it suppose that converting to
 % uintptr_t is the same as reinterpreting the bytes of a pointer as
 % uintptr_t. These are not the same. In particular, and practically,
@@ -1641,18 +1679,20 @@ representation of the value is reinterpreted as an object
 representation in the new type''}, but says little about that
 reinterpretation. %, and DR260 CR does not speak to the provenance of the
 % result.
-The example actually assumes that the object representation of the
-pointer and the object representation of the result of the cast to integer are identical. This property is not guaranteed
-by the C standard, but holds for many implementations.
 %
 We propose that these reinterpretations be required to be
 implementation-defined,
 and, in PNVI-plain, that the
-same integer-to-pointer cast semantics be used at such reads
-(the latter does not match current ICC O2 behaviour). 
+usual integer-to-pointer cast semantics be used at such reads.
+%(the latter does not match current ICC O2 behaviour). 
 
-For PNVI-ae and PNVI-ae-udi, it's not clear what the best semantics
-would be. 
+For PNVI-ae and PNVI-ae-udi, 
+the same semantics as for representation-byte reads 
+also permits this case: the storage instance 
+is deemed to be exposed by the read of the provenanced
+representation bytes by the non-pointer-type read.
+The integer-to-pointer cast then recreates the provenance of
+\lstinline{x}. 
 % JG: I think the best semantics here are UB.
 % PS: I.e., the load u.p should give an empty-provenance pointer
 % value?  Maybe, but I don't see a compelling reason?
@@ -1736,13 +1776,13 @@ provenance exactly like an integer-to-pointer cast.
 %
 
 In PNVI-ae and PNVI-ae-udi, for the \lstinline{%p}
-  case we could mark the associated storage instance as exposed by the
+  case we mark the associated storage instance as exposed by the
   output, and
   use
   the same semantics as integer-to-pointer casts on the input.
-  The \lstinline{uintptr_t} case would also work straightforwardly.
-  However, the representation-byte output and input is problematic,
-  just as for bytewise memcpy above.   
+  The \lstinline{uintptr_t} case  and 
+  representation-byte case also mark the storage instance as exposed,
+  in the normal way for these models. 
 
 
 For PVI, there are several options, none of which seem ideal:
@@ -1805,6 +1845,9 @@ annotation, to let both \lstinline{stdlib} implementations and other
 libraries return pointers that are treated as having fresh provenance
 outside (but not inside) their abstraction boundaries.
 
+Compilers already have related annotations, e.g.~GCC's \texttt{malloc}
+attribute \emph{``tells the compiler that a function is malloc-like, i.e., that the pointer P returned by the function cannot alias any other pointer valid when the function returns, and moreover no pointers to valid objects occur in any storage addressed by P''}
+(\url{https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#Common-Function-Attributes}). 
 % JG: Two possibilities:
 % - C's new attribute feature. Gcc already has such attributes.
 % - Allow/use `restrict` as a qualification for pointer returns.
