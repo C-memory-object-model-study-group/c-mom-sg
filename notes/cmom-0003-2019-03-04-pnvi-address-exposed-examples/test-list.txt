@@ -40,6 +40,7 @@ provenance_union_punning_2_global_xy.c
 provenance_union_punning_2_global_yx.c
 provenance_union_punning_2_auto_xy.c
 provenance_union_punning_2_auto_yx.c
+provenance_union_punning_3_global.c
 provenance_via_io_percentp_global.c
 provenance_via_io_bytewise_global.c
 provenance_via_io_uintptr_t_global.c

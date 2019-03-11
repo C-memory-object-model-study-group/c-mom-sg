@@ -24,8 +24,8 @@ digraph Memory { node [shape=none, fontsize=12]; rankdir=LR;n68[label=<
           <td border="0" colspan="1"><b>p</b>: signed int*&nbsp;[@70, 0x11f8]</td>
          </tr><tr><td width="7" height="20" fixedsize="true" port="0">
           <font point-size="1">&nbsp;</font>
-         </td><td port="v" rowspan="8" colspan="1" ><table cellpadding="0" cellspacing="0" border="0"><tr border="1"><td>0 : 0xf0 @68</td>
-                  <td rowspan="8">@68, 0x11f0</td></tr><tr><td border="1" sides="t">1 : 0x11 @68</td></tr><tr><td border="1" sides="t">2 : 0x0 @68</td></tr><tr><td border="1" sides="t">3 : 0x0 @68</td></tr><tr><td border="1" sides="t"  bgcolor="lightcyan">- : 0x0 @empty</td></tr><tr><td border="1" sides="t">5 : 0x0 @68</td></tr><tr><td border="1" sides="t">6 : 0x0 @68</td></tr><tr><td border="1" sides="t">7 : 0x0 @68</td></tr></table></td></tr><tr><td width="7" height="20" fixedsize="true" port="1">
+         </td><td port="v" rowspan="8" colspan="1" ><table cellpadding="0" cellspacing="0" border="0"><tr border="1"><td align="left">0 : 0xf0 @68</td>
+                  <td rowspan="8">@68, 0x11f0</td></tr><tr><td border="1" sides="t" align="left">1 : 0x11 @68</td></tr><tr><td border="1" sides="t" align="left">2 : 0x0 @68</td></tr><tr><td border="1" sides="t" align="left">3 : 0x0 @68</td></tr><tr><td border="1" sides="t"  bgcolor="lightcyan" align="left">- : 0x0 @empty</td></tr><tr><td border="1" sides="t" align="left">5 : 0x0 @68</td></tr><tr><td border="1" sides="t" align="left">6 : 0x0 @68</td></tr><tr><td border="1" sides="t" align="left">7 : 0x0 @68</td></tr></table></td></tr><tr><td width="7" height="20" fixedsize="true" port="1">
           <font point-size="1">&nbsp;</font>
          </td></tr><tr><td width="7" height="20" fixedsize="true" port="2">
           <font point-size="1">&nbsp;</font>

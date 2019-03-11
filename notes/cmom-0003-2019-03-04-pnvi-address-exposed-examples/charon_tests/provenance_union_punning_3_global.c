@@ -9,7 +9,7 @@ int main() {
   u.up = p;
   uintptr_t i = u.ui;
   int *q = (int*)i;
-  *q = 11;  // does this have undefined behaviour?
+  *q = 11;  // does this have UB?
   printf("x=%d *p=%d *q=%d\n",x,*p,*q);
   }
   return 0;

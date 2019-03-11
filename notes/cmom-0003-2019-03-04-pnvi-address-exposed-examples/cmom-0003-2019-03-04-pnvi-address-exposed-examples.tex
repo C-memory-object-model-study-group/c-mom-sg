@@ -1283,7 +1283,7 @@ implementation-defined, per 6.3.2.3p\{5,6\} and 7.20.1.4.)
 \myparagraph{Algebraic properties of integer operations}
 The PVI definitions of the provenance results of integer operations,
 chosen to make 
-\myfooexmaplename{pointer_offset_from_int_subtraction_global_xy.c}
+\myfooexamplename{pointer_offset_from_int_subtraction_global_xy.c}
 forbidden and 
 \myfooexamplename{provenance_tag_bits_via_uintptr_t_1.c} allowed,
  has an unfortunate consequence:  it makes those operations no
@@ -1373,7 +1373,7 @@ marked as exposed, despite the reads of their representation bytes.
 This machinery has not yet been designed. 
 
 One might instead think of 
-record symbolically in the semantics of integer values (e.g.~for
+recording symbolically in the semantics of integer values (e.g.~for
 representation-byte values) whether they are of the form ``byte $n$ of pointer
 value $v$'', or perhaps ``byte $n$ of pointer value of type $t$'', and allow reads of pointer values from
 representation-byte writes only for such.  This is more complex and
@@ -1508,7 +1508,7 @@ not \lstinline{0}, in which case the read of \lstinline{p} would have
 a wild address and the empty provenance, and the write
 \lstinline{*q=2} would flag UB. 
 
-\newpage
+
 \myparagraph{Pointer provenance for bytewise pointer representation manipulations}
 To examine the possible semantics for pointer representation bytes
 more closely, especially for PNVI-ae and PNVI-ae-udi, consider the
@@ -1670,7 +1670,7 @@ by the C standard, but holds for many implementations.)
 % precise semantics certainly needs it.
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace*{-0.0\baselineskip}
-          {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_union_punning_2_global_xy.c}{}
+          {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{provenance_union_punning_3_global.c}{}
           }
   \vspace*{-1.0\baselineskip}
 \end{wrapfigure}%
@@ -1893,7 +1893,7 @@ example below, where
 \vspace*{-0.25\baselineskip}
 {\renewcommand{\mylistingmargin}{0mm}\myfooexample{charon_tests/}{pointer_from_integer_1pg.c}{}%{pointer_from_integer_1i.c}%
 }
-\vspace*{-0.75\baselineskip}
+%\vspace*{-0.75\baselineskip}
 \end{wrapfigure}
  \lstinline{main()} guesses the address of \lstinline{f()}'s local
  variable, passing it in as a pointer, and \lstinline{f()} checks it
@@ -1918,7 +1918,7 @@ The PVI semantics flags UB
 for the simple reason that \lstinline{j} is created with the empty
 provenance, and hence \lstinline{p} inherits that.  
 
-\newpage
+%\newpage
 
 
 
@@ -1949,6 +1949,7 @@ Clang, or ICC.
 
 \
 
+\
 
 \myparagraph{Allocation-address nondeterminism}
 Note that both of the previous examples take the address
@@ -2024,7 +2025,7 @@ cast has empty provenance and the access \lstinline{*p=7} flags UB, in every exe
 However, if \lstinline{j} is exposed, as in the example on the right,
 these models still make it UB, now for the same reason as PNVI-plain.
 
-\newpage
+%\newpage
 
 \myparagraph{Can a function access local variables of its parent?}
 This too should be forbidden in general. 
@@ -2080,14 +2081,6 @@ because the \lstinline{j} storage instance is exposed by the
 A different obvious refinement to PNVI would be to restrict integer-to-pointer casts
 to recover the provenance only of objects that have had their address
 taken, recording that in the memory state.  
-Perhaps surprisingly, that seems not to make much difference to the
-allowed tests, because the tests one might write tend to already be UB due
-to allocation-address nondeterminism, or to already take the address
-of an object to use it in a guard.  PNVI-address-taken has the conceptual advantage of
-identifying these UBs without requiring examination of multiple
-executions, but the disadvantage that whether an address has been
-taken is a fragile syntactic property, e.g.~not preserved
-by dead code elimination.
 PNVI-address-exposed is based on PNVI-address-taken but with the
 tighter condition that the address must also have been cast to integer.
 
@@ -2097,10 +2090,20 @@ address matches a live object from cast-time to access-time.  This
 would make \mycerbexamplename{pointer_from_integer_1pg.c}{pointer_from_integer_1pg.c} defined,
 which is surely not desirable. 
 
+\medskip
+
+
+Perhaps surprisingly, the PNVI-ae and PNVI-ae-udi variants seem not to make much difference to the
+allowed tests, because the tests one might write tend to already be UB due
+to allocation-address nondeterminism, or to already take the address
+of an object to use it in a guard.  These variants do  have the conceptual advantage of
+identifying these UBs without requiring examination of multiple
+executions, but the disadvantage that whether an address has been
+taken is a fragile syntactic property, e.g.~not preserved
+by dead code elimination.
+
+
 \newpage
-
-
-
 \myparagraph{The problem with lost address-takens and escapes}
 Our PVI proposal allows computations that erase the numeric
 value (and hence a concrete view of the ``semantic dependencies'') of a
@@ -2157,7 +2160,8 @@ example, but only because the address of \lstinline{p} is both taken
 and cast to an integer type.   If these semantics were used for
 alias analysis in an intermediate language after such optimisation,
 this would likewise require the optimsation passes to record which
-addresses have been taken and cast to integer, to be explicitly passed
+addresses have been taken and cast to integer (or otherwise exposed)
+in eliminated code, to be explicitly passed
 in to alias analysis. 
 
 %
@@ -2191,7 +2195,7 @@ casts for integer values that are ambiguously both one-past one
 storage instance and at the start of the next.
 The PNVI-ae-udi approach to that is to leave the provenance of 
 pointer values resulting from such casts unknown until the first
-operation (e.g.~an access or pointer arithmetic) that disambiguates
+operation (e.g.~an access, pointer arithmetic, or pointer relational comparison) that disambiguates
 them.  This makes the following two, each of which uses the result of
 the cast in one consistent way, well defined:
 
