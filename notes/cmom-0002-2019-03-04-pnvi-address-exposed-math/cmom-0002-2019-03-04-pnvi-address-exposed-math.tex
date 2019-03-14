@@ -574,7 +574,7 @@ offset, member offset, and casts to integer only for pointers to live
 objects for which the address is within or one past the object
 footprint.  These are all debatable choices.  One could instead check
 only that the addresses are within or one past the original object
-footprint, or go further towards a concrete-address view of pointer
+footprint (and not check the object is live), or go further towards a concrete-address view of pointer
 values and not check that either.  Sketching out some of the options:
 \begin{itemize}
 \item \textsc{zombie-pointers-become-indeterminate}  For the current
@@ -959,7 +959,7 @@ The result is the numerical difference $a-a'$ divided by
 $\dearray(\tau)$ returns $\tau$ if it is not an array type,
 and otherwise returns its element type.
 Note that this disallows subtraction for which one or both arguments
-are null pointers;
+are null pointers, which is the ISO semantics but may be 
 a debatable choice.
 
 %
@@ -1036,6 +1036,13 @@ a debatable choice.
         \qquad a' \in [\hat{a}..\hat{a}+n]{}\qquad \mathit{op} \in \{\le, <, >, \ge\}}
       {A, M} {A, M}
 \]
+Relational comparison is used in practice between pointers to
+different objects.   A variant which would allow that, which we call
+\textsc{allow-inter-object-relational-operators}
+\textsc{true}, removes the $i=i'$ test above and (in the
+\textsc{zombie-pointers-become-indeterminate} and 
+\textsc{zombie-pointers-allow-equality-only} variants) additionally
+checks that $i'$ maps to a live object with in-range address.
 
 \myparagraph{Pointer equality comparison}
 Pointers $p$ and $p'$ can always be compared with an equality operator
