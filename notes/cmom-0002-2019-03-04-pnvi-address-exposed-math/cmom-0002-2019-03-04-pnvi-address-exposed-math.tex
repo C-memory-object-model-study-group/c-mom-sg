@@ -530,12 +530,13 @@ C standard text.
 
 
 
-{\color{red}This version does not support bytewise copy of a pointer
- to an unexposed object, which will need quite some additional
- machinery for PNVI-ae and PNVI-ae-udi beyond the base PNVI (where
- that automatically works).  The design of that machinery should
+This version of PNVI-* permits bytewise copy of a pointer
+to an initially unexposed object, but leaves it marked as exposed.
+Additional machinery may well be desirable for PNVI-ae and PNVI-ae-udi
+to give programmers more control of the provenance of the results of
+byte manipulations, and of what is left marked as exposed. The design of that machinery should
  ideally be based on the treatment of representation-byte-accessed
- pointer values by existing compiler alias analyses and optimisations.}
+ pointer values by existing compiler alias analyses and optimisations.
 
 
 
