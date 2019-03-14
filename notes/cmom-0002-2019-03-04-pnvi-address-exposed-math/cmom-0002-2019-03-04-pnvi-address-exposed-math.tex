@@ -1070,33 +1070,41 @@ a'\in [a''..a''+n'']
 
 
 
-\myparagraph{Pointer member offset} Given a pointer $p$ at C type
+\myparagraph{Pointer member offset} Given a non-null pointer $p$ at C type
         $\tau$,
-        which is a struct or union type with a member $m$,
-        if $p$ is some non-null $(\pi,a)$,
+        which points to the start of a struct or union type object
+(ISO C suggests this has to exist, writing \emph{``The value is that of the named
+member of the object to which the first expression points''})
+with a member $m$,
+        if $p$ is $(\pi,a)$,
 the result of offsetting the pointer to member $m$ has the same
         provenance $\pi$ and the suitably offset $a$.
+
 If $p$ is null, the result is a pointer with empty provenance and the
         integer offset of $m$ within $\tau$'s representation
         (this is de facto C behaviour, in the sense that the GCC torture tests rely
         on it; it does not exactly match ISO C).
 
-For this to be sensible,  
-$p$ should point to the start of an object of type $\tau$, with UB otherwise
-(ISO C suggests this, writing \emph{``The value is that of the named
-member of the object to which the first expression points''}). 
-However, without a
+For the first case, 
+$p$ should point to the start of an object of type $\tau$, with UB
+otherwise, but without a
 subobject-aware effective-type semantics, we cannot check that
-here. We could check the storage instance of $p$'s provenance has
-a footprint large enough to accommodate an object of type $\tau$
-starting at $a$, which would guarantee that the result of the offset
-is within the storage instance. 
+here.  Instead, we just check that there is a live storage instance of
+$p$'s provenance such that the resulting address is within or one-past
+its 
+a footprint. That makes this analogous to pointer
+array offset. 
 \[
     \memberOffset(p, \tau, m) =
     \begin{cases}
-      (\pi, a + \offsetofIval(\tau, m)),
-        &\text{if $p = (\pi, a)$;} \\
-      \offsetofIval(\tau, m),
+      (\pi, a'),
+& \begin{array}{@{}l@{}}
+\text{if } p = (@i, a)   \text{ and}\\
+a'=a + \offsetofIval(\tau, m) \text{ and}\\
+A(i) = (n'', \_, a'', \_, \_, \myt{\_}) \text{ and}\\
+a'\in [a''..a''+n'']
+\end{array}\\
+      (\provNone,\offsetofIval(\tau, m)),
         &\text{if $p = \Null$.}
     \end{cases}
 \]
@@ -1332,10 +1340,14 @@ Jens Gustedt highlights that atomic operations have their own specific provenanc
 properties, not yet discussed here.
 
 
+
+\end{tightitemize}
+
 \subsection{Provenance for other library functions}
 TBD
 
-\end{tightitemize}
+\subsection{Provenance checks and race conditions}
+
 
 
 
