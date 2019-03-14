@@ -925,19 +925,29 @@ This rule is stated for PNVI \myt{and PNVI-ae}, returning pure integer.
 For PVI,  $\diffPtr$ constructs the same integer
 but with $\provNone$ provenance.
 \myu{For PNVI-ae-udi, because subtraction of pointers with different
-provenance should be UB, if one of the two pointers has a symbolic storage
+provenance should be UB:
+\begin{itemize}
+\item  if both the two pointers have either a provenance $@i$
+  (resp.~$@i'$) or a symbolic storage instance ID $\iota$
+  (resp.~$\iota'$) mapped by $A$ to a singleton $\{i\}$
+  (resp.~$\{i'\}$), then $i=i'$, otherwise UB.
+\item  if one of the two pointers has a symbolic storage
 instance ID $\iota$, mapped by $A$ to $\{i_1,i_2\}$, while the other
 either has a provenance $@i'$ or an $\iota'$ mapped to a singleton
 $\{i'\}$,
 then $i'$ must be either $i_1$ or $i_2$, and $\iota$ is resolved to
 that in the $A$ of the final state. Otherwise UB.
-If both pointers are ambiguous, say mapped to $\{i_1,i_2\}$ and $\{i'_1,i'_2\}$,
-then if those two sets share a single element which satisfies the other rule
+
+\item If both pointers are ambiguous, say mapped to $\{i_1,i_2\}$ and $\{i'_1,i'_2\}$,
+then if those two sets share exactly one element which satisfies the other rule
 preconditions, both symbolic storage instance IDs are resolved to
-that. Otherwise UB. If the sets have two pairs of elements that satisfy the other
+that. Otherwise UB. 
+\item If both pointers are ambiguous and 
+those sets share two elements that satisfy the other
 conditions (which we believe can only happen if the addresses are
 equal), then subtraction is permitted but the symbolic storage
 instance IDs are left unresolved. Otherwise UB.
+
 For example, suppose \lstinline{p} and \lstinline{q} have been produced by separate casts
  from an integer which is ambiguously one-past one allocation and at
  the start of another. Then after \lstinline{p-q} or \lstinline{p<q} we know they must have been
@@ -946,6 +956,7 @@ For example, suppose \lstinline{p} and \lstinline{q} have been produced by separ
  relation over  symbolic storage
 instance IDs, and additional modifications to the rules below beyond what is in
 this draft, but that seems to be unwarranted complexity). 
+\end{itemize}
 }
 \[
 \ruleTwo
