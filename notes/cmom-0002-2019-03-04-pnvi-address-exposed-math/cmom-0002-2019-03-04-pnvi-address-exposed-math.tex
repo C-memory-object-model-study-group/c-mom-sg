@@ -557,11 +557,47 @@ together with an operational semantics for Core) to give a complete
 semantics for a large fragment of sequential C. 
 
 
-For simplicity, we present the model without the ISO semantics that makes all
-pointers to an object or region indeterminate at the end of its lifetime,
-assume two's complement representations, assume NULL pointers have
+For simplicity, we assume that pointer representations are the two's complement
+representation of their addresses (and identical to the two's
+complement representations of their conversions to sufficiently wide
+integer types), assume NULL pointers have
 address (and representation) $0$, and allow NULL pointers to be constructed from any
 empty-provenance integer zero, not just integer constant expressions.
+
+At present the model does not include the ISO semantics that makes all
+pointers to an object or region indeterminate at the end of its
+lifetime, and it permits equality comparison between pointers
+irrespective of whether the objects of their provenances are live,
+but it does permit pointer subtraction, relational comparison, array
+offset, member offset, and casts to integer only for pointers to live
+objects for which the address is within or one past the object
+footprint.  These are all debatable choices.  One could instead check
+only that the addresses are within or one past the original object
+footprint, or go further towards a concrete-address view of pointer
+values and not check that either.  Sketching out some of the options:
+\begin{itemize}
+\item \textsc{zombie-pointers-become-indeterminate}  For the current
+  ISO semantics, at every storage instance lifetime end, the semantics
+  should replace every pointer value with that provenance in the
+  abstract-machine environment with the indeterminate value, and, for
+  every memory footprint containing a pointer value with that
+  provenance (that came from a single pointer value write), synthesise a 
+  a write of the indeterminate value to that footprint.  With this,
+  the live-object checks for equality, relational comparison,
+  subtraction, array offset, member offset, and casts to integers all
+  become moot. 
+\item \textsc{zombie-pointers-allow-equality-only}  This is what the
+  maths below details. 
+\item \textsc{zombie-pointers-allow-all-in-bounds-arithmetic}
+  For this, we would retain metadata for the bounds of lifetime-ended
+  pointers and check against that for non-load/store operations.
+\item \textsc{zombie-pointers-allow-all-arithmetic}  For this, we
+  would remove the lifetime and bounds checks for non-load/store operations.
+\item \textsc{all-pointers-allow-all-arithmetic}  This would make all
+  the non-load/store operations operate just on abstract addresses,
+  ignoring provenance and storage instance metadata.
+\end{itemize}
+
 
 
 
@@ -915,11 +951,16 @@ The memory operations flag out-of-memory (OOM) and undefined behaviour
       ($i=i'$), there is a live storage instance for $i$ in $A$, and
       both $a$ and $a'$ are within or one-past the footprint of that
       allocation (in ISO C the last will always hold, otherwise UB
-      would have been flagged in earlier pointer arithmetic).
+      would have been flagged in earlier pointer
+      arithmetic). Otherwise UB.
 The result is the numerical difference $a-a'$ divided by
       $\sizeof(\dearray(\tau)))$, where 
 $\dearray(\tau)$ returns $\tau$ if it is not an array type,
 and otherwise returns its element type.
+Note that this disallows subtraction for which one or both arguments
+are null pointers;
+a debatable choice.
+
 %
 This rule is stated for PNVI \myt{and PNVI-ae}, returning pure integer.
 For PVI,  $\diffPtr$ constructs the same integer
@@ -976,14 +1017,22 @@ Pointers $p=(@i,a)$ and
       (\verb+<+, \verb+<=+, etc.) if they have the same provenance
       ($i=i'$).  The result is the boolean result of the mathematical
       comparison of $a$ and $a'$.
-\myu{For PNVI-ae-udi, this has to be adapted in much the same way as the
+To make this analogous to pointer subtraction, we also require (though
+this is debatable) that 
+there is a live storage instance for $i$ in $A$, and
+      both $a$ and $a'$ are within or one-past the footprint of that
+      allocation. Otherwise UB. 
+Note that this disallows relational comparison against null pointers;
+a debatable choice.
+      \myu{For PNVI-ae-udi, this has to be adapted in much the same way as the
       pointer subtraction rule above.}
 \[
 \ruleTwo
       {\relOpPtr(p,p',\mathit{op})=b}
       {label}
-      {p = (@i, a) \qquad p' = (@i', a') \qquad i=i'}
-      {b = \mathit{op}(a, a') \qquad \mathit{op} \in \{\le, <, >, \ge\}}
+      {p = (@i, a) \qquad p' = (@i', a') \qquad i=i' \qquad A(i) = (n, \_, \hat{a}, f, k, \myt{\_})}
+      {b = \mathit{op}(a, a') \qquad \qquad a \in [\hat{a}..\hat{a}+n]
+        \qquad a' \in [\hat{a}..\hat{a}+n]{}\qquad \mathit{op} \in \{\le, <, >, \ge\}}
       {A, M} {A, M}
 \]
 
@@ -1028,7 +1077,8 @@ provenance-oblivious semantics is arguably desirable:
 }
       {A, M} {A, M}
 \]
-
+We call these two options 
+\textsc{pointer-equality-provenance-nondet} \textsc{true} and \textsc{false}.
 
 
 
@@ -1118,14 +1168,20 @@ a'\in [a''..a''+n'']
 In PNVI-plain, a cast of a pointer value $p$  to an integer value (at type $\tau$)
 just converts null pointers to zero and non-null pointer values to the
 address $a$ of the pointer, if that is representable in $\tau$,
-otherwise flagging UB.  The provenance of the pointer is discarded. 
+otherwise flagging UB.  The provenance of the pointer is discarded.
+At present we require that the object is live and that its address is
+within bounds. 
 \[ \begin{array}{@{}r@{\,}c@{\,}l@{}}
 \intcastPtr(\tau, p) &=&
     \begin{cases}
        0,
         &\text{if } p = \Null; \\
        a,
-        &\text{if } p = (\pi, a) \text{ and } a \in \mathtt{value\_range}(\tau) \\
+& \begin{array}[t]{@{}l@{}}
+\text{if } p = (@i, a)   \text{ and}\\
+A(i) = (n'', \_, a'', \_, \_, \myt{\_}) \text{ and}\\
+a\in [a''..a''+n''] \text{ and } a \in \mathtt{value\_range}(\tau) \\
+\end{array}\\
       \text{UB},
         &\text{otherwise}
     \end{cases}
@@ -1257,7 +1313,8 @@ In PVI one also has to define the provenance results of all the other
 operations returning integer values.  Below we do so for the basic
 operations, though this would also be needed for all the
 integer-returning library functions.  Most would give integers with
-empty provenance. 
+empty provenance.  One might or might not also want to require that the objects of
+those provenances are live. 
 \[  \begin{array}{rcl}
    \pi \oplus \pi' &=&
     \begin{cases}
