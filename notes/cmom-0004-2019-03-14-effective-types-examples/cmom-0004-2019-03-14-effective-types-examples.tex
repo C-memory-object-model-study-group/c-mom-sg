@@ -1,0 +1,1134 @@
+
+\documentclass[acmsmall,review,screen]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+
+\citestyle{acmauthoryear}
+
+\newif\ifWGfourteennumber
+\WGfourteennumberfalse
+
+
+\usepackage[normalem]{ulem}
+\usepackage{wrapfig}
+\usepackage{minibox}
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+                        %% http://ctan.org/pkg/booktabs
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+\usepackage{verbatim}
+
+
+\newif\ifmycopyright\mycopyrightfalse
+%\mycopyrighttrue
+\setcopyright{none}
+
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%\citestyle{acmauthoryear}  %% For author/year citations
+%\citestyle{acmnumeric}     %% For numeric citations
+%\setcitestyle{nosort}      %% With 'acmnumeric', to disable automatic
+                            %% sorting of references within a single citation;
+                            %% e.g., \cite{Smith99,Carpenter05,Baker12}
+                            %% rendered as [14,5,2] rather than [2,5,14].
+%\setcitesyle{nocompress}   %% With 'acmnumeric', to disable automatic
+                            %% compression of sequential references within a
+                            %% single citation;
+                            %% e.g., \cite{Baker12,Baker14,Baker16}
+                            %% rendered as [2,3,4] rather than [2-4].
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsthm,amssymb,bm,mathtools}
+
+\usepackage[all]{xy}
+
+% these are useful comments, maybe we should make them footnotes?
+\renewcommand{\comment}[2][comment]{{\color{blue}\bf[#1: #2]}}
+% uncomment the following line to remove comments
+ \renewcommand{\comment}[2][comment]{}
+
+\newcommand{\TODO}[1]{{\color{red}\bf[TODO: #1]}}
+\definecolor{VGcolor}{rgb}{0.9 0.2 0.0}
+\newcommand{\VG}[1]{{\color{VGcolor}\bf[VG: #1]}}
+\definecolor{Kcolour}{rgb}{0.87451 0.5 0.0}
+\newcommand{\K}[1]{{\color{Kcolour}\bf[K: #1]}}
+%\renewcommand{\TODO}[1]{}
+
+\newcommand{\myparagraph}[1]{\vspace{0.5\baselineskip}\par\noindent{\normalsize\bfseries{#1}}\quad}
+\newcommand{\myqs}[1]{\vspace{0.2\baselineskip}\par\noindent{\normalsize\bfseries{#1}}\quad}
+
+\def\elasticquad{\hspace{0em plus 1em}\relax}
+
+\newcommand{\myq}[1]{\vspace{0.2\baselineskip}\par\noindent{\normalsize\emph{#1}}\quad}
+
+\newcommand{\mydemotesturl}[1]{https://cerberus.cl.cam.ac.uk/cerberus?demo/#1}
+\newcommand{\mytesturl}[1]{https://cerberus.cl.cam.ac.uk/cerberus?defacto/#1}
+\newcommand{\mytestlink}[2]{\href{\mytesturl{#1}}{#2}}
+\newcommand{\mylsttestlink}[1]{\mytestlink{#1}{\lstinline{#1}}}
+
+%\newcommand{\mytestlink}[2]{\url{#2}} %\href{\mytesturl{#1}}{\lstinline{#2}}}
+% macros for question-tooling generated latex
+\newcommand{\myqtquestion}[2]{\myparagraph{#1. #2}}
+%\newcommand{\myqtexample}[3]{\myexampleheader{#2}  \url{#3}\lstinputlisting{#1#2}}
+\newcommand{\mylistingmargin}{5mm}
+\newcommand{\myqtlinkexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} #4\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{tests-hand-edited/#2}\vspace*{-0.25\baselineskip}}}}
+
+\newcommand{\myqtexample}[3]{\myqtlinkexample{#1}{#2}{#3}{{\mylsttestlink{#2}}}}
+
+\newcommand{\myfooexamplename}[1]{\mylsttestlink{#1}}
+\newcommand{\myfooexample}[3]{{\vspace*{-0.0\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mylsttestlink{#2}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+\newcommand{\myfoolinkexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} #4\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+\newcommand{\mycerbexamplename}[2]{\mytestlink{#2}{\lstinline{#1}}}
+\newcommand{\mycerbexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mycerbexamplename{#2}{#4}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+
+\usepackage{alltt}
+
+\makeatletter
+\newcommand{\manuallabel}[2]{\def\@currentlabel{#2}\label{#1}}
+\makeatother
+
+\usepackage[scaled=0.82]{beramono}
+\usepackage{listings}
+\lstset{basicstyle=\renewcommand{\baselinestretch}{0.9}\tt\small}
+%\lstset{basicstyle=\tt} 
+\lstset{language=c}
+%\lstset{numbers=left}
+% \lstset{basicstyle=\ttfamily} 
+% \lstset{basicstyle=\footnotesize\ttfamily} 
+\lstset{keywordstyle=\bfseries}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{tikz}
+%\usepackage{pgfplots}
+
+\newenvironment{tightenumerate}{%
+\begin{enumerate}%
+\setlength{\partopsep}{0pt}%
+\setlength{\itemsep}{1pt}%
+\setlength{\parskip}{0pt}%
+\setlength{\parsep}{0pt}%
+}{\end{enumerate}
+}
+\newenvironment{vtightenumerate}{%
+\begin{enumerate}%
+\setlength{\topsep}{0pt}%
+\setlength{\partopsep}{0pt}%
+\setlength{\itemsep}{1pt}%
+\setlength{\parskip}{0pt}%
+\setlength{\parsep}{0pt}%
+}{\end{enumerate}
+}
+
+%\setlength{\leftmargini}{0mm}
+
+\newenvironment{tightitemize}{
+% \begin{itemize}
+%   \setlength{\labelwidth}{0pt}
+%   \setlength{\leftmargin}{0pt}
+%   \setlength{\itemsep}{1pt}
+%   \setlength{\parskip}{0pt}
+%   \setlength{\parsep}{0pt}}{\end{itemize}
+% }
+
+% \newenvironment{verytightitemize}{
+ \begin{itemize}
+   \setlength{\itemsep}{0pt}
+   \setlength{\parskip}{0pt}
+   \setlength{\leftmargin}{0pt}
+   \setlength{\leftmargini}{1.5mm}
+   \setlength{\leftmarginii}{3mm}
+   \setlength{\leftmarginiii}{4.5mm}
+   \setlength{\labelwidth}{1.5mm}
+   \setlength{\itemindent}{0mm}
+   \setlength{\labelsep}{1.5mm}
+   \setlength{\rightmargin}{0pt}
+   \setlength{\topsep}{0pt}
+   \setlength{\parsep}{0pt}}{\end{itemize}
+ }
+
+\newenvironment{verytightitemize}{
+\begin{list}{\hspace*{-2mm}$\bullet$}{
+  \setlength{\itemsep}{1pt}
+  \setlength{\topsep}{2pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\leftmargin}{2mm}
+  \setlength{\labelwidth}{0pt}
+%  \settowidth{\labelwidth}{$\bullet$}
+%  \setlength{\itemindent}{0pt}
+  \settowidth{\itemindent}{$\bullet$}
+  \addtolength{\itemindent}{0mm}
+  \setlength{\parsep}{0pt}}}{\end{list}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\ifWithCharonData\WithCharonDatatrue
+\WithCharonDatafalse
+\newif\ifWithCharonSome\WithCharonSometrue
+\WithCharonSomefalse
+
+
+%%%%%%%%%%% typesetting of Charon output %%%%%%%%%%%%
+\newcommand{\charontt}[1]{\texttt{#1}}
+\newcommand{\charonZeroExitCodes}[2]{}
+\newcommand{\charonNonZeroExitCodes}[2]{{\color{red}[*** exit codes #1 / #2 ***]}}
+\newcommand{\charonSourcesMismatch}{{\color{red}SOURCES MISMATCH}}
+
+
+% #1  tool instance name
+% #2  tool command-line name
+% #3  tool args
+% #4  compile stderr    
+% #5  compile and execute exit codes 
+% #6  stdout            
+% #7  stderr            
+% #8  unused
+% #9  execute signals
+\newcommand{\charonSameOutcome}[9]{\noindent\textsc{#1:} %
+ \ldots as above\\}
+\newcommand{\charonSameModuloAddressesOutcome}[9]{\noindent\textsc{#1:} %
+ \ldots as above (modulo addresses)\\%
+%{}[#5/#8]#9\\\charontt{#4}\charontt{#6}\charontt{#7}%
+}
+\newcommand{\charonOutcome}[9]{\noindent\textsc{#1:} %
+#5#9\\\charontt{#4}\charontt{#6}\charontt{#7}}
+
+% #1  flavour (iso/defacto)
+% #2  warnings
+% #3  errors
+% #4  return code
+% #5  stdout
+% #6  stderr
+\newcommand{\charonExpectation}[6]{\noindent\textsc{#1:} %
+\charontt{#2}\charontt{#3}\charontt{#5}}
+% #1  target (iso/defacto)
+% #2  expectation
+\newcommand{\charonNewExpectation}[2]{\noindent\textsc{#1:} %
+\charontt{#2}\\}
+\newcommand{\charonTest}[2]{#2}
+ 
+%%%% typesetting of examples, with and without code and Charon %%%%%% output %%
+\newcommand{\myexamplefontsize}{\fontsize{8pt}{9pt}}
+\newcommand{\myexamplename}[1]{\url{#1}}
+%\newcommand{\myexampleheader}[1]{\medskip\par\noindent\textsc{Example} (\myexamplename{#1}):}
+\newcommand{\myexampleheader}[1]{\medskip\par\noindent\small\textsc{#1}:}
+%\newcommand{\myexamplecode}[1]{\verbatiminput{#1}}
+\newcommand{\myexamplecode}[1]{\lstinputlisting{#1}}
+\ifWithCharonData
+\newcommand{\myexamplecharon}[1]{\input{#1}}
+\else
+\newcommand{\myexamplecharon}[1]{}
+\fi
+\newcommand{\indexTestName}[1]{\index{#1@\url{#1}}}
+
+% just with the name  
+\newcommand{\myjustnameexample}[1]{{%
+\indexTestName{#1}%
+\myexamplename{#1}}}
+
+% with code and Charon output
+\newcommand{\mycexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+%\myexamplecode{examples/#1}%
+\myexamplecode{../charon2/generated_tex/#1.src}%
+%\par\noindent\myexamplefontsize%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% without code; with Charon output
+\newcommand{\mynocodeexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+\\%
+%\myexamplecode{examples/#1}%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% with just code; with no Charon output
+\newcommand{\myjustcodeexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+\\%
+%\myexamplecode{examples/#1}%
+\myexamplecode{../examples/de_facto_memory_model/#1}%
+%\myexamplecode{../charon2/generated_tex/#1.src}%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% with just code; with no Charon output
+\newcommand{\myjustOLDcodeexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+\\%
+%\myexamplecode{examples/#1}%
+\myexamplecode{../charon2/tests/de_facto_memory_model/#1}%
+%\myexamplecode{../charon2/generated_tex/#1.src}%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+% with code and Charon output
+\newcommand{\myjustcodeNEWexample}[1]{{%
+\indexTestName{#1}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+%\myexamplecode{examples/#1}%
+\myexamplecode{#1}%
+%\myexamplecode{../charon2/generated_tex/#1.src}%
+%\par\noindent\myexamplefontsize%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+%\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+
+% with fake code and Charon output
+\newcommand{\myfakecodeexample}[2]{{%
+\indexTestName{#1}%
+\indexTestName{#2}%
+\myexamplefontsize%
+\myexampleheader{#1}%
+%\myexamplecode{examples/#2}%
+\myexamplecode{../charon2/tests/de_facto_memory_model/#2}%
+%\par\noindent\myexamplefontsize%
+%\myexamplecharon{examples/generated_tex/#1.out}%
+\myexamplecharon{../charon2/generated_tex/#1.out}%
+\par\noindent%
+}}
+
+
+% pre-charon macro
+\newcommand{\myexample}[1]{{\myexampleheader{#1}\myexamplefontsize\myexamplecode{examples/generated/#1}}}
+
+
+% Cerberus Memory API
+\usepackage{proof}
+\DeclareMathOperator{\allocObject}{allocate\_object}
+\DeclareMathOperator{\allocRegion}{allocate\_region}
+\DeclareMathOperator{\Kill}{kill} % kill already exists
+\DeclareMathOperator{\load}{load}
+\DeclareMathOperator{\store}{store}
+\DeclareMathOperator{\storeLocking}{store\_locking}
+\DeclareMathOperator{\eqPtr}{eq\_ptrval}
+\DeclareMathOperator{\nePtr}{ne\_ptrval}
+\DeclareMathOperator{\diffPtr}{diff\_ptrval}
+\DeclareMathOperator{\relOpPtr}{rel\_op\_ptrval}
+\DeclareMathOperator{\eqOpPtr}{eq\_op\_ptrval}
+\DeclareMathOperator{\ptrcastIval}{cast\_ival\_to\_ptrval} %intcast\_ptrval} %ptrFromInt  cast_int_to_ptr
+\DeclareMathOperator{\intcastPtr}{cast\_ptrval\_to\_ival} %ptrcast\_ival}  %intFromPtr
+\DeclareMathOperator{\combine}{combine\_prov}
+\DeclareMathOperator{\opIval}{op\_ival}
+\DeclareMathOperator{\eqIval}{eq\_ival}
+\DeclareMathOperator{\ltIval}{lt\_ival}
+\DeclareMathOperator{\leIval}{le\_ival}
+\DeclareMathOperator{\offsetofIval}{offsetof\_ival}
+\DeclareMathOperator{\arrayOffset}{array\_offset\_ptrval}
+\DeclareMathOperator{\isoArrayOffset}{iso\_array\_offset\_ptrval}
+\DeclareMathOperator{\memberOffset}{member\_offset\_ptrval}
+\DeclareMathOperator{\wellAligned}{is\_well\_alligned}
+\DeclareMathOperator{\validForDeref}{valid\_for\_deref}
+
+% Types
+\DeclareMathOperator{\type}{Type}
+\DeclareMathOperator{\bytes}{[(Prov, Byte)]}
+\DeclareMathOperator{\byte}{Byte}
+\DeclareMathOperator{\bytemap}{ByteMap}
+\DeclareMathOperator{\addr}{Addr}
+\DeclareMathOperator{\memvalue}{MemValue}
+\DeclareMathOperator{\mbytes}{[(Maybe\ Prov, Byte)]}
+\DeclareMathOperator{\prov}{Prov}
+\DeclareMathOperator{\allocMap}{AllocMap}
+
+% Helper functions
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\newAlloc}{newAlloc}
+\DeclareMathOperator{\sizeof}{sizeof}
+\DeclareMathOperator{\dearray}{dearray}
+\DeclareMathOperator{\alignof}{alignof}
+\DeclareMathOperator{\abst}{abst}
+\DeclareMathOperator{\repr}{repr}
+\DeclareMathOperator{\fetch}{fetch}
+\DeclareMathOperator{\update}{update}
+\DeclareMathOperator{\readDevice}{readDevice}
+\DeclareMathOperator{\storeDevice}{storeDevice}
+\DeclareMathOperator{\getProv}{getProv}
+
+% Constants
+\newcommand{\Null}{\mathtt{null}} % null already defined
+\newcommand{\provNone}{@\mathtt{empty}}
+\newcommand{\true}{\mathtt{true}}
+\newcommand{\false}{\mathtt{false}}
+\newcommand{\readwrite}{\mathtt{readWrite}}
+\newcommand{\readonly}{\mathtt{readOnly}}
+\newcommand{\myobject}{\mathtt{object}}
+\newcommand{\region}{\mathtt{region}}
+\newcommand{\killed}{\mathtt{killed}}
+\newcommand{\unspec}{\mathtt{unspec}}
+\newcommand{\dyn}{\mathtt{dyn}}
+\newcommand{\none}{\mathtt{none}}
+\newcommand{\exposed}{\myt{\mathtt{exposed}}}
+\newcommand{\unexposed}{\myt{\mathtt{unexposed}}}
+
+\newcommand{\ruleOne}[5]{\minibox{[$\textsc{#2}$:\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#4  \rightarrow #5} {#3}}}
+\newcommand{\ruleOneBreak}[5]{\minibox{[$\textsc{#2}$:\\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#4  \rightarrow #5} {#3}}}
+\newcommand{\ruleTwo}[6]{\minibox{[$\textsc{#2}$:\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#5  \rightarrow #6} {\deduce {#4} {#3}}}}
+\newcommand{\ruleThree}[7]{\minibox{[$\textsc{#2}$:\ $#1$] \vspace{0.0cm} \\
+  \infer[] {#6  \rightarrow #7} {\renewcommand{\arraystretch}{1}\begin{array}{c}#3\\#4\\#5\end{array}}}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\sloppy
+\begin{document}
+
+\ifWGfourteennumber
+\fancypagestyle{firstpagestyle}{%
+\fancyhf{} % clear all header and footer fields
+\fancyhead[C]{ISO/IEC JTC1/SC22/WG14 N2311, 2018-11-09} % except the center
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+\thispagestyle{plain}
+\fi
+
+\title[Effective types: examples]{DRAFT IN PROGRESS\\Effective types: examples}
+
+
+\authorsaddresses{}
+
+\author{Peter Sewell}
+\affiliation{
+  \institution{University of Cambridge}         
+}
+
+ \author{Kayvan Memarian}
+ \affiliation{
+   \institution{University of Cambridge}            %% \institution is required
+%   \country{UK}
+ }
+% %\authornote{with author1 note}          %% \authornote is optional;
+%                                         %% can be repeated if necessary
+% %\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+% \affiliation{
+% %  \position{Position1}
+% %  \department{Department1}              %% \department is recommended
+%   \institution{University of Cambridge}            %% \institution is required
+% %  \streetaddress{Street1 Address1}
+% %  \city{City1}
+% %  \state{State1}
+% %  \postcode{Post-Code1}
+%   \country{UK}
+% }
+% %\email{first1.last1@inst1.edu}          %% \email is recommended
+% 
+% 
+ \author{Victor B. F. Gomes}
+ \affiliation{
+   \institution{University of Cambridge}            %% \institution is required
+%   \country{UK}
+ }
+
+\renewcommand{\shortauthors}{Sewell, Memarian, Gomes}
+
+% %% Author with two affiliations and emails.
+% \author{First2 Last2}
+% \authornote{with author2 note}          %% \authornote is optional;
+%                                         %% can be repeated if necessary
+% \orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+% \affiliation{
+%   \position{Position2a}
+%   \department{Department2a}             %% \department is recommended
+%   \institution{Institution2a}           %% \institution is required
+%   \streetaddress{Street2a Address2a}
+%   \city{City2a}
+%   \state{State2a}
+%   \postcode{Post-Code2a}
+%   \country{Country2a}
+% }
+% \email{first2.last2@inst2a.com}         %% \email is recommended
+% \affiliation{
+%   \position{Position2b}
+%   \department{Department2b}             %% \department is recommended
+%   \institution{Institution2b}           %% \institution is required
+%   \streetaddress{Street3b Address2b}
+%   \city{City2b}
+%   \state{State2b}
+%   \postcode{Post-Code2b}
+%   \country{Country2b}
+% }
+% \email{first2.last2@inst2b.org}         %% \email is recommended
+
+
+%% Paper note
+%% The \thanks command may be used to create a "paper note" ---
+%% similar to a title note or an author note, but not explicitly
+%% associated with a particular element.  It will appear immediately
+%% above the permission/copyright statement.
+%\thanks{with paper note}                %% \thanks is optional
+                                        %% can be repeated if necesary
+                                        %% contents suppressed with 'anonymous'
+
+
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+
+
+%% \maketitle
+%% Note: \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
+\maketitle
+
+
+
+
+\definecolor{myudicolor}{rgb}{0.5 0.0 0.8}
+\newcommand{\myt}[1]{{\color{blue}#1}}
+\newcommand{\myu}[1]{{\color{myudicolor}#1}}
+
+\section{Introduction}
+
+
+
+This is based in part on n2294 C Memory Object Model Study Group:
+Progress Report, 2018-09-16.  
+
+
+
+
+
+Paragraphs 6.5p{6,7} of the standard introduce \emph{effective
+  types}. 
+These were added to C in C99 to 
+permit compilers to do optimisations driven by type-based alias
+analysis, by ruling out programs involving unannotated aliasing of
+references to different types (regarding them as having undefined
+behaviour). 
+This is one of the less clear, less well-understood, and more controversial aspects of the
+standard, as one can see from 
+various
+GCC and Linux Kernel mailing list threads:
+\url{https://gcc.gnu.org/ml/gcc/2010-01/msg00013.html},
+\url{https://lkml.org/lkml/2003/2/26/158}, and
+\url{http://www.mail-archive.com/linux-btrfs@vger.kernel.org/msg01647.html},
+and blog postings:
+\url{http://blog.regehr.org/archives/959},
+\url{http://cellperformance.beyond3d.com/articles/2006/06/understanding-strict-aliasing.html},
+\url{http://davmac.wordpress.com/2010/02/26/c99-revisited/},
+\url{http://dbp-consulting.com/tutorials/StrictAliasing.html}, and
+\url{http://stackoverflow.com/questions/2958633/gcc-strict-aliasing-and-horror-stories}.
+The type-based aliasing question of our preliminary survey was the
+only one which received a unanimous response: ``don't know''. 
+
+
+See also earlier committee discussion \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1409.htm} and \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1422.pdf} (p14). 
+
+
+\subsection{The ISO standard text}
+                                   
+The C11 standard says:
+
+\medskip
+
+6.5p6 The \emph{effective type} of an object for an access to
+its stored value is the declared type of the object, if any.87) If a
+value is stored into an object having no declared type through an
+lvalue having a type that is not a character type, then the type of
+the lvalue becomes the effective type of the object for that access
+and for subsequent accesses that do not modify the stored value. If
+a value is copied into an object having no declared type using
+\lstinline{memcpy} or \lstinline{memmove}, or is copied as an array of
+character type, then the effective type of the modified object for
+that access and for subsequent accesses that do not modify the value
+is the effective type of the object from which the value is copied,
+if it has one. For all other accesses to an object having no
+declared type, the effective type of the object is simply the type
+of the lvalue used for the access.
+
+6.5p7 An object shall have its stored value accessed only by an lvalue
+expression that has one of the following types:88)
+\begin{itemize}    
+  \item  a type compatible with the effective type of the object,
+  \item  a qualified version of a type compatible with the effective type
+    of the object,
+  \item  a type that is the signed or unsigned type corresponding to the
+    effective type of the object,
+  \item  a type that is the signed or unsigned type corresponding to a
+    qualified version of the effective type of the object,
+  \item  an aggregate or union type that includes one of the
+    aforementioned types among its members (including, recursively, a
+    member of a subaggregate or contained union), or
+  \item  a character type.
+\end{itemize}
+
+\noindent
+Footnote 87) Allocated objects have no declared type.
+
+\noindent
+Footnote 88) The intent of this list is to specify those circumstances
+in which an object may or may not be aliased.
+
+\medskip
+
+As Footnote 87 says, allocated objects (from \lstinline{malloc},
+\lstinline{calloc}, and presumably any fresh space from \lstinline{realloc}) have no declared type, whereas
+objects with static, thread, or automatic storage durations have some
+declared type.  
+
+For the latter, 6.5p\{6,7\} say that the effective
+types are fixed and that their values can only be accessed by an
+lvalue that is similar (``compatible'', modulo signedness and
+qualifiers), an aggregate or union containing such a type, or (to
+access its representation) a character type. 
+
+For the former, the effective type is determined by the type of
+the last write, or, if that is done by a \lstinline{memcpy},
+\lstinline{memmove}, or user-code char array copy, the effective type of
+the source. 
+
+\subsection{Effective types in practice}
+
+
+The ISO text for effective types, 6.5p{6,7}, is all in terms of the
+types of the lvalues used for access.   This seems not to match
+compiler 
+behaviour, which involves the construction of the lvalues, not just
+the types of the lvalues as a whole.
+
+At least some compilers also seem to differ from ISO in requiring
+syntactic visibility of union definitions in order to allow accesses
+to structures with common prefixes inside unions. 
+
+The ISO text also leaves several questions unclear, e.g.~relating to
+memory initialised piece-by-piece and then read as a struct or array,
+or vice versa.
+
+Hubert: we almost all agree that the TBAA that compilers implement is
+almost as if everything was declared explicitly, and it just happens
+to be the case that malloc works.
+
+Peter: GCC people said they mostly ignored declared types, because of
+pervasive strong updates.
+
+Hubert: XL also looks at the type of the maximal thing in the lvalue.
+
+
+
+
+Several major systems software projects, including 
+the Linux Kernel, the FreeBSD Kernel, and PostgreSQL   (though not Apache)
+disable type-based alias
+analysis with the 
+\lstinline{-fno-strict-aliasing} compiler flag.
+The semantics of this (as for other dialects of C) is currently not
+specified by the ISO standard. 
+
+
+% Suppose we write a single member of a structure into a
+% fresh allocated region, with an lvalue (e.g.~\lstinline{s->m}) that involves the structure type but which as a whole has only the member type, then does
+% \begin{itemize}
+% \item (i) the footprint of the member take on an effective
+%     type as the type of that struct member, or
+% 
+%   \item (ii) the footprint of the member take on an effective type
+%     of the type of that structure member annotated as coming from that
+%     member of that structure type, or 
+% 
+%   \item (iii) the footprint of the whole structure take on the structure
+%     type as its effective type?
+% \end{itemize}
+
+\section{Effective Type Examples}
+
+\myqtquestion{Q73}{Can one do type punning between arbitrary types?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_1.c.html}
+%\myfooexample{charon_tests}{effective_type_1.c}{}
+
+
+With \lstinline{-fstrict-aliasing} (the default for GCC), GCC assumes in
+the body of \lstinline{f} that the write to \lstinline{*p2} cannot affect
+the value of \lstinline{*p1}, printing \lstinline{2} (instead of the
+integer value of the representation of 
+\lstinline{3.0} that would the most recent write in a concrete semantics):
+while with \lstinline{-fno-strict-aliasing} (as used in the Linux kernel,
+among other places) it does not assume that.
+The former behaviour can be explained by regarding the program as
+having undefined behaviour, due to the write of the \lstinline{uint32_t}
+\lstinline{i} with a \lstinline{float*} lvalue.
+
+We give another basic effective type example below, here just
+involving integer types and without the function call. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_10.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_10.c.html}
+
+
+\myqtquestion{Q91}{Can a pointer to a structure alias with a pointer to one of its members?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: TODO (presumably yes...)
+
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2c.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2c.c.html}
+
+      
+\myqtquestion{Q74}{Can one do type punning between distinct but isomorphic structure types?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no
+
+    
+Similar compiler behaviour occurs with pointers to two distinct but isomorphic
+structure types:
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2.c.html}
+
+
+\myqtquestion{Q92}{Can one do type punning between distinct but isomorphic structure types in an allocated region?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no
+
+    
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2b.c.html}
+
+ 
+This is essentially Stephen Kell's 2018-08-20 Example 2, except with a final read instead of a write (the write would be a strong update, which I think is allowed even in ISO C11, and with that final read at the struct type.   This test discriminates between a notion of effective type that only applies to the leaves, and one which takes struct/union types into account.   
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2d.c.html}
+
+
+This variation does a read via an lvalue merely at type \lstinline{int}, albeit
+with that lvalue constructed via a pointer of type \lstinline{st2 *}.
+This is perhaps more debatable, but in my (PS) reading of the standard there's nothing to forbid it. 
+
+See also Q80. 
+
+\myqtquestion{Q75}{Can an unsigned  character array with static or    automatic storage duration be used (in    the same way as a `malloc`'d region) to hold values of    other types?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no (though this is used in practice)
+
+ 
+(Question 11 of our survey relates to this)
+
+A literal reading of the effective type rules prevents the use of an
+unsigned character array 
+as a buffer to hold values of other types 
+(as if it
+were an allocated region of storage).  For example, the following has
+undefined behaviour due to a violation of 6.5p7 at the access to \lstinline{*fp}.
+(This reasoning presumes that the conversion of the \lstinline{(float * )c} cast
+gives a usable result - the conversion is permitted by 6.3.2.3p7 but
+the standard text only guarantees a roundtrip property.)
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_3.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_3.c.html}
+
+
+  In a future semantics we imagine there has to be some (local or global) mechanism to allow this. 
+
+
+Even bytewise copying of a value via such a buffer leads to unusable
+results in the standard:
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4.c.html}
+
+
+This seems to be unsupportable for a systems programming language: a
+character array and malloc'd region should be interchangeably usable, either on-demand or by default. 
+
+GCC developers commented that they essentially ignore declared types in alias analysis because of this. 
+
+\myqtquestion{Q76}{After writing a structure to a malloc'd region, can its members can be accessed via pointers of the individual member types?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify (?)
+
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5.c.html}
+
+
+\myqtquestion{Q93}{After writing all members of structure in a malloc'd region, can the structure be accessed as a whole?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: yes (?)
+
+
+In the first test below, the lvalues used for the member writes are constructed using \lstinline{char *} arithmetic, and then cast to the member types, while in the second, they are constructed from \lstinline{p} cast to a pointer to the struct type.  The types of the lvalues used for the member writes are the same, so by the 6.5p{6,7} text this should make no difference, but it might be that a definition of effective types that makes current TBAA practice sound would need to take lvalue construction into account. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5b.c.html}
+
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5c.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5c.c.html}
+
+
+\myqtquestion{Q77}{Can a non-character value be read    from an uninitialised malloc'd region?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_6.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_6.c.html}
+
+The effective type rules seem to deem this undefined behaviour.
+    
+\myqtquestion{Q78}{After writing one member of a    structure to a malloc'd region, can its other members be read?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_7.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_7.c.html}
+
+If the write should be considered as affecting the effective type of
+the footprint of the entire structure, then it would change the answer
+to \lstinline{effective_type_5.c} here.   It seems unlikely but
+not impossible that such an interpretation is desirable. 
+
+There is a defect report (which?) about copying part of a structure and
+effective types. 
+
+\myqtquestion{Q79}{After writing one member of a    structure to a malloc'd region, can a member of another structure, with footprint  overlapping that of the first structure, be written?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_8.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_8.c.html}
+
+Again this is exploring the effective type of the footprint of the
+structure type used to form the lvalue.
+
+\myqtquestion{Q80}{After writing a structure to a malloc'd region, can its members be accessed via a pointer to a different structure type that has the same leaf member type at the same offset?}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_9.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_9.c.html}
+
+    
+\myqtquestion{Q94}{After writing all the members of a structure to a malloc'd region, via member-type pointers, can its members be accessed via a pointer to a different structure type that has the same leaf member types at the same offsets?}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_9b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_9b.c.html}
+
+
+Here there is nothing specific to \lstinline{st1} or \lstinline{st2} about the initialisation writes, so the read of \lstinline{f} should be allowed.
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_9c.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_9c.c.html}
+
+
+Here the construction of the lvalues used to write the structure members involves \lstinline{st1}, but the lvalue types do not.  The 6.5p{6,7} text is all in terms of the lvalue types, not their construction, so in our reading of C11 this is similarly allowed.
+    
+\myqtquestion{Q81}{Can one access two objects, within a malloc'd region, that have overlapping but non-identical footprint?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify
+
+
+Robbert Krebbers asks on the GCC
+list <https://gcc.gnu.org/ml/gcc/2015-03/msg00083.html>
+whether ``GCC uses 6.5.16.1p3 of the C11 standard as a license
+ to perform certain optimizations. If so, could anyone provide me an example
+ program.
+ In particular, I am interested about the 'then the overlap shall be exact'
+ part of 6.5.16.1p3:
+   <em>If the value being stored in an object is read from another
+   object that overlaps in any way the storage of the first
+   object, then the overlap shall be exact and the two objects
+   shall have qualified or unqualified versions of a compatible
+   type; otherwise, the behavior is undefined.</em>''
+Richard Biener replies with this example (rewritten here to print the
+result), saying that it will be optimised to print 1 and that this is
+basically effective-type reasoning. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{krebbers_biener_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/krebbers_biener_1.c.html}
+
+
+
+\section{Provenance and subobjects}
+
+Our earlier proposal treats provenance only on a per-allocation
+granularity.  That's attractively simple, but it would let one (for
+example) use pointer arithmetic to move between adjacent \lstinline{int} members
+of a struct, which one would probably prefer to regard as a reportable
+error.  There seems to be a consensus that some tighter subobject
+semantics would be preferable.
+
+Hubert: in C++, for objects with a lifetime, the pointer arithmetic
+rules (not the aliasing rules) say you can't move between
+members. They recognise there's a need for moving between bytes in
+allocated regions; this is still in development. Maybe they will say
+one can't recover (through casts) back to a pointer to the
+non-character/byte type after having done char* arithmetic.
+
+Hubert: XL C/C++ for subobjects operates under the assumption that
+things accessed in a way that suggests they ought to be subobjects are
+indeed subobjects.
+
+Jens: agrees with the need for some tighter semantics.
+
+
+\subsection{Provenance and subobjects: container-of casts}
+
+A key question is whether one can cast from a pointer to the first
+member of a struct to the struct as a whole, and then use that to
+access other members. We discussed it previously in 
+
+N2222 Q34 Can one move among the members of a struct using representation-pointer arithmetic and casts?\url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2222.htm#q34-can-one-move-among-the-members-of-a-struct-using-representation-pointer-arithmetic-and-casts},
+N2222 Q37 Are usable pointers to a struct and to its first member
+interconvertable? \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2222.htm#q37-are-usable-pointers-to-a-struct-and-to-its-first-member-interconvertable},
+N2013 \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2013.pdf}, and
+N2012 \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2012.htm}.
+
+Some of us had thought that that was
+uncontroversially allowed in ISO C, by 
+6.7.2.1p15 <em>...A pointer to a
+structure object, suitably converted, points to its initial
+member..., and vice versa...</em>, but others disagree.
+In practice, this seems to be common in real code, in the
+``container-of'' idiom.   
+Though someone suggested that the IBM XL C/C++ compiler does not
+support it. 
+Discussion in WG14 in Pittsburgh 2018 was clear that it is intended to
+be allowed in C.
+
+
+Hubert: think the idiom is used. C++ committee is convinced that C has
+intended that this is supposed to work.  (There's some subtlety around
+the case where the first member is an array).  It's meant to work for C++.
+Maybe XL doesn't get this right all the time right now - would call that a bug.
+
+
+\subsection{Provenance and subobjects: multidimensional arrays}
+
+With careful reading, the standard seems reasonably clear that
+multidimensional arrays are recursively structured arrays-of-arrays.
+It seems uncontroversially desirable to maintain this for accesses via
+explicit indexing (i.e., requiring each index to be within the
+corresponding bounds).   For access via pointer arithmetic, the ISO
+text forbids (for example) linear traversals of a multidimensional
+array, but the situation in practice and the best semantics for C2X
+are not so clear. 
+
+Hubert: C++ not likely to entertain flat pointer arithmetic view,
+because there's extensive compiler-time evaluation, using a symbolic
+representation, and they're wary of exposing incidental layout facts
+to that.  On the other hand, it's highly unlikely that an
+implementation would break a flat address space traversal.  Not sure
+the standard has to specifically bless it, so long as people know that
+they shouldn't break it.
+
+Jens: array access is formally defined using pointer arithmetic, so
+we'd have to change that to differentiate the two.  Possible.
+
+
+
+
+% Peter: what about the offsetof case?
+% 
+% Hubert: that case is extremely controversial.  C++ has no intention of
+% allowing it.  WG14 asked what the use of offsetof is if you can't do
+% this, but there's nothing to say it works.  Most people vaguely think
+% that once upon a time it was supposed to work?  But unclear whether
+% it's supposed to work now.
+% 
+% Victor: FreeBSD has > 5000 offsetofs. Maybe Stephen's tool could
+% analyse how many are used for inter-member shifts.
+% 
+% Martin Uecker + Hubert: [discussion of how one can define ``escaped'']
+
+% Uninitialised reads
+% -------------------
+% 
+% There seemed to be some consensus among the GNU Tools Cauldron
+% audience that reads of uninitialised scalars have to uniformly be
+% regarded as UB as far as the GCC implementation is concerned, the
+% existence of code that does incremental bitwise initialisation
+% notwithstanding.  That matches the intent of several WG14 members from
+% the Brno meeting, though not (in our reading) the text of the standard.
+% The case of structure reads of partially or wholly uninitialised
+% structs was not so clear. 
+% 
+% Hubert: making all uninitialised reads UB is very very close to what
+% C++ does. Some corner cases via accessing via char type. memcpy is
+% almost the only thing you do - if you implement memcpy yourself, the
+% promotion would cause UB.
+% 
+% Peter: shouldn't the language be strong enough to let the user write a
+% working memcpy?
+% 
+% Jens: yes - in the standard, they're often the same; they should be.
+% Character-wise access should allow this.
+% 
+% Peter: should people be allowed to do bitwise ops to partially
+% initialise?
+% 
+% Jens: wouldn't be a fan of that except at char type.
+% 
+% Hubert: agree it'd be nice and C++ would like it to be possible to
+% implement memcpy, perhaps, but C++ is imbuing more properties on
+% memcpy - might come to viewing memcpy as really special.
+% 
+% Jens: strcpy even more problematic, because of accessing after the 0
+% for efficient wider accesses.
+% 
+% Hubert: that would be UB in C++
+% 
+% Hubert: I believe C is rather clear that structures cannot have trap
+% representations, thus whole-structure copies by assignment are okay
+% with uninitialized structs. There is an active issue that I reported
+% against C++ that the undefined behaviour on whole-structure copies
+% (due to the member-wise nature of C++ copy assignment) is a C
+% compatibility issue.
+% 
+% Martin Sebor: You're right, that is unfortunately true since C11 (it was
+% explicitly undefined before then).  The change was introduced
+% in response to DR 222:
+% 
+%   http://std.dkuug.dk/jtc1/sc22/wg14/www/docs/dr_222.htm
+% 
+% I think the change was based on an invalid premise [...]
+
+
+
+
+
+
+\section{Provenance and subobjects: basic examples}
+
+\myqtquestion{Q86}{Are provenance checks only on a per-allocation granularity (not per-subobject)?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify. C2x proposal: yes. C2x proposal (no-provenance option): n/a
+
+
+Our previous proposal (N2219 and before) had a simple per-allocation
+notion of provenance, allowing access via a pointer anywhere within
+the memory footprint of the original allocation (though note that
+without '-fno-strict-aliasing' there would be some additional
+effective-type restrictions).
+In some cases this flexibility is needed, e.g.~for any bytewise computation of the representation of a struct, e.g.~via a user-code 'memcpy', as below, or to serialise/unserialise it, where an \lstinline{unsigned char *} pointer has to be able to traverse the entire allocation footprint. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{pointer_copy_user_dataflow_direct_bytewise_struct.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/pointer_copy_user_dataflow_direct_bytewise_struct.c.html}
+
+
+It is similarly needed for the N2222 2.5.4 Q34 \textbf{Can one move among the
+members of a struct using representation-pointer arithmetic and
+casts?} \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2222.htm#q34-can-one-move-among-the-members-of-a-struct-using-representation-pointer-arithmetic-and-casts}, if one believes that should be allowed. 
+
+But in other cases per-allocation provenance allows intra-allocation examples which we don't think should be supported, e.g.~as below, and which will unnecessarily impede alias analysis.  Existing compilers may well do this (according to Nuno Lopes, GCC and ICC already support some subobject analysis, and people are working on it for LLVM.  We don't know whether or not these analyses are turned on even with \lstinline{-fno-strict-aliasing}.)
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{provenance_intra_object_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_intra_object_1.c.html}
+
+
+A possible reconcilation of all this would be to have a per-subobject
+provenance restriction by default, but relax this (to per-allocation
+provenance) for pointers that have been formed by an explicit cast.
+Perhaps only for casts to \lstinline{void *}, \lstinline{unsigned char *}, \lstinline{intptr_t}, or
+\lstinline{uintptr_t}, or perhaps (for simplicity) for all casts.  This
+semantics was suggested by documentation from the RV-match group.
+
+
+To enforce subobject provenance, we could adapt the previous proposal to keep, with
+every pointer value (and with integer value if tracking provenance via integers), both a provenance ID and a subrange
+of the original allocation footprint.  When constructing a pointer to
+a struct member, by \lstinline{&(x.p)}, we'd take the subrange of that member.
+When constructing a pointer to a union member, we'd take the size of
+that member.  For a pointer constructed as the address of a specific
+array element, it's unclear whether one should take just that element
+or the whole array.  Then on any cast, we'd expand the subrange to
+that of the original allocation.  Similarly on any representation-byte
+write, except that we'd like a user-memcopy to reconstruct the
+original limited pointer value. 
+
+
+Against this, MS argues that casts should have no effect on the memory
+one is allowed to access via a pointer (with the possible exception of
+\lstinline{unsigned char*} casts).
+
+
+\subsubsection{Provenance and subobjects: container-of casts}
+
+\myqtquestion{Q37}{Are usable pointers to a struct and to its first member interconvertable?}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{cast_struct_and_first_member_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/cast_struct_and_first_member_1.c.html}
+
+
+The variant below is a case where one can imagine that an aggressive compiler that assumes this is not permitted might do visible optimisation.
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{cast_struct_and_first_member_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/cast_struct_and_first_member_2.c.html}
+
+
+
+
+
+In practice, the ``container-of'' idiom, which requires this, seems to be common in many codebases.
+
+
+In our reading of the standard, this is clearly allowed:
+6.7.2.1p15 <em>Within a structure object, the non-bit-field
+  members and the units in which bit-fields reside have addresses that
+  increase in the order in which they are declared. <b>A pointer to a
+  structure object, suitably converted, points to its initial member</b>
+  (or if that member is a bit-field, then to the unit in which it
+  resides), and vice versa. There may be unnamed padding within a
+  structure object, but not at its beginning.</em>  (bold
+emphasis added).
+
+Martin Sebor disagrees, writing <em>The intent of the text is to require implementations to avoid
+inserting padding before the first member.  It is not to also
+require them to treat such pointers interchangeably for
+the purposes of pointer arithmetic or accesses.  I suspect you base your reading on the requirement of equality
+of the two pointers.  Equality between two pointers doesn't
+imply that they are necessarily interchangeable for accesses
+to the underlying object. [...]</em>  
+
+\subsubsection{Provenance and subobjects: multidimensional arrays}
+
+\myqtquestion{Q88}{Can array indexing within a multidimensonal array ignore the subarray bounds?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{multidimensional_array_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/multidimensional_array_1.c.html}
+
+
+This seems uncontroversially ``no'': 
+  6.5.2.1 <em>Array Subscripting</em> speaks of a multidimensional array object both as a single object and, for the purpose of array indexing by expressions in square brackets, as a recursively structured array of arrays.  It says <em>The definition of the subscript operator \lstinline{[]} is that \lstinline{E1[E2]} is identical to \lstinline{( *((E1)+(E2))))}</em>.  Together with the 6.5.6p8 discussion of additive operators for pointers, that makes this example illegal: the \lstinline{a[0][2]} points to one-past the \lstinline{a[0]} array (of arrays), and 6.5.6p8's <em>If the result points one past the last element of the array object, it
+shall not be used as the operand of a unary \lstinline{*} operator that is evaluated</em> makes the access undefined behaviour.
+
+Moreover, it seems likely that such uses are usually programmer
+errors, and hence desirable for compilers to be allowed to report this
+as such.  
+    
+\myqtquestion{Q89}{Can one use pointer arithmetic to move arbitrarily within a multidimensional array, ignoring the subarray bounds?}
+\textbf{Our reading of C11 and proposal for C2x:} C11: no. C2x proposal: debatable
+
+For accesses within a multidimensional array via explicit pointer arithmetic, rather than by array indexing, the situation is not so clear.  Examples such as that below  are UB according to C11, by the same reasoning as for the previous question, but they seem likely to be common and intentional in practice, and to be regarded as reasonable code by practitioners. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{multidimensional_array_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/multidimensional_array_2.c.html}
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{multidimensional_array_3.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/multidimensional_array_3.c.html}
+
+
+(The first is Stephen Kell's 2018-08-20 Example 1, adapted)
+
+Forbidding these, while still forbidding \lstinline{multidimensional_array_1.c}, would require differentiating the 6.5.2.1 subscript
+operator from pointer arithmetic.  
+Perhaps one could regard a multidimensional array object as a single flat array  for the purposes of pointer arithmetic, while changing the abstract-machine definition of the subscript operator to include explicit bounds checks based on the type - i.e., regarding \lstinline{E1[E2][E3]} as \lstinline{( assert(...E2 in bounds && E3 in bounds...), *((E1)+(E2)*size3+(E3)) )} wherever \lstinline{E1} has an array type. 
+
+From a compiler alias-analysis point of view, in the current standard, compilers can assume that accesses via any pointer derived from \lstinline{&(a[0])} and any pointer derived from \lstinline{&(a[1])} never alias.  If we allowed the above two examples, that would no longer hold. Do compilers currently depend on such assumptions?
+
+
+  
+
+
+%\bibliography{csembib-fullnames}
+
+
+
+
+
+
+\end{document}
