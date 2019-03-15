@@ -1,5 +1,5 @@
 
-\documentclass[acmsmall,review,screen]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[12pt,acmsmall,review,screen]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
 
 \citestyle{acmauthoryear}
 
@@ -79,7 +79,7 @@
 \newcommand{\myqtexample}[3]{\myqtlinkexample{#1}{#2}{#3}{{\mylsttestlink{#2}}}}
 
 \newcommand{\myfooexamplename}[1]{\mylsttestlink{#1}}
-\newcommand{\myfooexample}[3]{{\vspace*{-0.0\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mylsttestlink{#2}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+\newcommand{\myfooexample}[3]{{\vspace*{0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mylsttestlink{#2}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
 
 \newcommand{\myfoolinkexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} #4\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
 
@@ -507,52 +507,76 @@
 \newcommand{\myt}[1]{{\color{blue}#1}}
 \newcommand{\myu}[1]{{\color{myudicolor}#1}}
 
-\section{Introduction}
 
-
-
-This is based in part on n2294 C Memory Object Model Study Group:
+This is an updated version of part of n2294 C Memory Object Model Study Group:
 Progress Report, 2018-09-16.  
 
 
+\section{Introduction}
 
-
-
-Paragraphs 6.5p{6,7} of the standard introduce \emph{effective
+Paragraphs 6.5p\{6,7\} of the standard introduce \emph{effective
   types}. 
 These were added to C in C99 to 
 permit compilers to do optimisations driven by type-based alias
 analysis, by ruling out programs involving unannotated aliasing of
 references to different types (regarding them as having undefined
 behaviour). 
-This is one of the less clear, less well-understood, and more controversial aspects of the
+However, this is one of the less clear, less well-understood, and more controversial aspects of the
 standard, as one can see from 
 various
-GCC and Linux Kernel mailing list threads:
-\url{https://gcc.gnu.org/ml/gcc/2010-01/msg00013.html},
+GCC and Linux Kernel mailing list threads\footnote{\url{https://gcc.gnu.org/ml/gcc/2010-01/msg00013.html},
 \url{https://lkml.org/lkml/2003/2/26/158}, and
-\url{http://www.mail-archive.com/linux-btrfs@vger.kernel.org/msg01647.html},
-and blog postings:
+\url{http://www.mail-archive.com/linux-btrfs@vger.kernel.org/msg01647.html}},
+ blog postings\footnote{
 \url{http://blog.regehr.org/archives/959},
 \url{http://cellperformance.beyond3d.com/articles/2006/06/understanding-strict-aliasing.html},
 \url{http://davmac.wordpress.com/2010/02/26/c99-revisited/},
 \url{http://dbp-consulting.com/tutorials/StrictAliasing.html}, and
-\url{http://stackoverflow.com/questions/2958633/gcc-strict-aliasing-and-horror-stories}.
-The type-based aliasing question of our preliminary survey was the
-only one which received a unanimous response: ``don't know''. 
+\url{http://stackoverflow.com/questions/2958633/gcc-strict-aliasing-and-horror-stories}},
+ and the responses to Questions 10, 11, and 15 of our
+ survey\footnote{\url{https://www.cl.cam.ac.uk/~pes20/cerberus/notes50-survey-discussion.html}
+   (N2014),
+   \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2015.pdf} (N2015)}.
+See also earlier committee discussion\footnote{\url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1409.htm} and \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1422.pdf} (p14)}. 
 
 
-See also earlier committee discussion \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1409.htm} and \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1422.pdf} (p14). 
+Moreover, the ISO text seems not to capture existing mainstream
+compiler behaviour.  The ISO text (recalled below) is in terms of the
+types of the lvalues used for access, but compilers appear to do
+type-based alias analysis based on the construction of the lvalues,
+not just the types of the lvalues as a whole.  Additionally, some
+compilers seem to differ from ISO in requiring syntactic visibility of
+union definitions in order to allow accesses to structures with common
+prefixes inside unions.  The ISO text also leaves several questions
+unclear, e.g.~relating to memory initialised piece-by-piece and then
+read as a struct or array, or vice versa.
+
+%Hubert: we almost all agree that the TBAA that compilers implement is
+%almost as if everything was declared explicitly, and it just happens
+%to be the case that malloc works.
+%
+%Peter: GCC people said they mostly ignored declared types, because of
+%pervasive strong updates.
+%
+%Hubert: XL also looks at the type of the maximal thing in the lvalue.
+
+
+Additionally, several major systems software projects, including the Linux Kernel,
+the FreeBSD Kernel, and PostgreSQL disable type-based alias analysis
+with the \lstinline{-fno-strict-aliasing} compiler flag.  The
+semantics of this (as for other dialects of C) is currently not
+specified by the ISO standard; it is debatable whether it would be
+useful to do that. 
+
 
 
 \subsection{The ISO standard text}
                                    
-The C11 standard says:
+The C11 standard says, in 6.5:
 
-\medskip
-
-6.5p6 The \emph{effective type} of an object for an access to
-its stored value is the declared type of the object, if any.87) If a
+\begin{itemize}
+\item[6] The \emph{effective type} of an object for an access to
+  its stored value is the declared type of the object, if any${}^{\text{87)}}$. If a
 value is stored into an object having no declared type through an
 lvalue having a type that is not a character type, then the type of
 the lvalue becomes the effective type of the object for that access
@@ -566,8 +590,8 @@ if it has one. For all other accesses to an object having no
 declared type, the effective type of the object is simply the type
 of the lvalue used for the access.
 
-6.5p7 An object shall have its stored value accessed only by an lvalue
-expression that has one of the following types:88)
+\item[7] An object shall have its stored value accessed only by an lvalue
+expression that has one of the following types:${}^\text{88)}$
 \begin{itemize}    
   \item  a type compatible with the effective type of the object,
   \item  a qualified version of a type compatible with the effective type
@@ -581,6 +605,7 @@ expression that has one of the following types:88)
     member of a subaggregate or contained union), or
   \item  a character type.
 \end{itemize}
+\end{itemize}
 
 \noindent
 Footnote 87) Allocated objects have no declared type.
@@ -588,6 +613,7 @@ Footnote 87) Allocated objects have no declared type.
 \noindent
 Footnote 88) The intent of this list is to specify those circumstances
 in which an object may or may not be aliased.
+
 
 \medskip
 
@@ -607,42 +633,7 @@ the last write, or, if that is done by a \lstinline{memcpy},
 \lstinline{memmove}, or user-code char array copy, the effective type of
 the source. 
 
-\subsection{Effective types in practice}
 
-
-The ISO text for effective types, 6.5p{6,7}, is all in terms of the
-types of the lvalues used for access.   This seems not to match
-compiler 
-behaviour, which involves the construction of the lvalues, not just
-the types of the lvalues as a whole.
-
-At least some compilers also seem to differ from ISO in requiring
-syntactic visibility of union definitions in order to allow accesses
-to structures with common prefixes inside unions. 
-
-The ISO text also leaves several questions unclear, e.g.~relating to
-memory initialised piece-by-piece and then read as a struct or array,
-or vice versa.
-
-Hubert: we almost all agree that the TBAA that compilers implement is
-almost as if everything was declared explicitly, and it just happens
-to be the case that malloc works.
-
-Peter: GCC people said they mostly ignored declared types, because of
-pervasive strong updates.
-
-Hubert: XL also looks at the type of the maximal thing in the lvalue.
-
-
-
-
-Several major systems software projects, including 
-the Linux Kernel, the FreeBSD Kernel, and PostgreSQL   (though not Apache)
-disable type-based alias
-analysis with the 
-\lstinline{-fno-strict-aliasing} compiler flag.
-The semantics of this (as for other dialects of C) is currently not
-specified by the ISO standard. 
 
 
 % Suppose we write a single member of a structure into a
@@ -661,8 +652,18 @@ specified by the ISO standard.
 
 \section{Effective Type Examples}
 
+\subsection{Basic Effective Types}
+
 \myqtquestion{Q73}{Can one do type punning between arbitrary types?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: no
+
+This basic example involves a write of a \lstinline{uint32_t} that is
+read as a \lstinline{float} (assuming that pointers to the two have
+the same size, alignment, and representation, and that casts between
+those two pointer types are implementation-defined to work).  
+It is clearly and uncontroversially forbidden by the standard text,
+and that fact is exploited by compilers, which use the types of the
+arguments of \lstinline{f} to reason that pointers \lstinline{p1} and
+\lstinline{p2} cannot alias.  
 
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_1.c.html}
@@ -674,101 +675,77 @@ the body of \lstinline{f} that the write to \lstinline{*p2} cannot affect
 the value of \lstinline{*p1}, printing \lstinline{2} (instead of the
 integer value of the representation of 
 \lstinline{3.0} that would the most recent write in a concrete semantics):
-while with \lstinline{-fno-strict-aliasing} (as used in the Linux kernel,
-among other places) it does not assume that.
+while with \lstinline{-fno-strict-aliasing} it does not assume that.
 The former behaviour can be explained by regarding the program as
 having undefined behaviour, due to the write of the \lstinline{uint32_t}
 \lstinline{i} with a \lstinline{float*} lvalue.
 
-We give another basic effective type example below, here just
-involving integer types and without the function call. 
+% We give another basic effective type example below, here just
+% involving integer types and without the function call. 
+% 
+% \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_10.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_10.c.html}
 
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_10.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_10.c.html}
 
+\subsection{Structs and their members}
 
 \myqtquestion{Q91}{Can a pointer to a structure alias with a pointer to one of its members?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: TODO (presumably yes...)
+%\textbf{Our reading of C11 and proposal for C2x:} C11: TODO (presumably yes...)
 
-
+In this example \lstinline{f} is given a pointer to a struct and an aliased
+pointer to its first member, writing via the struct pointer and reading via
+the member pointer.   We presume this is intended to be allowed.
+The ISO text permits it if one reads the first bullet \emph{``a type
+  compatible with the effective type of the object''} as referring to
+the  \lstinline{int} subobject of \lstinline{s} and not the whole
+\lstinline{st} typed object \lstinline{s}, but the text is
+generally unclear about the status of subobjects. 
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2c.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2c.c.html}
 
-      
-\myqtquestion{Q74}{Can one do type punning between distinct but isomorphic structure types?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: no
 
-    
-Similar compiler behaviour occurs with pointers to two distinct but isomorphic
-structure types:
-
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2.c.html}
-
-
-\myqtquestion{Q92}{Can one do type punning between distinct but isomorphic structure types in an allocated region?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: no
-
-    
-
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2b.c.html}
-
- 
-This is essentially Stephen Kell's 2018-08-20 Example 2, except with a final read instead of a write (the write would be a strong update, which I think is allowed even in ISO C11, and with that final read at the struct type.   This test discriminates between a notion of effective type that only applies to the leaves, and one which takes struct/union types into account.   
-
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2d.c.html}
-
-
-This variation does a read via an lvalue merely at type \lstinline{int}, albeit
-with that lvalue constructed via a pointer of type \lstinline{st2 *}.
-This is perhaps more debatable, but in my (PS) reading of the standard there's nothing to forbid it. 
-
-See also Q80. 
-
-\myqtquestion{Q75}{Can an unsigned  character array with static or    automatic storage duration be used (in    the same way as a `malloc`'d region) to hold values of    other types?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: no (though this is used in practice)
-
- 
-(Question 11 of our survey relates to this)
-
-A literal reading of the effective type rules prevents the use of an
-unsigned character array 
-as a buffer to hold values of other types 
-(as if it
-were an allocated region of storage).  For example, the following has
-undefined behaviour due to a violation of 6.5p7 at the access to \lstinline{*fp}.
-(This reasoning presumes that the conversion of the \lstinline{(float * )c} cast
-gives a usable result - the conversion is permitted by 6.3.2.3p7 but
-the standard text only guarantees a roundtrip property.)
-
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_3.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_3.c.html}
-
-
-  In a future semantics we imagine there has to be some (local or global) mechanism to allow this. 
-
-
-Even bytewise copying of a value via such a buffer leads to unusable
-results in the standard:
-
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4.c.html}
-
-
-This seems to be unsupportable for a systems programming language: a
-character array and malloc'd region should be interchangeably usable, either on-demand or by default. 
-
-GCC developers commented that they essentially ignore declared types in alias analysis because of this. 
 
 \myqtquestion{Q76}{After writing a structure to a malloc'd region, can its members can be accessed via pointers of the individual member types?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify (?)
+%\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify (?)
+
+The examples below write a struct into a malloc'd region then read one
+of its members, first using a a pointer constructed using
+\lstinline{char *} arithmetic, and then cast to a pointer to the
+member type, and second constructed from \lstinline{p} cast to a
+pointer to the struct type.
+
+We presume both should be allowed.
+
+The types of the lvalues used for the member reads are the same, so
+by the 6.5p{6,7} text this should make no difference, but 
+a definition of effective types that matches current TBAA practice,
+by taking lvalue construction into account, may need to take care to
+permit this. 
 
 
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5d.c.html}
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5.c.html}
+
+
+
 
 
 \myqtquestion{Q93}{After writing all members of structure in a malloc'd region, can the structure be accessed as a whole?}
 \textbf{Our reading of C11 and proposal for C2x:} C11: yes (?)
 
+The examples below write the members of a struct into a malloc'd
+region and then read the struct as a whole.
+In the first example, the lvalues used for the member writes are
+constructed using \lstinline{char *} arithmetic, and then cast to the
+member types, while in the second, they are constructed from
+\lstinline{p} cast to a pointer to the struct type.
 
-In the first test below, the lvalues used for the member writes are constructed using \lstinline{char *} arithmetic, and then cast to the member types, while in the second, they are constructed from \lstinline{p} cast to a pointer to the struct type.  The types of the lvalues used for the member writes are the same, so by the 6.5p{6,7} text this should make no difference, but it might be that a definition of effective types that makes current TBAA practice sound would need to take lvalue construction into account. 
+Similarly to Q76 above, the types of the lvalues used for the member
+writes are the same, so by the 6.5p{6,7} text this should make no
+difference, but a definition of effective types that matches current
+TBAA practice, by taking lvalue construction into account, may need to
+take care to permit this.
+
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5b.c.html}
 
@@ -777,36 +754,81 @@ In the first test below, the lvalues used for the member writes are constructed 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5c.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5c.c.html}
 
 
-\myqtquestion{Q77}{Can a non-character value be read    from an uninitialised malloc'd region?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: no
+\subsection{Isomorphic Struct Types}
 
 
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_6.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_6.c.html}
+\myqtquestion{Q92}{Can one do whole-struct type punning between distinct but isomorphic structure types in an allocated region?}
+%\textbf{Our reading of C11 and proposal for C2x:} C11: no
 
-The effective type rules seem to deem this undefined behaviour.
-    
-\myqtquestion{Q78}{After writing one member of a    structure to a malloc'd region, can its other members be read?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: no
+This example writes a value of one struct type into a malloc'd region
+then reads it via a pointer to a distinct but isomorphic struct type. 
 
+We presume this is intended to be forbidden.  The ISO text is not
+clear here, depending on how one understands subobjects, which are not
+well-specified. 
 
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_7.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_7.c.html}
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2b.c.html}
 
-If the write should be considered as affecting the effective type of
-the footprint of the entire structure, then it would change the answer
-to \lstinline{effective_type_5.c} here.   It seems unlikely but
-not impossible that such an interpretation is desirable. 
-
-There is a defect report (which?) about copying part of a structure and
-effective types. 
-
-\myqtquestion{Q79}{After writing one member of a    structure to a malloc'd region, can a member of another structure, with footprint  overlapping that of the first structure, be written?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify
+The above test discriminates between a notion of effective type that only
+applies to the leaves, and one which takes struct/union types into
+account.
 
 
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_8.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_8.c.html}
 
-Again this is exploring the effective type of the footprint of the
-structure type used to form the lvalue.
+
+
+The following variation does a read via an lvalue merely at type \lstinline{int}, albeit
+with that lvalue constructed via a pointer of type \lstinline{st2 *}.
+This is more debatable.  For consistency with the apparent normal
+implementation practice to take lvalue construction into account, it
+should be forbidden. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2d.c.html}
+
+
+The following variation does a read via an lvalue merely at type
+\lstinline{int}, constructed by \lstinline{offsetof} pointer
+arithmetic. This should presumably be allowed. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2e.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2e.c.html}
+
+
+
+\myqtquestion{Q74}{Can one do type punning between distinct but isomorphic structure types?}
+
+Here \lstinline{f} is given aliased pointers to two distinct but isomorphic
+struct types, and uses them both to access an \lstinline{int} member of
+a struct.   We presume this is intended to be forbidden, and GCC
+appears to assume that it is, printing \lstinline{f: s1p->i1 = 2}.
+
+However, the two lvalue expressions, \lstinline{s1p->i1} and
+\lstinline{s2p->i2}, are both of the identical (and hence
+``compatible'') \lstinline{int} type, so the ISO text appears to allow
+this case.  
+%
+To forbid it, we have to somehow take the construction of the lvalues
+into account, to
+see the types of \lstinline{s1p} and
+\lstinline{s2p}, not just the types of \lstinline{s1p->i1} and
+\lstinline{s2p->i2}. 
+
+
+
+% 
+% f: s1p->i1 = 3
+% s.i1=3  s1p->i1=3  s2p->i2=3
+% limbus:de_facto_memory_model$ gcc-5 -O2 -Wall -pedantic -std=c11 effective_type_2.c  && ./a.out
+% f: s1p->i1 = 2
+% s.i1=3  s1p->i1=3  s2p->i2=3
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2.c.html}
+
+
+
+\subsection{Isomorphic Struct Types -- additional examples}
+
+It's not clear whether these add much to the examples above; if not,
+they should probably be removed.
 
 \myqtquestion{Q80}{After writing a structure to a malloc'd region, can its members be accessed via a pointer to a different structure type that has the same leaf member type at the same offset?}
 
@@ -824,9 +846,132 @@ Here there is nothing specific to \lstinline{st1} or \lstinline{st2} about the i
 
 
 Here the construction of the lvalues used to write the structure members involves \lstinline{st1}, but the lvalue types do not.  The 6.5p{6,7} text is all in terms of the lvalue types, not their construction, so in our reading of C11 this is similarly allowed.
+
+
+\subsection{Effective types and representation-byte writes}
+
+The ISO text explicitly states that copying an object \emph{``as an
+array of character type''} carries the effective type across:
+
+\emph{``If a value is copied into an object having no declared type using
+\lstinline{memcpy} or \lstinline{memmove}, or is copied as an array of
+character type, then the effective type of the modified object for
+that access and for subsequent accesses that do not modify the value
+is the effective type of the object from which the value is copied,
+if it has one.''}
+
+
+The first two examples below should therefore both be allowed, using
+\lstinline{memcpy} to copy
+from an \lstinline{int} in a local variable and in a malloc'd region
+(respectively) to a malloc'd region, and then reading that with an
+\lstinline{int*} pointer.
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4b.c.html}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4c.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4c.c.html}
+
+The following variant of the first example should also be allowed,
+copying as an unsigned character array rather than with the library
+\lstinline{memcpy}. 
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4c.d.html}
+
+
+Should representation byte writes with other integers affect the
+effective type? 
+The first example below takes the result of a \lstinline{memcpy}'d
+\lstinline{int} and then overwrites all of its bytes with zeros before
+trying to read it as an \lstinline{int}.  The second is similar,
+except that it tries to read the resulting memory as a
+\lstinline{float}  (presuming the implementation-defined fact that
+these have the same size and alignment, and that pointers to them can
+be meaningfully interconverted).  The first should presumably be
+allowed.  It is unclear to us whether the second should be allowed or not.
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4e.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4c.e.html}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4f.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4c.f.html}
+
+
+
+\subsection{Unsigned character arrays}
+
+\myqtquestion{Q75}{Can an unsigned  character array with static or    automatic storage duration be used (in    the same way as a `malloc`'d region) to hold values of    other types?}
+
+
+This seems to be forbidden by the ISO text, but we believe it is
+common in practice. Question 11 of our survey relates to this. 
+
+
+A literal reading of the effective type rules prevents the use of an
+unsigned character array 
+as a buffer to hold values of other types 
+(as if it
+were an allocated region of storage).  For example, the following has
+undefined behaviour due to a violation of 6.5p7 at the access to \lstinline{*fp}.
+(This reasoning relies on the implementation-defined property that the conversion of the \lstinline{(float * )c} cast
+gives a usable result -- the conversion is permitted by 6.3.2.3p7 but
+the standard text only guarantees a roundtrip property.)
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_3.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_3.c.html}
+
+
+Even bytewise copying of a value via such a buffer leads to unusable
+results in the standard:
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_4.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_4.c.html}
+
+
+This seems to be unsupportable for a systems programming language: a
+character array and malloc'd region should be interchangeably usable,
+either on-demand or by default.  GCC developers commented that they
+essentially ignore declared types in alias analysis because of this.
+
+
+For C2X, we believe there has to be some (local or global) mechanism to allow this. 
+
+
+\subsection{Overlapping structs in malloc'd regions}
+
+\myqtquestion{Q79}{After writing one member of a    structure to a malloc'd region, can a member of another structure, with footprint  overlapping that of the first structure, be written?}
+%\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_8.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_8.c.html}
+
+Again this is exploring the effective type of the footprint of the
+structure type used to form the lvalue.
+We presume this should be allowed -- from one point of view, it is
+just a specific instance of the strong (type changing) updates that C
+permits in malloc'd regions. 
+
+
+
+\subsection{Effective types and uninitialsed reads}
+
+\myqtquestion{Q77}{Can a non-character value be read    from an uninitialised malloc'd region?}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_6.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_6.c.html}
+
+The effective type rules seem to deem this undefined behaviour.
+    
+\myqtquestion{Q78}{After writing one member of a    structure to a malloc'd region, can its other members be read?}
+
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_7.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_7.c.html}
+
+If the write should be considered as affecting the effective type of
+the footprint of the entire structure, then it would change the answer
+to \lstinline{effective_type_5.c} here.   It seems unlikely but
+not impossible that such an interpretation is desirable. 
+
+There is a defect report (which?) about copying part of a structure and
+effective types. 
+
+\subsection{Properly overlapping objects}
     
 \myqtquestion{Q81}{Can one access two objects, within a malloc'd region, that have overlapping but non-identical footprint?}
-\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify
 
 
 Robbert Krebbers asks on the GCC
@@ -847,7 +992,11 @@ basically effective-type reasoning.
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{krebbers_biener_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/krebbers_biener_1.c.html}
 
+\end{document}
 
+\newpage
+
+---------------------------------------------
 
 \section{Provenance and subobjects}
 
