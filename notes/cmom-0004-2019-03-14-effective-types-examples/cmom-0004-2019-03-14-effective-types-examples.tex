@@ -45,6 +45,10 @@
 
 \usepackage[all]{xy}
 
+
+
+
+
 % these are useful comments, maybe we should make them footnotes?
 \renewcommand{\comment}[2][comment]{{\color{blue}\bf[#1: #2]}}
 % uncomment the following line to remove comments
@@ -103,6 +107,10 @@
 % \lstset{basicstyle=\footnotesize\ttfamily} 
 \lstset{keywordstyle=\bfseries}
 
+
+\lstset{
+  morekeywords={uint8_t,int8_t,uint16_t,int16_t,uint32_t,int32_t,uint64_t,int64_t,intptr_t,uintptr_t}
+}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -657,11 +665,12 @@ the source.
 \myqtquestion{Q73}{Can one do type punning between arbitrary types?}
 
 This basic example involves a write of a \lstinline{uint32_t} that is
-read as a \lstinline{float} (assuming that pointers to the two have
-the same size, alignment, and representation, and that casts between
+read as a \lstinline{float} (assuming that the two have
+the same size, and, unchecked in the code, that the latter does not
+require a stronger alignment constraint, and that casts between
 those two pointer types are implementation-defined to work).  
-It is clearly and uncontroversially forbidden by the standard text,
-and that fact is exploited by compilers, which use the types of the
+The example is clearly and uncontroversially forbidden by the standard text,
+and this fact is exploited by current compilers, which use the types of the
 arguments of \lstinline{f} to reason that pointers \lstinline{p1} and
 \lstinline{p2} cannot alias.  
 
@@ -676,9 +685,9 @@ the value of \lstinline{*p1}, printing \lstinline{2} (instead of the
 integer value of the representation of 
 \lstinline{3.0} that would the most recent write in a concrete semantics):
 while with \lstinline{-fno-strict-aliasing} it does not assume that.
-The former behaviour can be explained by regarding the program as
+The former behaviour can be justified by regarding the program as
 having undefined behaviour, due to the write of the \lstinline{uint32_t}
-\lstinline{i} with a \lstinline{float*} lvalue.
+\lstinline{i} with a \lstinline{float} lvalue.
 
 % We give another basic effective type example below, here just
 % involving integer types and without the function call. 
