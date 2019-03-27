@@ -775,7 +775,7 @@ is explicitly permitted by the ISO standard, and, because the
 \lstinline{*p=11} access
 is guarded by the \lstinline{memcmp} conditional check on the representation bytes of the
 pointer, it will not be attempted (and hence flag UB) in executions in
-which the two allocations are not adjacent. 
+which the two storage instances are not adjacent. 
 
 
 These GCC and ICC outcomes would not be correct with respect to a concrete
@@ -817,18 +817,18 @@ are allowed to do.
 \myparagraph{Basic provenance semantics for pointer values}
 For simple cases of the construction and use of pointers,
 capturing the basic intuition suggested by DR260~CR in a precise semantics is straightforward: we associate a \emph{provenance} with every pointer value,
-identifying the original allocation the pointer is derived
+identifying the original storage instance the pointer is derived
 from.  In more detail: 
 \begin{itemize}
 \item
   We take abstract-machine pointer values to be pairs $(\pi,a)$, adding a \emph{provenance} $\pi$,
-  either $@i$ where $i$ is an allocation ID, or the \emph{empty}
+  either $@i$ where $i$ is a storage instance ID, or the \emph{empty}
   provenance $\provNone$, to their concrete address $a$. 
 \item
-  On every allocation (of objects with static, thread, automatic, and
+  On every storage instance (of objects with static, thread, automatic, and
   allocated storage duration), the abstract machine nondeterministically
-  chooses a fresh allocation ID $i$ (unique across the entire execution), and
-  the resulting pointer value carries that single allocation ID as its
+  chooses a fresh storage instance ID $i$ (unique across the entire execution), and
+  the resulting pointer value carries that single storage instance ID as its
   provenance $@i$.
 \item Provenance is preserved by pointer arithmetic that adds or
   subtracts an integer to a pointer. 
@@ -839,10 +839,10 @@ from.  In more detail:
   \begin{itemize}
   \item
     access via a pointer value which has provenance a single
-  allocation ID $@i$ must be %at
+  storage instance ID $@i$ must be %at
     %least
     within the memory footprint of the corresponding original
-    allocation, which must still be live.
+    storage instance, which must still be live.
   \item
     all other accesses, including those via a pointer value with empty
     provenance, are undefined
@@ -929,7 +929,7 @@ that may be surprising to programmers.
 
 \myparagraph{Inter-object pointer arithmetic}
 The first example in this section relied on guessing (and then
-checking) the offset between two allocations.   What if one instead
+checking) the offset between two storage instances.   What if one instead
 calculates the offset, with pointer subtraction; should that let
 one move between objects, as below?
 In ISO~C18, the \lstinline{q-p} is UB
@@ -946,7 +946,7 @@ pointers (which allows the evaluation of \lstinline{p + offset}),  one would hav
 to choose whether the \lstinline{*r=11} access is UB or not. 
 %
 The basic provenance semantics will forbid it, because \lstinline{r}
-will retain the provenance of the \lstinline{x} allocation, but its
+will retain the provenance of the \lstinline{x} storage instance, but its
 address is not in bounds for that. 
 %
 This is probably the most desirable semantics: we have found very few
@@ -986,7 +986,7 @@ Alternatively, one could require numeric comparisons, which would be a
 simpler semantics for programmers but force that GCC behaviour to be regarded as a 
 bug.  Cerberus supports both options.
 One might also imagine making it UB to compare pointers that are not strictly within
-their original allocation~\cite{krebbers-phd}, but that would
+their original storage instance~\cite{krebbers-phd}, but that would
 break loops that test against a one-past pointer, or 
 requiring equality to \emph{always} take provenance into account, but
 that would require implementations to track provenance at runtime.
@@ -1191,18 +1191,18 @@ values are pure integers, and at the \lstinline{int*} cast
 the value of \lstinline{ux+offset} matches the address
 of \lstinline{y} (live and of the right type), so the
 resulting pointer value takes on the provenance of the \lstinline{y}
-allocation.  For PNVI-ae and PNVI-ae-udi, the allocation to \lstinline{y}
+storage instance.  For PNVI-ae and PNVI-ae-udi, the storage instance for \lstinline{y}
 is marked as \emph{exposed} at the cast of \lstinline{&y} to an
 integer, and so the above is likewise permitted there. 
 
 In PVI, this is UB. First,
 the integer values of \lstinline{ux}
-and \lstinline{uy} have the provenances of the allocations
+and \lstinline{uy} have the provenances of the storage instances
 of \lstinline{x} and \lstinline{y} respectively. Then 
 \lstinline{offset} is a subtraction of two integer values with
 non-equal single provenances; we define the result of such to have the
 empty provenance.  Adding that empty-provenance result
-to \lstinline{ux} preserves the original \lstinline{x}-allocation
+to \lstinline{ux} preserves the original \lstinline{x}-storage instance
 provenance of the latter, as does 
 the cast to \lstinline{int*}.
 Then the final \lstinline{*p=11} access is via a pointer value whose
@@ -1305,7 +1305,7 @@ The latter is UB in PVI.
 It is unclear whether this would be acceptable
 in practice, either for C programmers or for compiler optimisation.
 One could conceivably switch to a PVI-multiple variant, allowing
-provenances to be finite sets of allocation IDs.  That would allow the
+provenances to be finite sets of storage instance IDs.  That would allow the
 \myfooexamplename{pointer_offset_from_int_subtraction_global_xy.c} example above, but perhaps too much else besides.
 The PNVI-* models do not suffer from this problem.
 
@@ -1357,7 +1357,7 @@ within a live object, and giving the result the corresponding
 provenance. 
 %
 For PNVI-ae and PNVI-ae-udi,
-the current proposal is to mark allocations as exposed whenever representation bytes of
+the current proposal is to mark storage instances as exposed whenever representation bytes of
   pointers to them are read, and use the same semantics for reads of
   pointer values from representation-byte writes as for
   integer-to-pointer casts. This is attractively simple, but it does
@@ -1910,7 +1910,7 @@ allocation addresses of C variables.
 
 The PNVI-* semantics
 deems this to be UB, because at the point of
-the \lstinline{(int*)i} cast the \lstinline{j} allocation does not yet
+the \lstinline{(int*)i} cast the \lstinline{j} storage instance does not yet
 exist (let alone, for PNVI-ae and PNVI-ae-udi, having been exposed by having one of its
 addresses taken and cast to integer), so the cast gives a pointer with empty provenance; any
 execution that goes into the \lstinline{if} would thus flag UB. 
@@ -2002,12 +2002,12 @@ standard might say about any other execution is irrelevant, because it
 can always be masked by that arbitrary observable behaviour.
 
 Accordingly, our semantics nondeterministically chooses an arbitrary
-address for each allocation, subject only to alignment and no-overlap
+address for each storage instance, subject only to alignment and no-overlap
 constraints (ultimately one would also need to build in constraints
 from programmer linking commands).
 %
 This is equivalent to noting that the ISO standard does not constrain
-how implementations choose allocation addresses in any way (subject to
+how implementations choose storage instance addresses in any way (subject to
 alignment and no-overlap), and hence that programmers of
 standard-conforming code cannot assume anything about those choices.
 %
@@ -2109,7 +2109,7 @@ Our PVI proposal allows computations that erase the numeric
 value (and hence a concrete view of the ``semantic dependencies'') of a
 pointer, but retain provenance.  This makes examples like that below
 [Richard Smith, personal communication],
-in which the code correctly guesses an allocation address (which has
+in which the code correctly guesses a storage instance address (which has
 the empty provenance) and adds that to a zero-valued quantity (with
 the correct provenance), 
 allowed in PVI.  We emphasise that we do not think it
