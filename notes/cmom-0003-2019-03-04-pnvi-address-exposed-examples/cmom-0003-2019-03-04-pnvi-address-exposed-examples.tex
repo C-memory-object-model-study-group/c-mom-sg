@@ -403,14 +403,17 @@
 \sloppy
 \begin{document}
 
+\makeatletter
 \ifWGfourteennumber
 \fancypagestyle{firstpagestyle}{%
 \fancyhf{} % clear all header and footer fields
+\fancyhead[LO]{\ACM@linecountL}%
 \fancyhead[C]{ISO/IEC JTC1/SC22/WG14 Nxxxx, 2019-03-xx} % except the center
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}}
-\thispagestyle{plain}
+%\thispagestyle{plain}
 \fi
+\makeatother
 
 \title[C provenance semantics: examples]{C provenance semantics: examples}
 \subtitle{(for PNVI-plain, PNVI address-exposed, PNVI address-exposed 
@@ -520,7 +523,7 @@ user-disambiguation, and PVI models)}
   series of  examples.
 We consider three variants of the provenance-not-via-integer
 (PNVI) model: PNVI plain, PNVI address-exposed (PNVI-ae) and PNVI
-address-exposed k
+address-exposed 
 user-disambiguation (PNVI-ae-udi), and
 also the provenance-via-integers (PVI) model.
 The examples include those of
