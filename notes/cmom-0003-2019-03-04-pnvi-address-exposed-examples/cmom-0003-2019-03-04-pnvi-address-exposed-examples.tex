@@ -858,8 +858,14 @@ from.  In more detail:
     %except where the numeric value is within an
     %implementation-defined set of ``device'' memory addresses).
   \end{itemize}
-  This undefined behaviour is what justifies optimisation based on
-  provenance alias analysis. 
+Regarding such accesses as undefined behaviour is necessary to make
+optimisation based on provenance alias analysis sound: if the standard
+did define behaviour for programs that make provenance-violating
+accesses, e.g.~by adopting a concrete semantics, optimisation based on
+provenance-aware alias analysis would not be sound.
+
+
+
 \end{itemize}
 
 
