@@ -2327,7 +2327,7 @@ behaviour of the examples, confirming that they are allowed or not as
 intended.
 
 \noindent
-\includegraphics[width=1.3\textwidth]{tests_status.pdf}
+\includegraphics[width=1.0\textwidth]{tests_cerberus.pdf}
 
 
 
@@ -2335,9 +2335,6 @@ intended.
 \section{Testing the example behaviour in mainstream C implementations}
 We have also run the examples in various existing C implementations,
 including GCC and Clang at various optimisation levels.  
-
-This data is available at
-\url{https://www.cl.cam.ac.uk/~pes20/cerberus/supplementary-material-pnvi-star/generated_html_pnvi_star/}.
 
 Our test cases are typically written to illustrate a particular
 semantic question as concisely as possible. Some are ``natural''
@@ -2360,6 +2357,15 @@ Some tests rely on address coincidences for the interesting execution;
 for these we sometimes include multiple variants, tuned to the
 allocation behaviour in the implementations we consider. Where this
 has not been done, some of the experimental data is not meaningful.
+
+The detailed data is available at
+\url{https://www.cl.cam.ac.uk/~pes20/cerberus/supplementary-material-pnvi-star/generated_html_pnvi_star/},
+and summarised in the table below.
+
+\noindent
+\includegraphics[width=1.0\textwidth]{tests_compilers.pdf}
+
+
 
 %% Bibliography
 
