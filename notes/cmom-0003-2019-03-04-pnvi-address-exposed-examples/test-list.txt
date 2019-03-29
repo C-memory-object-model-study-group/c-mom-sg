@@ -54,5 +54,8 @@ pointer_from_integer_2g.c
 provenance_lost_escape_1.c
 provenance_roundtrip_via_intptr_t_onepast.c
 pointer_from_int_disambiguation_1.c
+pointer_from_int_disambiguation_1_xy.c
 pointer_from_int_disambiguation_2.c
+pointer_from_int_disambiguation_2_xy.c
 pointer_from_int_disambiguation_3.c
+pointer_from_int_disambiguation_3_xy.c
