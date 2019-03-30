@@ -406,7 +406,7 @@
 \ifWGfourteennumber
 \fancypagestyle{firstpagestyle}{%
 \fancyhf{} % clear all header and footer fields
-\fancyhead[C]{ISO/IEC JTC1/SC22/WG14 Nxxxx, 2019-03-xx} % except the center
+\fancyhead[C]{ISO/IEC JTC1/SC22/WG14 N2364, 2019-03-30} % except the center
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}}
 \thispagestyle{plain}
@@ -511,27 +511,53 @@ user-disambiguation, and PVI models)}
 
 \section{Introduction}
 
-This note sketches a mathematical version of the
-provenance-not-via-integer, address-exposed (PNVI-ae)
-and provenance-not-via-integer, address-exposed, user-disambiguation (PNVI-ae-udi)
-models, based on:
+This note gives detailed mathematical semantics for four variants of C
+provenance semantics: 
+
 \begin{itemize}
-\item the PNVI semantics in the POPL 2019
-  paper~\cite{cerberus-popl2019}, here called PNVI-plain
-\item the mathematical version  by Martin Uecker, 2019-01-18
-\item the text summary by Jens Gustedt, 2019-01-22
-\item email discussion on the C Memory Object Model study group mailing list
+\item \textbf{PNVI-plain}: a semantics that does not track provenance via integers,
+but instead, at integer-to-pointer cast points, checks whether the 
+given address points within a live object and, if so, recreates the
+corresponding provenance. 
+
+\item \textbf{PNVI-ae (PNVI exposed-address)}: a variant of PNVI that
+  allows integer-to-pointer casts to recreate provenance only for
+  storage instances that have previously been \emph{exposed}.  A storage instance
+  is deemed exposed by a cast 
+  of a pointer to it to an integer type, by a read (at non-pointer
+  type) of the representation of the pointer, or by an output of the
+  pointer using \lstinline{%p}. 
+
+  \item \textbf{PNVI-ae-udi (PNVI exposed-address
+    user-disambiguation)}: a further refinement of PNVI-ae that
+supports roundtrip casts, from pointer to integer and back, of
+pointers that are one-past a storage instance.
+This is the currently preferred option in the C memory object model
+study group. 
+
+\item \textbf{PVI}: a semantics that tracks provenance via integer computation,
+associating a provenance with all integer values (not just pointer
+values),
+preserving provenance through integer/\break{}pointer casts, and making some
+particular choices for the provenance results of integer and
+pointer \lstinline{+}/\lstinline{-} integer operations;
+or
 \end{itemize}
+We write PNVI-* for PNVI-plain, PNVI-ae, and PNVI-ae-udi.
+The PNVI-plain and PVI semantics were described in the POPL 2019/N2311
+paper~\cite{cerberus-popl2019}.  PNVI-ae and PNVI-ae-udi have emerged from discussions in the C
+memory object model study group. 
+
 Changes for PNVI-ae from PNVI-plain are \myt{highlighted}.
 Additional changes for PNVI-ae-udi are \myu{highlighted}. 
 
 This should be read together with the two companion notes, one giving 
-a series of example, and another giving detailed diffs to the
-C standard text. 
+a series of examples (N2363), and another giving detailed diffs to the
+C standard text (N2362). 
 
 
 
-This version of PNVI-* permits bytewise copy of a pointer
+The PNVI-ae and PNVI-ae-udi variants of PNVI permit bytewise copy of a pointer
 to an initially unexposed object, but leaves it marked as exposed.
 Additional machinery may well be desirable for PNVI-ae and PNVI-ae-udi
 to give programmers more control of the provenance of the results of
@@ -543,10 +569,10 @@ byte manipulations, and of what is left marked as exposed. The design of that ma
 
 \section{The PNVI-ae-udi, PNVI-ae, PNVI-plain, and PVI semantics}
 
-The base PVI and PNVI-plain memory object semantics are manually typeset mathematics simplified from the
+These semantic definitions are manually typeset mathematics simplified from the
 executable-as-test-oracle
-Cerberus
-mechanised Lem~\cite{Lem-icfp2014} source. We have removed most subobject details, function
+Cerberus source (expressed in the pure-functional
+Lem~\cite{Lem-icfp2014} definition language). We have removed most subobject details, function
 pointers, and some options.  Neither the typeset models or
 the Lem source consider linking, or pointers constructed via I/O
 (e.g.~via
