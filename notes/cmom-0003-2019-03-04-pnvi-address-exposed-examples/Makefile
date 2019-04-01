@@ -21,6 +21,10 @@ clean:
 install: $(TOP).pdf
 	cp $(TOP).pdf ../built_doc
 	cp $(TOP).pdf ../built_doc/n2363.pdf
+<<<<<<< HEAD
+=======
+
+>>>>>>> b31df959847eb762524f776bbe52345100fca708
 
 
 
