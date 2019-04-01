@@ -20,6 +20,7 @@ clean:
 
 install: $(TOP).pdf
 	cp $(TOP).pdf ../built_doc
+	cp $(TOP).pdf ../built_doc/n2364.pdf
 
 ################## build figures from .fig #########
 
