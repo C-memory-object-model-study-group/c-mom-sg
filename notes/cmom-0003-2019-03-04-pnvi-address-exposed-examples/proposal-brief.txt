@@ -1,0 +1,96 @@
+C pointer values are typically represented at runtime as simple
+concrete numeric values, but mainstream compilers routinely exploit
+information about the "provenance" of pointers to reason that they
+cannot alias, and hence to justify optimisations.  This is 
+long-standing practice, but exactly what it means (what programmers
+can rely on, and what provenance-based alias analysis is allowed to
+do), has never been nailed down.   That's what the proposal does.
+
+
+The basic idea is to associate a *provenance* with every pointer
+value, identifying the original storage instance (or allocation, in
+other words) that the pointer is derived from.  In more detail:
+
+- We take abstract-machine pointer values to be pairs (pi,a), adding a
+  provenance pi, either @i where i is a storage instance ID, or the
+  *empty* provenance, to their concrete address a.
+
+- On every storage instance creation (of objects with static, thread,
+  automatic, and allocated storage duration), the abstract machine
+  nondeterministically chooses a fresh storage instance ID i (unique
+  across the entire execution), and the resulting pointer value
+  carries that single storage instance ID as its provenance @i.
+
+- Provenance is preserved by pointer arithmetic that adds or subtracts
+  an integer to a pointer.
+
+- At any access via a pointer value, its numeric address must be
+  consistent with its provenance, with undefined behaviour
+  otherwise. In particular:
+
+  -- access via a pointer value which has provenance a single storage
+     instance ID @i must be within the memory footprint of the
+     corresponding original storage instance, which must still be
+     live.
+
+  -- all other accesses, including those via a pointer value with
+     empty provenance, are undefined behaviour.
+
+Regarding such accesses as undefined behaviour is necessary to make
+optimisation based on provenance alias analysis sound: if the standard
+did define behaviour for programs that make provenance-violating
+accesses, e.g.~by adopting a concrete semantics, optimisation based on
+provenance-aware alias analysis would not be sound.  In other words,
+the provenance lets one distinguish a one-past pointer from a pointer
+to the start of an adjacently-allocated object, which otherwise are
+indistinguishable.
+
+All this is for the C abstract machine as defined in the standard:
+compilers might rely on provenance in their alias analysis and
+optimisation, but one would not expect normal implementations to
+record or manipulate provenance at runtime (though dynamic or static
+analysis tools might).
+
+
+Then, to support low-level systems programming, C provides many other
+ways to construct and manipulate pointer values:
+
+- casts of pointers to integer types and back, possibly with integer
+  arithmetic, e.g.~to force alignment, or to store information in
+  unused bits of pointers;
+
+- copying pointer values with memcpy;
+
+- manipulation of the representation bytes of pointers, e.g.~via user
+  code that copies them via char* or unsigned char* accesses;
+
+- type punning between pointer and integer values; 
+
+- I/O, using either fprintf/fscanf and the %p format, fwrite/fread on
+  the pointer representation bytes, or pointer/integer casts and
+  integer I/O;
+
+- copying pointer values with realloc; and
+
+- constructing pointer values that embody knowledge established from
+  linking, and from constants that represent the addresses of
+  memory-mapped devices. 
+
+
+A satisfactory semantics has to address all these, together with the
+implications on optimisation.  We've explored several, but our main
+proposal is "PNVI-ae-udi" (provenance not via integers,
+address-exposed, user-disambiguation).
+
+This semantics does not track provenance via integers.  Instead, at
+integer-to-pointer cast points, it checks whether the given address
+points within a live object that has previously been *exposed* and, if
+so, recreates the corresponding provenance.
+
+A storage instance is deemed exposed by a cast of a pointer to it to
+an integer type, by a read (at non-pointer type) of the representation
+of the pointer, or by an output of the pointer using %p.
+
+The user-disambiguation refinement adds some complexity but supports
+roundtrip casts, from pointer to integer and back, of pointers that
+are one-past a storage instance.
