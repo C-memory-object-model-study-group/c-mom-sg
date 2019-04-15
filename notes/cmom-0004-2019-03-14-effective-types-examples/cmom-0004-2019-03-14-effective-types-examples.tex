@@ -984,22 +984,28 @@ effective types.
 
 
 Robbert Krebbers asks on the GCC
-list <https://gcc.gnu.org/ml/gcc/2015-03/msg00083.html>
+list (\url{https://gcc.gnu.org/ml/gcc/2015-03/msg00083.html})
 whether ``GCC uses 6.5.16.1p3 of the C11 standard as a license
  to perform certain optimizations. If so, could anyone provide me an example
  program.
  In particular, I am interested about the 'then the overlap shall be exact'
  part of 6.5.16.1p3:
-   <em>If the value being stored in an object is read from another
+   \emph{If the value being stored in an object is read from another
    object that overlaps in any way the storage of the first
    object, then the overlap shall be exact and the two objects
    shall have qualified or unqualified versions of a compatible
-   type; otherwise, the behavior is undefined.</em>''
+   type; otherwise, the behavior is undefined.}''
 Richard Biener replies with this example (rewritten here to print the
 result), saying that it will be optimised to print 1 and that this is
 basically effective-type reasoning. 
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{krebbers_biener_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/krebbers_biener_1.c.html}
+
+
+\subsection{Hubert's example}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_hubert_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_hubert_1.c.html}
+
 
 \end{document}
 
@@ -1277,6 +1283,8 @@ operator from pointer arithmetic.
 Perhaps one could regard a multidimensional array object as a single flat array  for the purposes of pointer arithmetic, while changing the abstract-machine definition of the subscript operator to include explicit bounds checks based on the type - i.e., regarding \lstinline{E1[E2][E3]} as \lstinline{( assert(...E2 in bounds && E3 in bounds...), *((E1)+(E2)*size3+(E3)) )} wherever \lstinline{E1} has an array type. 
 
 From a compiler alias-analysis point of view, in the current standard, compilers can assume that accesses via any pointer derived from \lstinline{&(a[0])} and any pointer derived from \lstinline{&(a[1])} never alias.  If we allowed the above two examples, that would no longer hold. Do compilers currently depend on such assumptions?
+
+
 
 
   
