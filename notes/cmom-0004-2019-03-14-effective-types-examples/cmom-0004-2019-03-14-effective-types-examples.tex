@@ -731,9 +731,9 @@ by taking lvalue construction into account, may need to take care to
 permit this. 
 
 
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5d.c.html}
-
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5.c.html}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5d.c.html}
 
 
 
@@ -756,12 +756,9 @@ TBAA practice, by taking lvalue construction into account, may need to
 take care to permit this.
 
 
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5b.c.html}
-
-
-
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5c.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5c.c.html}
 
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_5b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_5b.c.html}
 
 \subsection{Isomorphic Struct Types}
 
@@ -942,11 +939,13 @@ For C2X, we believe there has to be some (local or global) mechanism to allow th
 
 \subsection{Overlapping structs in malloc'd regions}
 
-\myqtquestion{Q79}{After writing one member of a    structure to a malloc'd region, can a member of another structure, with footprint  overlapping that of the first structure, be written?}
+\myqtquestion{Q79}{After writing one member of a structure to a malloc'd region, can a member of another structure, with footprint  overlapping that of the first structure, be written?}
 %\textbf{Our reading of C11 and proposal for C2x:} C11: the text does not clearly specify
 
 
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_8.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_8.c.html}
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_8a.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_8a.c.html}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_8b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_8b.c.html}
 
 Again this is exploring the effective type of the footprint of the
 structure type used to form the lvalue.
@@ -956,14 +955,22 @@ permits in malloc'd regions.
 
 
 
-\subsection{Effective types and uninitialsed reads}
+\subsection{Effective types and uninitialised reads}
 
 \myqtquestion{Q77}{Can a non-character value be read    from an uninitialised malloc'd region?}
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_6.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_6.c.html}
 
 The effective type rules seem to deem this undefined behaviour.
-    
+
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_6b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_6b.c.html}
+
+For this variant where \lstinline{calloc} does initialise to zero,
+Jens suggests the program should be well defined (but the current
+standard text still makes this undefined).
+
+
 \myqtquestion{Q78}{After writing one member of a    structure to a malloc'd region, can its other members be read?}
 
 
@@ -1005,6 +1012,35 @@ basically effective-type reasoning.
 \subsection{Hubert's example}
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_hubert_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_hubert_1.c.html}
+
+
+
+\subsection{Examples from Jens' visit}
+
+The interaction between out-of-bound pointer arithmetic checks (at the
+level of subobject) and unions is problematic.
+In the following, a choice needs to be made regarding which subobject
+is being accessed by the last line of the main function. If it is the array
+inside the first member of the union, the access is out of bound. But
+if it is the array in the second member of union, this program is well defined.
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_jens_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_jens_1.c.html}
+
+One could think of making the semantics ``angelic'', but the following
+variant shows it is not clear how to do so.
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_jens_1b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_jens_1b.c.html}
+
+
+% In the following example, we defined two incompatible struct types
+% with the same layout made a compatible unique member. If the answer 
+
+% In an allocated region, if initialising all the members of a struct
+% implies that struct itself is fully initialised, does this implies
+% that we can access 
+% that a similar 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_jens_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_jens_2.c.html}
 
 
 \end{document}
