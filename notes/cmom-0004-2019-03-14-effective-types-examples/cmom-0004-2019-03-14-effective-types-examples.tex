@@ -419,7 +419,7 @@
 \thispagestyle{plain}
 \fi
 
-\title[Effective types: examples]{DRAFT IN PROGRESS\\Effective types: examples}
+\title[Effective types: examples (P1796R0)]{Effective types: examples (P1796R0)}
 
 
 \authorsaddresses{}
@@ -456,7 +456,13 @@
 %   \country{UK}
  }
 
-\renewcommand{\shortauthors}{Sewell, Memarian, Gomes}
+\author{Jens Gustedt}
+\affiliation{\institution{INRIA}}
+
+\author{Hubert Tong}
+
+
+%\renewcommand{\shortauthors}{Sewell, Memarian, Gomes}
 
 % %% Author with two affiliations and emails.
 % \author{First2 Last2}
@@ -515,6 +521,16 @@
 \newcommand{\myt}[1]{{\color{blue}#1}}
 \newcommand{\myu}[1]{{\color{myudicolor}#1}}
 
+
+This is a collection of examples exploring the semantics that should
+be allowed for objects and subobjects in allocated regions --
+especially, where the defined/undefined-behaviour boundary should be,
+and how that relates to compiler alias analysis.  
+The examples are in C, but much should be similar in C++. 
+We refer to the ISO C notion of effective types, but that turns out to
+be quite flawed. 
+Some examples at the end (from Hubert Tong) show that existing
+compiler behaviour is not consistent with type-changing updates. 
 
 This is an updated version of part of n2294 C Memory Object Model Study Group:
 Progress Report, 2018-09-16.  
@@ -1009,10 +1025,6 @@ basically effective-type reasoning.
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{krebbers_biener_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/krebbers_biener_1.c.html}
 
 
-\subsection{Hubert's example}
-
-\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_hubert_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_hubert_1.c.html}
-
 
 
 \subsection{Examples from Jens' visit}
@@ -1041,6 +1053,79 @@ variant shows it is not clear how to do so.
 % that a similar 
 
 \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_jens_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_jens_2.c.html}
+
+\subsection{Hubert's examples}
+
+These examples show that current compiler behaviour is not consistent
+with the ISO C notion of effective types that allows type-changing
+updates within allocated regions simply by memory writes. 
+
+This was his first example:
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_hubert_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_hubert_1.c.html}
+
+This was his example from the 2019-05-28 teleconf:
+
+
+\begin{lstlisting}
+       #include <stdlib.h>
+       #include <stdio.h>
+       typedef struct A { int x, y; } A;
+       typedef struct B { int x, y; } B;
+       
+       __attribute__((__noinline__, __weak__))
+       void f(long unk, void *pa, void *pa2, void *pb, long *x) {
+         for (long i = 0; i < unk; ++i) {
+           int oldy = ((A *)pa)->y;
+           ((B *)pb)->y = 42;
+           ((A *)pa2)->y = oldy ^ x[i];
+         }
+       }
+       
+       int main(void) {
+         void *p = malloc(sizeof(A));
+         ((A *)p)->y = 13;
+         f(1, p, p, p, (long []){ 0 });
+         printf("pa->y(%d)\n", ((A *)p)->y);
+       }
+\end{lstlisting}
+
+He tried 
+  gcc and clang on x86 and POWER, with optimisation.  The
+  compiler thinks the write to \lstinline{{(B*)pb)->y} is constant, so compilers lift or sink
+  out of loop, clobbering the value of  \lstinline{((A *)p)->y}, because they assume \lstinline{(B*)pb} and
+  \lstinline{(A*)pa} / \lstinline{(A*)pa2} don't alias.
+
+Changing to an int/float case makes no difference, so one couldn't
+  work around this by just looking at the access types:
+
+
+How could we proceed?  Some conceivable options are below, but many
+look quite unappealing. 
+
+\begin{enumerate}
+\item add syntactic clues for type-changing updates, along the lines of
+      the C++ placement new and launder
+
+\item provide an analogue of \texttt{-fno-strict-aliasing} on finer
+      granularities
+
+\item specify the two dialects, with and without \texttt{-fno-strict-aliasing},
+      with the latter having a blanket prohibition on type-changing
+      updates
+
+\item change compilers to remove this use of TBAA
+
+\item make function arguments all restrict
+
+\item use Hal's TBAA sanitiser (or other tools) to survey how common
+      type-changing updates are in practice, in code bases that are
+      compiled without \texttt{-fno-strict-aliasing}
+
+
+\item add new qualifier that lets one say the compiler can assume the
+      types don't change
+\end{enumerate}
+
 
 
 \end{document}

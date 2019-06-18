@@ -21,6 +21,9 @@ clean:
 install: $(TOP).pdf
 	cp $(TOP).pdf ../built_doc
 
+install-P1796R0:  $(TOP).pdf
+	cp $(TOP).pdf ../built_doc/P1796R0.pdf
+
 ################## build figures from .fig #########
 
 %.pstex %.pstex_t : %.fig
