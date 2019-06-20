@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Peter Sewell" />
+  <meta name="date" content="2019-06-18" />
+  <title>C/C++ Memory Object Model Papers - Introduction (P1797R0)</title>
+</head>
+<body>
+<div id="header">
+<h1 class="title">C/C++ Memory Object Model Papers - Introduction (P1797R0)</h1>
+<h2 class="author">Peter Sewell</h2>
+<h3 class="date">2019-06-18</h3>
+</div>
+<p>Over the last few years, some of us in the WG14 Memory Object Model study group have explored a range of issues in the C memory object model, focussing especially on pointer provenance semantics. We now have concrete proposals (especially the &quot;PNVI-ae-udi&quot; and &quot;PNVI-plain&quot; alternatives) that seem to handle many subtle cases in reasonable ways, including casts between pointers and integers, and representation-byte accesses to pointer bytes. Much of this is not specific to C; it really relates to the behaviour of compiler alias analysis, and should be largely harmonised between C and C++. It would therefore be very useful to discuss it in detail with the appropriate parts of WG21.</p>
+<p>Below are the relevant papers from a recent WG14 meeting, and an additional collection of effective-type and subobject examples (they are phrased w.r.t. C, but the issues about the underlying semantics should be similar for C++).</p>
+<h2 id="provenance">Provenance</h2>
+<ul>
+<li><p><a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2378.pdf">N2378: C provenance semantics: slides (extracts from N2363)</a>, Peter Sewell, Kayvan Memarian, Victor B. F. Gomes, Jens Gustedt, and Martin Uecker.</p>
+<p>These slides are the best place to start, introducing some of the key examples and our proposed models for provenance semantics.</p></li>
+<li><p><a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2363.pdf">N2363: C provenance semantics: examples</a>, Peter Sewell, Kayvan Memarian, Victor B. F. Gomes, Jens Gustedt, and Martin Uecker.</p>
+<p>This gives a more detailed collection of examples.</p></li>
+<li><p><a href="http://cerberus.cl.cam.ac.uk/cerberus">Cerberus web interface</a>, Kayvan Memarian, Victor B. F. Gomes, and Peter Sewell.</p>
+<p>This is a web interface to our Cerberus executable C semantics, that lets one interactively explore and visualise the behaviour of small examples in each of the proposed models.</p></li>
+<li><p><a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2362.pdf">N2362: Moving to a provenance-aware memory object model for C</a>, Jens Gustedt, Peter Sewell, Kayvan Memarian, Victor B. F. Gomes, and Martin Uecker</p>
+<p>This gives proposed C standard text diff, corresponding to the ``PNVI-ae-udi'' model developed above. Jens Gustedt is working on an updated version of this, following the April 2019 London WG14 meeting.</p></li>
+<li><p><a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2364.pdf">N2364: C provenance semantics: detailed semantics (for PNVI-plain, PNVI address-exposed, PNVI address-exposed user-disambiguation, and PVI models)</a>, Peter Sewell, Kayvan Memarian, and Victor B. F. Gomes.</p>
+<p>This, for the mathematically inclined only, gives precise semantics for the various alternative models.</p></li>
+</ul>
+<h2 id="effective-types-and-subobjects">Effective types and subobjects</h2>
+<ul>
+<li><p><a href="https://github.com/C-memory-object-model-study-group/c-mom-sg/blob/master/notes/built_doc/P1796R0.pdf">Effective types:examples (P1796R0)</a>, Peter Sewell, Kayvan Memarian, Victor B. F. Gomes, Jens Gustedt, and Hubert Tong</p>
+<p>This is a collection of examples exploring the semantics that should be allowed for objects and subobjects in allocated regions -- especially, where the defined/undefined-behaviour boundary should be.</p></li>
+</ul>
+<h2 id="pointer-lifetime-end-zap">Pointer lifetime-end zap</h2>
+<p>Related, Paul McKenney, Maged Michael, and others have recently observed that the ISO C specification that ``all pointers to an object become indeterminate values at the end of its lifetime'' is incompatible with idioms in widely used concurrent algorithms. Paul is working on an updated paper for WG21 Cologne.</p>
+</body>
+</html>
