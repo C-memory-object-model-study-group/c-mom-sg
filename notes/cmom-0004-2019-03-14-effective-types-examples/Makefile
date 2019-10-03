@@ -1,4 +1,5 @@
-TOP=cmom-0004-2019-03-14-effective-types-examples
+#TOP=cmom-0004-2019-03-14-effective-types-examples
+TOP=slides-2019-07-wg21-effective-types
 
 all: $(TOP).pdf
 
@@ -18,8 +19,11 @@ clean:
 	rm -rf $(TOP).pdf
 	rm -rf *.bak
 
-install: $(TOP).pdf
-	cp $(TOP).pdf ../built_doc
+#install: $(TOP).pdf
+#	cp $(TOP).pdf ../built_doc
+
+install: slides-2019-07-wg21-effective-types.pdf
+	cp slides-2019-07-wg21-effective-types.pdf ../built_doc/slides-2019-07-wg21-effective-types-with-notes.pdf
 
 install-P1796R0:  $(TOP).pdf
 	cp $(TOP).pdf ../built_doc/P1796R0.pdf
