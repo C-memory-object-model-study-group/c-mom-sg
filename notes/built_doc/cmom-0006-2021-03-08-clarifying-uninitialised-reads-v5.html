@@ -8,6 +8,43 @@
   <meta name="date" content="2021-03-08" />
   <title>Clarifying uninitialised reads v5 - working draft</title>
   <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
 </head>
 <body>
 <div id="header">
@@ -102,20 +139,20 @@
 <p>We assume the former reading, and propose to clarify the terminology to make that plain - c.f. the note by Jens Gustedt and Martin Uecker.</p>
 <h2 id="design-questions---unspecified-values"><span class="header-section-number">2.6</span> Design questions - unspecified values</h2>
 <h3 id="reading-uninitialised-values"><span class="header-section-number">2.6.1</span> Reading uninitialised values</h3>
-<pre><code>Example trap_representation_1.c 
-int main() {
-  int i;
-  int *p = &amp;i;
-  int j=i;   // should this have undefined behaviour?
-  // note that i is read but the value is not used
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example trap_representation_1.c 
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> i;
+  <span class="dt">int</span> *p = &amp;i;
+  <span class="dt">int</span> j=i;   <span class="co">// should this have undefined behaviour?</span>
+  <span class="co">// note that i is read but the value is not used</span>
 }
 
 Example trap_representation_2.c 
-int main() {
-  int i;
-  int j=i;   // should this have undefined behaviour?
-  // note that i is read but the value is not used
-}</code></pre>
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> i;
+  <span class="dt">int</span> j=i;   <span class="co">// should this have undefined behaviour?</span>
+  <span class="co">// note that i is read but the value is not used</span>
+}</code></pre></div>
 <p>In the current standard, for implementations in which <code>int</code> has no trap representations (so 6.2.6.1p5 is irrelevant), the first has defined behaviour. By 6.2.4p6 the value is indeterminate, so by the definition of indeterminate values, where there are no trap representations at <code>int</code>, the result is an unspecified value.</p>
 <p>In the current standard, the second has undefined behaviour (by 6.3.2.1p2).</p>
 <p>Historical question: what was the intent of the address-taken distinction? From previous discussion, it seems to have been an attempt to model the Itanium NaT not a thing behaviour, but it's not clear whether it's sufficient for that (c.f. mail with Hans Boehm, who pointed out that inlining and optimisation might keep values in registers, potentially with a NaT flag, even if in the source its address is taken).</p>
@@ -128,20 +165,20 @@ int main() {
 </ol>
 <h3 id="stability-of-uninitialised-values"><span class="header-section-number">2.6.2</span> Stability of uninitialised values</h3>
 <p>In the absence of any writes, is the result of reading an uninitialised object potentially unstable, i.e., can multiple usages of it give different results?</p>
-<pre><code>Example unspecified_value_stability.c
-include &lt;stdio.h&gt;
-int main() {
-  // assume here that int has no trap representations and 
-  // that printing an unspecified value is not itself 
-  // undefined behaviour
-  int i;
-  int *p = &amp;i;
-  // can the following print different values?
-  printf(&quot;i=0x%x\n&quot;,i);
-  printf(&quot;i=0x%x\n&quot;,i);
-  printf(&quot;i=0x%x\n&quot;,i);
-  printf(&quot;i=0x%x\n&quot;,i);
-}</code></pre>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_stability.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="co">// assume here that int has no trap representations and </span>
+  <span class="co">// that printing an unspecified value is not itself </span>
+  <span class="co">// undefined behaviour</span>
+  <span class="dt">int</span> i;
+  <span class="dt">int</span> *p = &amp;i;
+  <span class="co">// can the following print different values?</span>
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+}</code></pre></div>
 <p>The current standard text is not completely clear: the 3.19.3 definition of unspecified value says &quot;valid value of the relevant type where this International Standard imposes no requirements on which value is chosen in any instance&quot;, but it's unclear whether the &quot;instance&quot; is per-initialisation or per-read.</p>
 <p>Clang sometimes prints distinct values here (this is consistent with the Clang internal documentation). Accordingly, we think the answer has to be &quot;yes&quot;.</p>
 <p>Design question: In the absence of any writes, is the result of reading an uninitialised object potentially unstable, i.e., can multiple usages of it give different results?</p>
@@ -151,16 +188,16 @@ int main() {
 <li>other</li>
 </ol>
 <h3 id="q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="header-section-number">2.6.3</span> Q52 Do operations on unspecified values result in unspecified values?</h3>
-<pre><code>Example unspecified_value_strictness_and_1.c
-include &lt;stdio.h&gt;
-int main() {
-  unsigned char c; 
-  unsigned char *p=&amp;c;
-  unsigned char c2 = (c | 1);
-  unsigned char c3 = (c2 &amp; 1);
-  // does c3 hold an unspecified value (not 1)?  
-  printf(&quot;c=%i  c2=%i  c3=%i\n&quot;,(int)c,(int)c2,(int)c3);
-}</code></pre>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_strictness_and_1.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="dt">unsigned</span> <span class="dt">char</span> c; 
+  <span class="dt">unsigned</span> <span class="dt">char</span> *p=&amp;c;
+  <span class="dt">unsigned</span> <span class="dt">char</span> c2 = (c | <span class="dv">1</span>);
+  <span class="dt">unsigned</span> <span class="dt">char</span> c3 = (c2 &amp; <span class="dv">1</span>);
+  <span class="co">// does c3 hold an unspecified value (not 1)?  </span>
+  printf(<span class="st">&quot;c=%i  c2=%i  c3=%i</span><span class="sc">\n</span><span class="st">&quot;</span>,(<span class="dt">int</span>)c,(<span class="dt">int</span>)c2,(<span class="dt">int</span>)c3);
+}</code></pre></div>
 <p>(An LLVM developer remarked (some time ago) that different parts of LLVM assume that undef is propagated aggressively or that it represents an unknown particular number.)</p>
 <p>Design question: either</p>
 <ol style="list-style-type: decimal">
@@ -180,44 +217,44 @@ int main() {
 <p>It would also make the N1793 Fig.4 printhexdigit not useful when applied to an uninitialised structure member.</p>
 <p>Option 1a is implemented in the Cerberus C semantics, so we have experience of working through all the details.</p>
 <h3 id="q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="header-section-number">2.6.4</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</h3>
-<pre><code>Example unspecified_value_daemonic_1.c
-int main() {
-  int i;
-  int *p = &amp;i;
-  int j = i;   
-  int k = 1/j; // should this have undefined behaviour?
-}</code></pre>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_daemonic_1.c
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> i;
+  <span class="dt">int</span> *p = &amp;i;
+  <span class="dt">int</span> j = i;   
+  <span class="dt">int</span> k = <span class="dv">1</span>/j; <span class="co">// should this have undefined behaviour?</span>
+}</code></pre></div>
 <p>The division operation has undefined behaviour for certain concrete argument values, i.e. 0, to accommodate implementation behaviour. If there is an abstract-machine execution in which the second argument is an unspecified value, then a corresponding execution of an actual implementation might divide by zero, so in the abstract machine division should be daemonic: division by an unspecified value should be just as &quot;bad&quot; as division by zero. The same holds for other partial operations and library calls.</p>
 <p>For Option 1 (symbolic unspecified values) this seems forced.</p>
 <p>For Option 2 (read-time nondeterministic choices of concrete values), the UB will arise on one execution and hence the program will be UB.</p>
 <h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="header-section-number">2.6.5</span> Can a structure containing an uninitialised member can be copied as a whole?</h3>
-<pre><code>Example unspecified_value_struct_copy.c
-include &lt;stdio.h&gt;
-typedef struct { int i1; int i2; } st;
-int main() {
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_struct_copy.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">int</span> i1; <span class="dt">int</span> i2; } st;
+<span class="dt">int</span> main() {
   st s1;
-  s1.i1 = 1;
+  s1.i1 = <span class="dv">1</span>;
   st s2;
-  s2 = s1; // should this have defined behaviour?
-  printf(&quot;s2.i1=%i\n&quot;,s2.i1);
-}</code></pre>
+  s2 = s1; <span class="co">// should this have defined behaviour?</span>
+  printf(<span class="st">&quot;s2.i1=%i</span><span class="sc">\n</span><span class="st">&quot;</span>,s2.i1);
+}</code></pre></div>
 <p>There are two versions of this question: one where the uninitialised member might be a trap representation and one where it cannot be, and so is known to be an unspecified value.</p>
 <p>In either case, this seems to be relied on in practice, and the 6.2.6.1p6 &quot;The value of a structure or union object is never a trap representation&quot; suggests the previous WG14 intent was to permit it.</p>
 <p>In the Option 1 (symbolic unspecified-value tokens) semantics, the copy will have the unspecified value token for the same member; the struct as a whole will not become an unspecified value (i.e. forming a structure value should not be strict in unspecified-value-ness). In the Option 2 (read-time nondeterministic value) semantics, the copy would have a nondeterministically chosen but thereafter fixed concrete value.</p>
 <h3 id="can-a-union-as-a-whole-be-an-unspecified-value"><span class="header-section-number">2.6.6</span> Can a union-as-a-whole be an unspecified value?</h3>
 <p>In principle there is a similar question for unions: can a union value as a whole be an unspecified value? There might be a real semantic difference, between an unspecified value as whole and a union that contains a specific member which itself is an unspecified value. But it's unclear whether there is a test in ISO C that distinguishes the two. We presume &quot;no&quot;.</p>
 <h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="header-section-number">2.6.7</span> Can a structure containing an uninitialised member can be copied member-by-member?</h3>
-<pre><code>Example unspecified_value_struct_copy_2.c
-include &lt;stdio.h&gt;
-typedef struct { int i1; _Bool b2; } st;
-int main() {
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_struct_copy_2.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">int</span> i1; <span class="dt">_Bool</span> b2; } st;
+<span class="dt">int</span> main() {
   st s1;
-  s1.i1 = 1;
+  s1.i1 = <span class="dv">1</span>;
   st s2;
   s2.i1 = s1.i1; 
-  s2.b2 = s1.b2; // does this have defined behaviour?
-  printf(&quot;s2.i1=%i\n&quot;,s2.i1);
-}</code></pre>
+  s2.b2 = s1.b2; <span class="co">// does this have defined behaviour?</span>
+  printf(<span class="st">&quot;s2.i1=%i</span><span class="sc">\n</span><span class="st">&quot;</span>,s2.i1);
+}</code></pre></div>
 <p>A unfortunate consequence of the choices so far is that a whole-struct copy and a member-by-member struct copy might not be equally well-defined: the former will always be defined behaviour, while the latter will be UB iff there is an uninitialised member of a type that has trap representations (e.g. <code>_Bool</code> on many platforms).</p>
 <p>If we wanted to avoid this, we would have to change the notion of trap representation to give UB when any non-read/write operation is performed, rather than when any read is performed.</p>
 <p>Design question: do we want to support copying of uninitialised values at types that have trap representations?</p>
@@ -228,32 +265,32 @@ int main() {
 </ol>
 <p>We presume no for the time being, mostly to be conservative w.r.t. the current standard text.</p>
 <h3 id="q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="header-section-number">2.6.8</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</h3>
-<pre><code>Example besson_blazy_wilke_bitfields_1u.c
-include &lt;stdio.h&gt;
-struct f {
-  unsigned int a0 : 1; unsigned int a1 : 1;
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example besson_blazy_wilke_bitfields_1u.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="kw">struct</span> f {
+  <span class="dt">unsigned</span> <span class="dt">int</span> a0 : <span class="dv">1</span>; <span class="dt">unsigned</span> <span class="dt">int</span> a1 : <span class="dv">1</span>;
 } bf ;
 
-int main() {
-  unsigned int a;
-  bf.a1 = 1; 
+<span class="dt">int</span> main() {
+  <span class="dt">unsigned</span> <span class="dt">int</span> a;
+  bf.a1 = <span class="dv">1</span>; 
   a = bf.a1; 
-  printf(&quot;a=%u\n&quot;,a);
-}</code></pre>
+  printf(<span class="st">&quot;a=%u</span><span class="sc">\n</span><span class="st">&quot;</span>,a);
+}</code></pre></div>
 <p>This example is from Besson, Blazy, and Wilke 2015.</p>
 <p>For consistency with the rest of our per-leaf-value proposal, we suggest &quot;yes&quot;.</p>
 <h3 id="q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="header-section-number">2.6.9</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</h3>
-<pre><code>Example unspecified_value_representation_bytes_1.c
-include &lt;stdio.h&gt;
-int main() {
-  // assume here that the implementation-defined 
-  // representation of int has no trap representations
-  int i;
-  unsigned char c = * ((unsigned char*)(&amp;i)); 
-  // does c now hold an unspecified value?
-  printf(&quot;i=0x%x  c=0x%x\n&quot;,i,(int)c);
-  printf(&quot;i=0x%x  c=0x%x\n&quot;,i,(int)c);
-}</code></pre>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_1.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="co">// assume here that the implementation-defined </span>
+  <span class="co">// representation of int has no trap representations</span>
+  <span class="dt">int</span> i;
+  <span class="dt">unsigned</span> <span class="dt">char</span> c = * ((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;i)); 
+  <span class="co">// does c now hold an unspecified value?</span>
+  printf(<span class="st">&quot;i=0x%x  c=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i,(<span class="dt">int</span>)c);
+  printf(<span class="st">&quot;i=0x%x  c=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i,(<span class="dt">int</span>)c);
+}</code></pre></div>
 <p>The answer to this is unclear from multiple points of view: ISO C11 doesn't address the question; we don't know whether existing compilers assume these are unspecified values, and we don't know whether existing code relies on them not being unspecified values (e.g. by assuming that one can construct a deterministic hash from the representation bytes of an uninitialised value).</p>
 <p>Options:</p>
 <ol style="list-style-type: lower-alpha">
@@ -262,20 +299,20 @@ int main() {
 <li><p>Other.</p></li>
 </ol>
 <h3 id="q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="header-section-number">2.6.10</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</h3>
-<pre><code>Example unspecified_value_representation_bytes_4.c
-include &lt;stdio.h&gt;
-int main() {
-  // assume here that the implementation-defined
-  // representation of int has no trap representations
-  int i;
-  printf(&quot;i=0x%x\n&quot;,i);
-  printf(&quot;i=0x%x\n&quot;,i);
-  unsigned char *cp = (unsigned char*)(&amp;i);
-  *(cp+1) = 0x22;
-  // does *cp now hold an unspecified value?
-  printf(&quot;*cp=0x%x\n&quot;,*cp);
-  printf(&quot;*cp=0x%x\n&quot;,*cp);
-}</code></pre>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_4.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="co">// assume here that the implementation-defined</span>
+  <span class="co">// representation of int has no trap representations</span>
+  <span class="dt">int</span> i;
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  <span class="dt">unsigned</span> <span class="dt">char</span> *cp = (<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;i);
+  *(cp+<span class="dv">1</span>) = <span class="bn">0x22</span>;
+  <span class="co">// does *cp now hold an unspecified value?</span>
+  printf(<span class="st">&quot;*cp=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,*cp);
+  printf(<span class="st">&quot;*cp=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,*cp);
+}</code></pre></div>
 <p>One could conceivably take the first such access as &quot;freezing&quot; the unspecified value and its representation bytes, but that would be pretty strange. The simplest choice is &quot;yes&quot;.</p>
 <ol style="list-style-type: lower-alpha">
 <li>yes</li>
@@ -283,19 +320,19 @@ int main() {
 <li>other</li>
 </ol>
 <h3 id="q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="header-section-number">2.6.11</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</h3>
-<pre><code>Example unspecified_value_representation_bytes_2.c
-include &lt;stdio.h&gt;
-int main() {
-  // assume here that the implementation-defined
-  // representation of int has no trap representations
-  int i;
-  printf(&quot;i=0x%x\n&quot;,i);
-  printf(&quot;i=0x%x\n&quot;,i);
-  * (((unsigned char*)(&amp;i))+1) = 0x22;
-  // does i now hold an unspecified value?
-  printf(&quot;i=0x%x\n&quot;,i);
-  printf(&quot;i=0x%x\n&quot;,i);
-}</code></pre>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_2.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="co">// assume here that the implementation-defined</span>
+  <span class="co">// representation of int has no trap representations</span>
+  <span class="dt">int</span> i;
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  * (((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;i))+<span class="dv">1</span>) = <span class="bn">0x22</span>;
+  <span class="co">// does i now hold an unspecified value?</span>
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+  printf(<span class="st">&quot;i=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,i);
+}</code></pre></div>
 <p>One could conceivably require that a read of the whole should give a nondeterministically chosen value consistent with the concretely written representation bytes, but that would be complex and not obviously useful.. The simplest choice is &quot;yes&quot;.</p>
 <ol style="list-style-type: lower-alpha">
 <li>yes</li>
@@ -388,134 +425,134 @@ int main() {
 <p>It's also conceivable that a compiler would reserve space in a structure or union type for its own purposes, e.g. for some bounds-checking or debug metadata, but we imagine that this does not actually happens in mainstream implementations.</p>
 <h2 id="design-questions---padding-bytes"><span class="header-section-number">3.4</span> Design questions - padding bytes</h2>
 <h3 id="q61.-after-an-explicit-write-of-a-padding-byte-does-that-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.1</span> Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)</h3>
-<pre><code>Example padding_unspecified_value_1.c
-#include &lt;stdio.h&gt;
-#include &lt;stddef.h&gt;
-typedef struct { char c; float f; int i; } st;
-int main() {
-  // check there is a padding byte between c and f
-  size_t offset_padding = offsetof(st,c)+sizeof(char);
-  if (offsetof(st,f)&gt;offset_padding) {
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_1.c
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">char</span> c; <span class="dt">float</span> f; <span class="dt">int</span> i; } st;
+<span class="dt">int</span> main() {
+  <span class="co">// check there is a padding byte between c and f</span>
+  <span class="dt">size_t</span> offset_padding = offsetof(st,c)+<span class="kw">sizeof</span>(<span class="dt">char</span>);
+  <span class="cf">if</span> (offsetof(st,f)&gt;offset_padding) {
       st s; 
-      unsigned char *p = ((unsigned char*)(&amp;s))
+      <span class="dt">unsigned</span> <span class="dt">char</span> *p = ((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;s))
         + offset_padding;
-      *p = &#39;A&#39;;
-      unsigned char c1 = *p; 
-      // does c1 hold &#39;A&#39;, not an unspecified value?
-      printf(&quot;c1=%c\n&quot;,c1);
+      *p = <span class="ch">&#39;A&#39;</span>;
+      <span class="dt">unsigned</span> <span class="dt">char</span> c1 = *p; 
+      <span class="co">// does c1 hold &#39;A&#39;, not an unspecified value?</span>
+      printf(<span class="st">&quot;c1=%c</span><span class="sc">\n</span><span class="st">&quot;</span>,c1);
   }
-  return 0;
-}</code></pre>
+  <span class="cf">return</span> <span class="dv">0</span>;
+}</code></pre></div>
 <p>For objects with static, thread, or automatic storage durations, and leaving aside unions, for each byte it's fixed whether it’s a padding byte or not for the lifetime of the object, and one could conceivably regard the padding bytes as being unspecified values irrespective of any explicit writes to them (for a union, the padding status of a byte depends on which member the union &quot;currently contains&quot;) (For objects with allocated storage duration, as malloc'd region can be reused, that would have to be intertwined with effective-type semantics, which is still unclear.) But this would give programmers no way to ensure the absence of information leaks.</p>
 <p>If we've gone for Option 1 for uninitialised reads, it'd be straightforward to use the same mechanism for uninitialised padding bytes, and write the unspecified-value token to padding in some circumstances. That would let it be overwritten with a concrete value if desired.</p>
 <h3 id="q62.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.2</span> Q62. After an explicit write of a padding byte followed by a write to the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
-<pre><code>Example padding_unspecified_value_2.c:
-#include &lt;stdio.h&gt;
-#include &lt;stddef.h&gt;
-typedef struct { char c; float f; int i; } st;
-int main() {
-  // check there is a padding byte between c and f
-  size_t offset_padding = offsetof(st,c)+sizeof(char);
-  if (offsetof(st,f)&gt;offset_padding) {
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_2.c:
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">char</span> c; <span class="dt">float</span> f; <span class="dt">int</span> i; } st;
+<span class="dt">int</span> main() {
+  <span class="co">// check there is a padding byte between c and f</span>
+  <span class="dt">size_t</span> offset_padding = offsetof(st,c)+<span class="kw">sizeof</span>(<span class="dt">char</span>);
+  <span class="cf">if</span> (offsetof(st,f)&gt;offset_padding) {
       st s; 
-      unsigned char *p = 
-        ((unsigned char*)(&amp;s)) + offset_padding;
-      *p = &#39;B&#39;;
-      s = (st){ .c=&#39;E&#39;, .f=1.0, .i=1};
-      unsigned char c2 = *p; 
-      // does c2 hold &#39;B&#39;, not an unspecified value?
-      printf(&quot;c2=0x%x\n&quot;,(int)c2);
+      <span class="dt">unsigned</span> <span class="dt">char</span> *p = 
+        ((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;s)) + offset_padding;
+      *p = <span class="ch">&#39;B&#39;</span>;
+      s = (st){ .c=<span class="ch">&#39;E&#39;</span>, .f=<span class="fl">1.0</span>, .i=<span class="dv">1</span>};
+      <span class="dt">unsigned</span> <span class="dt">char</span> c2 = *p; 
+      <span class="co">// does c2 hold &#39;B&#39;, not an unspecified value?</span>
+      printf(<span class="st">&quot;c2=0x%x</span><span class="sc">\n</span><span class="st">&quot;</span>,(<span class="dt">int</span>)c2);
   }
-  return 0;
-}</code></pre>
+  <span class="cf">return</span> <span class="dv">0</span>;
+}</code></pre></div>
 <p>Here we see reads both of <code>B</code> and of <code>0x0</code>. Changing the example to one in which the compiler might naturally use a 4-byte copy, we sometimes see an overwrite of the padding byte on the write of the struct value.</p>
 <h3 id="q63.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-adjacent-members-of-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.3</span> Q63. After an explicit write of a padding byte followed by a write to adjacent members of the structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
-<pre><code>Example padding_unspecified_value_7.c:
-#include &lt;stdio.h&gt;
-#include &lt;stddef.h&gt;
-typedef struct { char c; float f; int i; } st;
-int main() {
-  // check there is a padding byte between c and f
-  size_t offset_padding = offsetof(st,c)+sizeof(char);
-  if (offsetof(st,f)&gt;offset_padding) {
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_7.c:
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">char</span> c; <span class="dt">float</span> f; <span class="dt">int</span> i; } st;
+<span class="dt">int</span> main() {
+  <span class="co">// check there is a padding byte between c and f</span>
+  <span class="dt">size_t</span> offset_padding = offsetof(st,c)+<span class="kw">sizeof</span>(<span class="dt">char</span>);
+  <span class="cf">if</span> (offsetof(st,f)&gt;offset_padding) {
       st s; 
-      unsigned char *p = 
-        ((unsigned char*)(&amp;s)) + offset_padding;
-      *p = &#39;C&#39;;
-      s.c = &#39;A&#39;;
-      s.f = 1.0;
-      s.i = 42;
-      unsigned char c3 = *p; 
-      // does c3 hold &#39;C&#39;, not an unspecified value?
-      printf(&quot;c3=%c\n&quot;,c3);
+      <span class="dt">unsigned</span> <span class="dt">char</span> *p = 
+        ((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;s)) + offset_padding;
+      *p = <span class="ch">&#39;C&#39;</span>;
+      s.c = <span class="ch">&#39;A&#39;</span>;
+      s.f = <span class="fl">1.0</span>;
+      s.i = <span class="dv">42</span>;
+      <span class="dt">unsigned</span> <span class="dt">char</span> c3 = *p; 
+      <span class="co">// does c3 hold &#39;C&#39;, not an unspecified value?</span>
+      printf(<span class="st">&quot;c3=%c</span><span class="sc">\n</span><span class="st">&quot;</span>,c3);
   }
-  return 0;
-}</code></pre>
+  <span class="cf">return</span> <span class="dv">0</span>;
+}</code></pre></div>
 <p>This is perhaps the most relevant of these cases in practice, covering the case where the whole footprint of the struct has been filled with zero before use, and also covering the case where all members of the struct have been written (and hence where compilers might coalesce the writes). By requiring the explicit write to be of zero, compilers could implement this either by preserving the in-memory padding byte value or by writing a constant zero to it. Whether that would be sound w.r.t. actual practice is unclear. But it would be useful.</p>
 <h3 id="q65.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-a-non-adjacent-member-of-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.4</span> Q65. After an explicit write of a padding byte followed by a write to a non-adjacent member of the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
-<pre><code>Example padding_unspecified_value_5.c:
-#include &lt;stdio.h&gt;
-#include &lt;stddef.h&gt;
-typedef struct { char c; float f; int i; } st;
-int main() {
-  // check there is a padding byte between c and f
-  size_t offset_padding = offsetof(st,c)+sizeof(char);
-  if (offsetof(st,f)&gt;offset_padding) {
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_5.c:
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">char</span> c; <span class="dt">float</span> f; <span class="dt">int</span> i; } st;
+<span class="dt">int</span> main() {
+  <span class="co">// check there is a padding byte between c and f</span>
+  <span class="dt">size_t</span> offset_padding = offsetof(st,c)+<span class="kw">sizeof</span>(<span class="dt">char</span>);
+  <span class="cf">if</span> (offsetof(st,f)&gt;offset_padding) {
       st s; 
-      unsigned char *p = 
-        ((unsigned char*)(&amp;s)) + offset_padding;
-      *p = &#39;C&#39;;
-      s.i = 42;
-      unsigned char c3 = *p; 
-      // does c3 hold &#39;C&#39;, not an unspecified value?
-      printf(&quot;c3=%c\n&quot;,c3);
+      <span class="dt">unsigned</span> <span class="dt">char</span> *p = 
+        ((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;s)) + offset_padding;
+      *p = <span class="ch">&#39;C&#39;</span>;
+      s.i = <span class="dv">42</span>;
+      <span class="dt">unsigned</span> <span class="dt">char</span> c3 = *p; 
+      <span class="co">// does c3 hold &#39;C&#39;, not an unspecified value?</span>
+      printf(<span class="st">&quot;c3=%c</span><span class="sc">\n</span><span class="st">&quot;</span>,c3);
   }
-  return 0;
-}</code></pre>
+  <span class="cf">return</span> <span class="dv">0</span>;
+}</code></pre></div>
 <h3 id="q66.-after-an-explicit-write-of-a-padding-byte-followed-by-a-writes-to-adjacent-members-of-the-whole-structure-but-accessed-via-pointers-to-the-members-rather-than-via-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.5</span> Q66. After an explicit write of a padding byte followed by a writes to adjacent members of the whole structure, but accessed via pointers to the members rather than via the structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
-<pre><code>Example padding_unspecified_value_6.c:
-#include &lt;stdio.h&gt;
-#include &lt;stddef.h&gt;
-void g(char *c, float *f) {
-  *c=&#39;A&#39;;
-  *f=1.0;
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_6.c:
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
+<span class="dt">void</span> g(<span class="dt">char</span> *c, <span class="dt">float</span> *f) {
+  *c=<span class="ch">&#39;A&#39;</span>;
+  *f=<span class="fl">1.0</span>;
 }
-typedef struct { char c; float f; int i; } st;
-int main() {
-  // check there is a padding byte between c and f
-  size_t offset_padding = offsetof(st,c)+sizeof(char);
-  if (offsetof(st,f)&gt;offset_padding) {
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">char</span> c; <span class="dt">float</span> f; <span class="dt">int</span> i; } st;
+<span class="dt">int</span> main() {
+  <span class="co">// check there is a padding byte between c and f</span>
+  <span class="dt">size_t</span> offset_padding = offsetof(st,c)+<span class="kw">sizeof</span>(<span class="dt">char</span>);
+  <span class="cf">if</span> (offsetof(st,f)&gt;offset_padding) {
       st s; 
-      unsigned char *p = 
-        ((unsigned char*)(&amp;s)) + offset_padding;
-      *p = &#39;D&#39;;
+      <span class="dt">unsigned</span> <span class="dt">char</span> *p = 
+        ((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;s)) + offset_padding;
+      *p = <span class="ch">&#39;D&#39;</span>;
       g(&amp;s.c, &amp;s.f);
-      unsigned char c4 = *p; 
-      // does c4 hold &#39;D&#39;, not an unspecified value?
-      printf(&quot;c4=%c\n&quot;,c4);
+      <span class="dt">unsigned</span> <span class="dt">char</span> c4 = *p; 
+      <span class="co">// does c4 hold &#39;D&#39;, not an unspecified value?</span>
+      printf(<span class="st">&quot;c4=%c</span><span class="sc">\n</span><span class="st">&quot;</span>,c4);
   }
-  return 0;
-}</code></pre>
+  <span class="cf">return</span> <span class="dv">0</span>;
+}</code></pre></div>
 <p>Compiler optimisations could perhaps recognise the accesses are to adjacent struct members and coalesce them.</p>
 <h3 id="q60.-can-structure-copy-copy-padding"><span class="header-section-number">3.4.6</span> Q60. Can structure-copy copy padding?</h3>
-<pre><code>Example padding_unspecified_value_1.c:
-#include &lt;stdio.h&gt;
-#include &lt;stddef.h&gt;
-typedef struct { char c; float f; int i; } st;
-int main() {
-  // check there is a padding byte between c and f
-  size_t offset_padding = offsetof(st,c)+sizeof(char);
-  if (offsetof(st,f)&gt;offset_padding) {
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_1.c:
+<span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
+<span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">char</span> c; <span class="dt">float</span> f; <span class="dt">int</span> i; } st;
+<span class="dt">int</span> main() {
+  <span class="co">// check there is a padding byte between c and f</span>
+  <span class="dt">size_t</span> offset_padding = offsetof(st,c)+<span class="kw">sizeof</span>(<span class="dt">char</span>);
+  <span class="cf">if</span> (offsetof(st,f)&gt;offset_padding) {
       st s; 
-      unsigned char *p = ((unsigned char*)(&amp;s))
+      <span class="dt">unsigned</span> <span class="dt">char</span> *p = ((<span class="dt">unsigned</span> <span class="dt">char</span>*)(&amp;s))
         + offset_padding;
-      *p = &#39;A&#39;;
-      unsigned char c1 = *p; 
-      // does c1 hold &#39;A&#39;, not an unspecified value?
-      printf(&quot;c1=%c\n&quot;,c1);
+      *p = <span class="ch">&#39;A&#39;</span>;
+      <span class="dt">unsigned</span> <span class="dt">char</span> c1 = *p; 
+      <span class="co">// does c1 hold &#39;A&#39;, not an unspecified value?</span>
+      printf(<span class="st">&quot;c1=%c</span><span class="sc">\n</span><span class="st">&quot;</span>,c1);
   }
-  return 0;
-}</code></pre>
+  <span class="cf">return</span> <span class="dv">0</span>;
+}</code></pre></div>
 <h2 id="padding-design-choices-summarised"><span class="header-section-number">3.5</span> Padding Design choices summarised</h2>
 <ol style="list-style-type: decimal">
 <li><p>regard reads from padding bytes as intrinsically loosely specified, and then follow whatever semantics one has for reading uninitialised values (at unsigned character type), irrespective of any writes to those padding bytes.</p></li>

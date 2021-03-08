@@ -156,7 +156,7 @@ to make that plain - c.f. the note by Jens Gustedt and Martin Uecker.
 
 ### Reading uninitialised values
 
-```
+```c
 Example trap_representation_1.c 
 int main() {
   int i;
@@ -195,9 +195,9 @@ Design question: should we allow non-UB reads of uninitialised variables (at typ
 ### Stability of uninitialised values
 
 In the absence of any writes, is the result of reading an uninitialised object  potentially unstable, i.e., can multiple usages of it give different results?
-```
+```c
 Example unspecified_value_stability.c
-include <stdio.h>
+#include <stdio.h>
 int main() {
   // assume here that int has no trap representations and 
   // that printing an unspecified value is not itself 
@@ -232,9 +232,9 @@ multiple usages of it give different results?
 
 
 ### Q52 Do operations on unspecified values result in unspecified values?
-```
+```c
 Example unspecified_value_strictness_and_1.c
-include <stdio.h>
+#include <stdio.h>
 int main() {
   unsigned char c; 
   unsigned char *p=&c;
@@ -278,7 +278,7 @@ Option 1a is implemented in the Cerberus C semantics, so we have experience of w
 
 ### Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?
 
-```
+```c
 Example unspecified_value_daemonic_1.c
 int main() {
   int i;
@@ -304,9 +304,9 @@ the UB will arise on one execution and hence the program will be UB.
 
 ### Can a structure containing an uninitialised member can be copied as a whole?
 
-```
+```c
 Example unspecified_value_struct_copy.c
-include <stdio.h>
+#include <stdio.h>
 typedef struct { int i1; int i2; } st;
 int main() {
   st s1;
@@ -343,9 +343,9 @@ two.  We presume "no".
 
 ### Can a structure containing an uninitialised member can be copied member-by-member?
 
-```
+```c
 Example unspecified_value_struct_copy_2.c
-include <stdio.h>
+#include <stdio.h>
 typedef struct { int i1; _Bool b2; } st;
 int main() {
   st s1;
@@ -380,9 +380,9 @@ current standard text.
 
 ### Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?
 
-```
+```c
 Example besson_blazy_wilke_bitfields_1u.c
-include <stdio.h>
+#include <stdio.h>
 struct f {
   unsigned int a0 : 1; unsigned int a1 : 1;
 } bf ;
@@ -400,9 +400,9 @@ For consistency with the rest of our per-leaf-value proposal, we suggest "yes".
 
 
 ### Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)
-```
+```c
 Example unspecified_value_representation_bytes_1.c
-include <stdio.h>
+#include <stdio.h>
 int main() {
   // assume here that the implementation-defined 
   // representation of int has no trap representations
@@ -426,9 +426,9 @@ c. Other.
 
 
 ###  Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?
-```
+```c
 Example unspecified_value_representation_bytes_4.c
-include <stdio.h>
+#include <stdio.h>
 int main() {
   // assume here that the implementation-defined
   // representation of int has no trap representations
@@ -451,9 +451,9 @@ c. other
 
 
 ### Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?
-```
+```c
 Example unspecified_value_representation_bytes_2.c
-include <stdio.h>
+#include <stdio.h>
 int main() {
   // assume here that the implementation-defined
   // representation of int has no trap representations
@@ -665,7 +665,7 @@ does not actually happens in mainstream implementations.
 
 ### Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)
 
-```
+```c
 Example padding_unspecified_value_1.c
 #include <stdio.h>
 #include <stddef.h>
@@ -704,7 +704,7 @@ if desired.
 
 ### Q62. After an explicit write of a padding byte followed by a write to the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)
 
-```
+```c
 Example padding_unspecified_value_2.c:
 #include <stdio.h>
 #include <stddef.h>
@@ -733,7 +733,7 @@ of the padding byte on the write of the struct value.
 ### Q63. After an explicit write of a padding byte followed by a write to adjacent members of the structure, does the padding byte hold a well-defined value? (not an unspecified value)
 
 
-```
+```c
 Example padding_unspecified_value_7.c:
 #include <stdio.h>
 #include <stddef.h>
@@ -767,7 +767,7 @@ But it would be useful.
 
 ### Q65. After an explicit write of a padding byte followed by a write to a non-adjacent member of the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)
 
-```
+```c
 Example padding_unspecified_value_5.c:
 #include <stdio.h>
 #include <stddef.h>
@@ -793,7 +793,7 @@ int main() {
 
 ### Q66. After an explicit write of a padding byte followed by a writes to adjacent members of the whole structure, but accessed via pointers to the members rather than via the structure, does the padding byte hold a well-defined value? (not an unspecified value)
 
-```
+```c
 Example padding_unspecified_value_6.c:
 #include <stdio.h>
 #include <stddef.h>
@@ -825,7 +825,7 @@ adjacent struct members and coalesce them.
 
 ### Q60. Can structure-copy copy padding?
 
-```
+```c
 Example padding_unspecified_value_1.c:
 #include <stdio.h>
 #include <stddef.h>
