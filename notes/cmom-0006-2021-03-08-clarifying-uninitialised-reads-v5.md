@@ -4,8 +4,10 @@
 
 
 
-Reading uninitialised values has many conceivable semantics in C, and
-there are conflicting demands and expectations.
+Reading uninitialised values has many conceivable semantics in C,
+there are conflicting demands and expectations, and the current
+standard text is not clear about all aspects.  This note summarises
+the design space with a series of questions.
 
 
 # Related papers
@@ -35,8 +37,13 @@ Sections 3.1 and 3.2 (Q48-59) of
 [N1818](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1818.pdf).  
 
 
+Papers by Juneyoung Lee et al.: 
+(PLDI 2017) Taming Undefined Behavior in LLVM; 
+(OOPSLA 2018) Reconciling High-level Optimizations and Low-level Code in LLVM.
+	
+# Uninitialised reads
 
-# From the programmer and existing-code points of view
+## From the programmer and existing-code points of view
 
 In most cases, reading an uninitialised value is a programmer error, and it is/would be desirable for implementations to report this promptly, at compile-time or run-time, wherever they reasonably can.
 
@@ -50,7 +57,7 @@ There are some significant exceptions, where reading uninitialised values is eit
 
   That said, we guess (without evidence) that not much memory is used in this way, and hence that the runtime/code-size cost of requiring zero-initialisation would be small. Although that might reduce error-detection opportunities, e.g. if this is allowed by special-casing some set-bit operations.
 
-- Some polymorphic bytewise operations on structs should be supported e.g. serialisation, encryption, hashing, and (library or user) implementations of memcpy. These necessarily will read and write any padding bytes in the struct layout, and it's desirable for them to be deterministic - or, at least, for it to be possible for the programmer to make them deterministic. 
+- Some polymorphic bytewise operations on structs should be supported e.g. (library or user) implementations of `memcpy` and `memcmp`, serialisation, encryption, and hashing. These necessarily will read and write any uninitialised members and padding bytes in the struct layout, and there should be some way for the programmer to make them well-defined and deterministic. 
 
 - Closely related to that, for struct copies and for those polymorphic bytewise operations, there should be some way (either always on by default, or enabled by some compiler option or annotation, or some specific programming idiom) for the user to ensure they have results that cannot leak potentially-security-relevant information.
 
@@ -70,7 +77,7 @@ survey comments suggest that some (but perhaps not much) real code
 depends on one of the stronger semantics.
 
 
-# Compiler behaviour
+## Compiler behaviour
 
 Compilers do sometimes optimise in ways that make multiple reads of an
 uninitialised value observably different (e.g. as a natural
@@ -81,12 +88,12 @@ started to look at these questions.  We don't know the current state
 of that, or the analogous situation for gcc.
 
 
-# C++
+## C++
 
 It's probably essential for C and C++ to have broadly the same semantics for this, but we don't discuss the current C++ semantics in this note.
 
 
-# The current C standard text
+## The current C standard text - uninitialised values
 
 3.19.2 "indeterminate value: either an unspecified value or a trap
 representation"
@@ -129,9 +136,7 @@ declared with an initializer and no assignment to it has been
 performed prior to use), the behavior is undefined."
 
 
-# Design questions
-
-## Trap representations
+## Design questions - trap representations
 
 The 3.19.4 standard text is clear that trap representations are object
 _representations_, not abstract values of some kind.  It follows that
@@ -147,7 +152,7 @@ We assume the former reading, and propose to clarify the terminology
 to make that plain - c.f. the note by Jens Gustedt and Martin Uecker.
 
 
-## Unspecified values
+## Design questions - unspecified values
 
 ### Reading uninitialised values
 
@@ -266,6 +271,9 @@ code, but it may exist; we don't know how common it is.
 
 It would also make the N1793 Fig.4 printhexdigit not useful when
 applied to an uninitialised structure member. 
+
+
+Option 1a is implemented in the Cerberus C semantics, so we have experience of working through all the details. 
 
 
 ### Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?
@@ -466,5 +474,401 @@ b. no
 c. other
 
 
-## Padding bytes
+## Summary of proposal
 
+We could express the above Option 1 by a modest change to the C abstract machine: for any scalar type, we extend the set of values of that type with a symbolic "unspecified value" token, then we can give rules defining how that is propagated, e.g. if one adds an unspecified value and a concrete integer. The unspecified value token does not have a bit-level representation. 
+notes
+
+[notes98: Clarifying Uninitialised Values (Q47-Q59) v4 - working draft
+Kayvan Memarian, Victor Gomes, Peter Sewell. University of Cambridge
+2018-04-21](http://www.cl.cam.ac.uk/users/pes20/cerberus/notes98-2018-04-21-uninit-v4.html) detailed a possible technical corrigendum for this. 
+
+As always, the "as if" rule applies: the fact that the abstract machine manipulates an explicit "unspecified value" token doesn't mean that implementations have to. Normal implementations may at compile-time but will not at runtime: at runtime they will typically have some arbitrary bit pattern where the abstract machine has the unspecified value token, and the looseness of the rules for operations on unspecified values licenses compiler optimisations. 
+
+This semantics seems to be a reasonable and coherent choice, with several benefits:
+
+- it makes bytewise copying of uninitialised objects (and partially uninitialised objects) legal, e.g. by user-code analogues of memcpy;
+
+- it makes bytewise (un)serialisation of such objects legal, though with nondeterministic results for the values of uninitialised bytes as viewed on disc;
+
+- it permits SSA optimisations for unspecified values;
+
+
+However, there are some things it does not support:
+
+- it does not support bytewise hashing or comparison of such objects, or (un)serialisation that involves compression, as the unspecified values will infect any computation more complex than a copy;
+
+- it does not support copying or (un)serialisation at larger than byte granularities, even with -fno-strict-aliasing, for the same reason; and
+
+- the semantics for printf and other library calls effectively presumes that their arguments are "frozen", which isn't really coherent with the fact that they will be compiled by the same compiler.
+
+So all this should be discussed.
+
+Perhaps there should be a language-level analogue of the "freeze" being introduced in LLVM, to support code that knowingly manipulates potentially uninitialised values. We do not here attempt to specify that.
+
+If we are keeping the concept of trap representations, with _Bool as a
+type (possibly the only one in normal implementations) that has them,
+then copying a partly uninitialised struct member-by-member will give
+rise to UB. How about copying a partially uninitialised struct as a
+whole? Is this an argument for making _Bool have no trap
+representations, instead making it UB to use non-canonical values in
+boolean operations or control-flow choices?
+
+
+# Padding bytes
+
+## The current C standard text - padding bytes
+
+The standard has two quite distinct notions of padding: padding bytes
+in structures and unions, and padding bits within the representation
+of integer types.  We focus here just on the former.
+
+Padding can be added by an implementation between the members of a
+structure, or at the end of a structure or union, but not before the
+first member:
+
+6.7.2.1p17 "...There may be unnamed padding within a structure object, but not
+at its beginning."
+
+6.7.2.1p19 "There may be unnamed padding at the end of a structure or union."
+
+
+Padding for (implicitly initialised) static or thread storage duration
+objects is initialised to zero:
+
+6.7.9p10 "If an object that has static or thread storage duration is
+not initialized explicitly, then: [...] any padding is initialized to
+zero bits"
+
+Curiously, that omits to specify the initialisation of padding for
+such an object that _is_ initialised explicitly; that should
+presumably be fixed.
+
+
+For automatic storage duration objects, the initialisation of padding
+is not described.  All that is specified is that, if there is not an
+explicit initialiser, the abstract value is indeterminate:
+
+6.7.9p10 "If an object that has automatic storage duration is not
+initialized explicitly, its value is indeterminate."
+
+
+When a value is written to a struct or union, the padding bytes "take
+unspecified values":
+
+6.2.6.1 "When a value is stored in an object of structure or union
+type, including in a member object, the bytes of the object
+representation that correspond to any padding bytes take unspecified
+values. 55)"
+
+(curiously, 6.2.6.1 Footnote 55 says "Thus, for example, structure
+assignment need not copy any padding bits", but should refer to
+padding _bytes_; that should be fixed)
+
+The force of "including in a member object" here is unclear: does that
+mean that if one writes to a struct member member, then the padding
+bytes of the enclosing struct, and perhaps also of any of its other
+members, also take unspecified values?
+
+
+7.24.4.3p2 (`memcmp`) Footnote 331): "The contents of "holes" used as padding for purposes of alignment within structure objects are indeterminate. [...]"
+
+It's unclear whether this applies just for `memcmp` or more
+generally.  If padding bytes were intrinsically indeterminate, there would be _no_ way for programmers to ensure an absence of information flow.
+Though as a footnote this is non-normative in any case.
+
+
+## From the programmer and existing-code points of view
+
+Usually programmers are not concerned with the contents of padding bytes.  The exceptions are those we mentioned above:
+
+- Some polymorphic bytewise operations on structs should be supported e.g. (library or user) implementations of `memcpy` and `memcmp`, serialisation, encryption, and hashing. These necessarily will read and write any uninitialised members and padding bytes in the struct layout, and there should be some way for the programmer to make them well-defined and deterministic. 
+
+- Closely related to that, for struct copies and for those polymorphic bytewise operations, there should be some way (either always on by default, or enabled by some compiler option or annotation, or some specific programming idiom) for the user to ensure they have results that cannot leak potentially-security-relevant information.
+
+More specifically, (library or user bytewise) `memcpy` should always
+just work, while for some other operations one might expect the
+programmer to have to explicitly ensure that padding bytes have
+particular values.
+
+
+Our survey had quite mixed responses: 
+
+[1/15] How predictable are reads from padding bytes?
+
+If you zero all bytes of a struct and then write some of its members, do reads of the padding return zero? (e.g. for a bytewise CAS or hash of the struct, or to know that no security-relevant data has leaked into them.)
+
+Will that work in normal C compilers?
+
+- yes : 116 (36%)
+- only sometimes : 95 (29%)
+- no : 21 ( 6%)
+- don't know : 82 (25%)
+- I don't know what the question is asking : 3 ( 1%)
+- no response : 6
+
+Do you know of real code that relies on it?
+ 
+- yes : 46 (14%)
+- yes, but it shouldn't : 31 ( 9%)
+- no, but there might well be : 158 (49%)
+- no, that would be crazy : 58 (18%)
+- don't know : 25 ( 7%)
+- no response : 5
+
+If it won't always work, is that because [check all that apply]:
+
+- you've observed compilers write junk into padding bytes : 31
+- you think compilers will assume that padding bytes contain unspecified values and optimise away those reads : 120
+- no response : 150
+- other : 80 
+
+
+## Compiler behaviour
+
+We don't have good data about what modern compilers actually do for
+padding - comment would be welcome - but they might write to padding
+bytes for several reasons:
+
+- if the target hardware architecture does not support the natural width of a write
+- if it combines writes to adjacent objects into one
+- if it converts a read-write pair (e.g. of a struct) into a `memcpy`
+
+These might affect the padding within and after any members written,
+but nowhere else.
+
+The fact that concurrent access to distinct members is allowed
+constrains wide writes to not touch unwritten members, at least in the
+absence of sophisticated analysis.
+
+Compilers might also not write to or read from padding when one might
+expect them to, e.g. conceivably a `memcpy` of a struct could be
+optimised by omitting to copy some padding, and a read of padding
+could be omitted and replaced by use of whatever value happens to be
+in some processor register.
+
+A struct copy could therefore either write to or not write any padding
+in the struct.
+
+The values of writes to padding could come from a read of that padding
+in another struct of the same type (e.g. in a struct copy), or from
+whatever value happens to be in some processor register, or be zero or
+another fixed value chosen by the compiler.
+
+It's also conceivable that a compiler would reserve space in a
+structure or union type for its own purposes, e.g. for some
+bounds-checking or debug metadata, but we imagine that this
+does not actually happens in mainstream implementations.
+
+
+## Design questions - padding bytes
+
+### Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)
+
+```
+Example padding_unspecified_value_1.c
+#include <stdio.h>
+#include <stddef.h>
+typedef struct { char c; float f; int i; } st;
+int main() {
+  // check there is a padding byte between c and f
+  size_t offset_padding = offsetof(st,c)+sizeof(char);
+  if (offsetof(st,f)>offset_padding) {
+      st s; 
+      unsigned char *p = ((unsigned char*)(&s))
+        + offset_padding;
+      *p = 'A';
+      unsigned char c1 = *p; 
+      // does c1 hold 'A', not an unspecified value?
+      printf("c1=%c\n",c1);
+  }
+  return 0;
+}
+```
+For objects with static, thread, or automatic storage durations, and
+leaving aside unions, for each byte it's fixed whether it’s a padding
+byte or not for the lifetime of the object, and one could conceivably
+regard the padding bytes as being unspecified values irrespective of
+any explicit writes to them (for a union, the padding status of a byte
+depends on which member the union "currently contains") (For objects
+with allocated storage duration, as malloc'd region can be reused,
+that would have to be intertwined with effective-type semantics, which
+is still unclear.)  But this would give programmers no way to ensure
+the absence of information leaks.
+
+If we've gone for Option 1 for uninitialised reads, it'd be
+straightforward to use the same mechanism for uninitialised padding
+bytes, and write the unspecified-value token to padding in some
+circumstances.  That would let it be overwritten with a concrete value
+if desired.
+
+### Q62. After an explicit write of a padding byte followed by a write to the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)
+
+```
+Example padding_unspecified_value_2.c:
+#include <stdio.h>
+#include <stddef.h>
+typedef struct { char c; float f; int i; } st;
+int main() {
+  // check there is a padding byte between c and f
+  size_t offset_padding = offsetof(st,c)+sizeof(char);
+  if (offsetof(st,f)>offset_padding) {
+      st s; 
+      unsigned char *p = 
+        ((unsigned char*)(&s)) + offset_padding;
+      *p = 'B';
+      s = (st){ .c='E', .f=1.0, .i=1};
+      unsigned char c2 = *p; 
+      // does c2 hold 'B', not an unspecified value?
+      printf("c2=0x%x\n",(int)c2);
+  }
+  return 0;
+}
+```
+Here we see reads both of `B` and of `0x0`.
+Changing the example to one in which the compiler might
+naturally use a 4-byte copy, we sometimes see an overwrite
+of the padding byte on the write of the struct value.
+
+### Q63. After an explicit write of a padding byte followed by a write to adjacent members of the structure, does the padding byte hold a well-defined value? (not an unspecified value)
+
+
+```
+Example padding_unspecified_value_7.c:
+#include <stdio.h>
+#include <stddef.h>
+typedef struct { char c; float f; int i; } st;
+int main() {
+  // check there is a padding byte between c and f
+  size_t offset_padding = offsetof(st,c)+sizeof(char);
+  if (offsetof(st,f)>offset_padding) {
+      st s; 
+      unsigned char *p = 
+        ((unsigned char*)(&s)) + offset_padding;
+      *p = 'C';
+      s.c = 'A';
+      s.f = 1.0;
+      s.i = 42;
+      unsigned char c3 = *p; 
+      // does c3 hold 'C', not an unspecified value?
+      printf("c3=%c\n",c3);
+  }
+  return 0;
+}
+```
+
+This is perhaps the most relevant of these cases in practice, covering the case where the whole footprint of the struct
+has been filled with zero before use, and also covering the
+case where all members of the struct have been written (and
+hence where compilers might coalesce the writes). By requiring the explicit write to be of zero, compilers could implement this either by preserving the in-memory padding
+byte value or by writing a constant zero to it. Whether that
+would be sound w.r.t. actual practice is unclear.
+But it would be useful.
+
+### Q65. After an explicit write of a padding byte followed by a write to a non-adjacent member of the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)
+
+```
+Example padding_unspecified_value_5.c:
+#include <stdio.h>
+#include <stddef.h>
+typedef struct { char c; float f; int i; } st;
+int main() {
+  // check there is a padding byte between c and f
+  size_t offset_padding = offsetof(st,c)+sizeof(char);
+  if (offsetof(st,f)>offset_padding) {
+      st s; 
+      unsigned char *p = 
+        ((unsigned char*)(&s)) + offset_padding;
+      *p = 'C';
+      s.i = 42;
+      unsigned char c3 = *p; 
+      // does c3 hold 'C', not an unspecified value?
+      printf("c3=%c\n",c3);
+  }
+  return 0;
+}
+```
+
+
+
+### Q66. After an explicit write of a padding byte followed by a writes to adjacent members of the whole structure, but accessed via pointers to the members rather than via the structure, does the padding byte hold a well-defined value? (not an unspecified value)
+
+```
+Example padding_unspecified_value_6.c:
+#include <stdio.h>
+#include <stddef.h>
+void g(char *c, float *f) {
+  *c='A';
+  *f=1.0;
+}
+typedef struct { char c; float f; int i; } st;
+int main() {
+  // check there is a padding byte between c and f
+  size_t offset_padding = offsetof(st,c)+sizeof(char);
+  if (offsetof(st,f)>offset_padding) {
+      st s; 
+      unsigned char *p = 
+        ((unsigned char*)(&s)) + offset_padding;
+      *p = 'D';
+      g(&s.c, &s.f);
+      unsigned char c4 = *p; 
+      // does c4 hold 'D', not an unspecified value?
+      printf("c4=%c\n",c4);
+  }
+  return 0;
+}
+```
+
+Compiler optimisations could perhaps recognise the accesses are to
+adjacent struct members and coalesce them.
+
+
+### Q60. Can structure-copy copy padding?
+
+```
+Example padding_unspecified_value_1.c:
+#include <stdio.h>
+#include <stddef.h>
+typedef struct { char c; float f; int i; } st;
+int main() {
+  // check there is a padding byte between c and f
+  size_t offset_padding = offsetof(st,c)+sizeof(char);
+  if (offsetof(st,f)>offset_padding) {
+      st s; 
+      unsigned char *p = ((unsigned char*)(&s))
+        + offset_padding;
+      *p = 'A';
+      unsigned char c1 = *p; 
+      // does c1 hold 'A', not an unspecified value?
+      printf("c1=%c\n",c1);
+  }
+  return 0;
+}
+```
+
+
+## Padding Design choices summarised
+
+1) regard reads from padding bytes as intrinsically loosely
+   specified, and then follow whatever semantics one has for
+   reading uninitialised values (at unsigned character type),
+   irrespective of any writes to those padding bytes.
+
+2) regard writes to struct members as uninitialising any
+   immediately following padding bytes, and a struct write as
+   uninitialising all the padding bytes, but also let code
+   meaningfully write concrete values to padding bytes (i.e., and
+   then be guaranteed it can read them back if there are no
+   intervening writes to the preceding struct member).
+
+3) give a slightly stronger guarantee to programmers than (2), to let
+   them (with care) deterministically ensure that there is no
+   information flow through padding, by requiring that any compiler
+   write of padding is either of zero or (for a struct copy) a copy of
+   the source-struct padding, or leave unchanged.  Then they could
+   maintain the invariant that padding is zero'd. We're not sure
+   whether this is sound w.r.t. current optimisations, or (if not)
+   whether it could reasonably be made to be.  But it's attractive if
+   it could.
+   
+   
