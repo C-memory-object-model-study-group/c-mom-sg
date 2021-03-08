@@ -1,0 +1,563 @@
+\documentclass[ignorenonframetext,aspectratio=169]{beamer}
+
+
+\usenavigationsymbolstemplate{}
+\setbeamertemplate{footline}
+{\hfill{\normalsize \insertpagenumber/\insertpresentationendpage\hskip1pt{}\vskip1pt
+}}
+
+%\usepackage[all]{xy}
+
+\newcommand{\myquestion}[2]{\item #2 {\emc{}#1}\\}
+
+\usepackage{graphicx}
+
+\usepackage{semantic}
+\usepackage{color}
+
+\newcommand{\mygtick}{{\color{green}\checkmark}}
+\newcommand{\mytick}{\checkmark}
+
+\usepackage{hyperref}
+
+
+%\usepackage{fontspec}
+%\newfontfamily\listingsfont[Scale=.7]{DejaVu Sans Mono}
+%\lstset{basicstyle=\listingsfont}
+
+
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.76]{beramono}
+
+
+\usepackage{listings}
+
+% \usepackage{fancyhdr}
+% 
+% \fancypagestyle{firstpagestyle}{%
+% \fancyhf{} % clear all header and footer fields
+% \fancyhead[LO]{\ACM@linecountL}%
+% \fancyhead[C]{ISO/IEC JTC1/SC22/WG14 N2378, 2019-04-30} % except the center
+% \renewcommand{\headrulewidth}{0pt}
+% \renewcommand{\footrulewidth}{0pt}}
+
+\lstdefinelanguage{core}{
+  morekeywords={
+    % definitions
+    def, glob, fun, proc,
+    % core types
+    integer, floating, boolean, pointer, ctype, cfunction, unit, eff, loaded,
+    % sequencing operators
+    let, strong, weak, atom, unseq, indet, bound, in, save, run,
+    skip, if, then, else,
+    memop, pcall, ccall,
+    case, of, end, pure,
+    not, is_integer, is_signed, is_unsigned, is_scalar,
+    % constants
+    True, False, Unit,
+    % ctors
+    Ivmax, Ivmin, Ivsizeof, Ivalignof, Array, Specified, Unspecified,
+    % shifting operators
+    array_shift, member_shift,
+    error, undef,
+    %
+    % memory actions
+    create, create_readonly, alloc, store, load, kill,
+    % memory order,
+    seq_cst, relaxed, release, acquire, consume, acq_rel,
+    % constructors
+  },
+  sensitive=true,
+  morecomment=[l]{--},
+%  morecomment=[s]{\{-}{-}},
+  morestring=[b]",
+  escapeinside={[[}{]]},
+  otherkeywords={
+    :=, |, =>, ;,
+    /\, \/
+  }
+%  ,
+%  basicstyle=\ttfamily,
+% \lstset{basicstyle=\footnotesize\ttfamily} 
+%  keywordstyle=\bfseries
+}
+
+
+\lstset{basicstyle=\tt} 
+\lstset{language=C}
+\lstset{numbers=left}
+ \lstset{basicstyle=\linespread{0.8}\ttfamily} 
+% \lstset{basicstyle=\footnotesize\ttfamily} 
+\lstset{keywordstyle=\bfseries}
+\lstset{escapechar=!}
+% \newcommand{\mycore}{
+% \begin{lstlisting}
+% proc main (): eff loaded integer :=
+%   let strong x: pointer = 
+%     create(Ivalignof("signed int"), "signed int") in
+%   let strong a4: loaded integer = 
+%     (let weak a5: loaded integer = 
+%       pure(Specified(2)) in
+%     let weak a6: loaded integer = 
+%       pure(Specified(3)) in
+%     pure(case (a5, a6) of
+%       | (Specified(a7: integer), Specified(a8: integer)) =>
+%           Specified(catch_exceptional_condition("signed int",
+%           conv_int("signed int", a7) + conv_int("signed int", a8)))
+%       | _: (loaded integer,loaded integer) =>
+%           undef(<<UB036_exceptional_condition>>)
+%     end)) in
+%   store("signed int", x, conv_loaded_int("signed int", a4)) ;
+%   kill(x) ;
+%   (save ret_71: loaded integer (a2: loaded integer:= Specified(0)) in 
+%     pure(a2))
+% \end{lstlisting}
+% }
+% \newcommand{\myc}{
+%   \begin{lstlisting}
+% int main(void) {
+%   int x=2+3;
+% }
+% \end{lstlisting}
+% }
+
+
+\definecolor{darkgreen}{rgb}{0.0,0.5,0.0}
+
+\setbeamersize{text margin left=2mm, text margin right=2mm}
+
+\definecolor{sb}{rgb}{0,0.5,0.5}
+\definecolor{coretype}{rgb}{0.5,0.5,0}
+\definecolor{action}{rgb}{1,0,1}
+\definecolor{ctype}{rgb}{1,0.4,0}
+\definecolor{sym}{rgb}{0,0,1}
+\definecolor{undef}{rgb}{1,0,0}
+\definecolor{impl}{rgb}{1,0.6,0}
+
+
+\definecolor{blue}{rgb}{0,0,1}
+\definecolor{green}{rgb}{0,0.7,0}
+\definecolor{red}{rgb}{1,0.2,0.2}
+\definecolor{yellow}{rgb}{0.75,0.5,0}
+\definecolor{purple}{rgb}{0.9,0,0.7}
+\definecolor{emc}{rgb}{0.9,0,0.7}
+\newcommand{\emc}{\color{emc}}
+%\definecolor{thecolour}{rgb}{0.8745,1,0}
+\definecolor{thecolour}{rgb}{0.9,0.9,0.9}
+
+\newcommand{\ub}[1]{{\color{purple}WG21 UB: #1}}
+
+\newcommand{\TODO}[1]{{\color{red}TODO[#1]}}
+
+\newcommand{\bigstep}[3]{#1 \Downarrow #3}
+\renewcommand{\sigma}{s}
+
+\title{\LARGE Effective types: examples \\(extracts from P1796R0, plus more)}
+\author{\Large Peter Sewell, Kayvan Memarian, Victor B.~F.~Gomes, \\Jens
+  Gustedt, Hubert Tong}
+
+
+\date{18 July 2019}
+
+\hypersetup{colorlinks=true,urlcolor=blue}
+%\newcommand{\myhref}[4]{\href{#1}{#2}}
+\newcommand{\MYhref}[5]{{\tiny\href{#1}{#2: #3#5}\\}}
+\newcommand{\Myhref}[5]{{\MYhref{#1}{#2}{#3}{#4}{ (#5)}}}
+\newcommand{\myhref}[4]{{\MYhref{#1}{#2}{#3}{#4}{}}}
+\newcommand{\myhreF}[4]{{\scriptsize\href{#1}{#2: #3}\\}}
+\newcommand{\myHref}[4]{{\tiny\href{#1}{#3}\\}}
+
+
+%\newcommand{\mylistingmargin}{5mm}
+
+%\newcommand{\mytesturl}[1]{https://cerberus.cl.cam.ac.uk/cerberus?defacto/#1}
+%\newcommand{\mytestlink}[2]{\href{\mytesturl{#1}}{#2}}
+%\newcommand{\mylsttestlink}[1]{\mytestlink{#1}{\lstinline{#1}}}
+
+%\newcommand{\myfooexamplename}[1]{\mylsttestlink{#1}}
+%\newcommand{\myfooexample}[3]{{\vspace*{-0.0\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mylsttestlink{#2}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+\newcommand{\provNone}{@\mathtt{empty}}
+
+%%%%%%%%%%%%%%%%%% from cmom0004
+\newcommand{\myparagraph}[1]{\vspace{0.5\baselineskip}\par\noindent{\normalsize\bfseries{#1}}\quad}
+\newcommand{\myqs}[1]{\vspace{0.2\baselineskip}\par\noindent{\normalsize\bfseries{#1}}\quad}
+
+\def\elasticquad{\hspace{0em plus 1em}\relax}
+
+\newcommand{\myq}[1]{\vspace{0.2\baselineskip}\par\noindent{\normalsize\emph{#1}}\quad}
+
+\newcommand{\mydemotesturl}[1]{https://cerberus.cl.cam.ac.uk/cerberus?demo/#1}
+\newcommand{\mytesturl}[1]{https://cerberus.cl.cam.ac.uk/cerberus?defacto/#1}
+\newcommand{\mytestlink}[2]{\href{\mytesturl{#1}}{#2}}
+\newcommand{\mylsttestlink}[1]{\mytestlink{#1}{\lstinline{#1}}}
+
+%\newcommand{\mytestlink}[2]{\url{#2}} %\href{\mytesturl{#1}}{\lstinline{#2}}}
+% macros for question-tooling generated latex
+\newcommand{\myqtquestion}[2]{\myparagraph{#1. #2}}
+%\newcommand{\myqtexample}[3]{\myexampleheader{#2}  \url{#3}\lstinputlisting{#1#2}}
+\newcommand{\mylistingmargin}{5mm}
+\newcommand{\myqtlinkexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} #4\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{tests-hand-edited/#2}\vspace*{-0.25\baselineskip}}}}
+
+\newcommand{\myqtexample}[3]{\myqtlinkexample{#1}{#2}{#3}{{\mylsttestlink{#2}}}}
+
+\newcommand{\myfooexamplename}[1]{\mylsttestlink{#1}}
+\newcommand{\myfooexample}[3]{{\vspace*{0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mylsttestlink{#2}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+\newcommand{\myfoolinkexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} #4\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+\newcommand{\mycerbexamplename}[2]{\mytestlink{#2}{\lstinline{#1}}}
+\newcommand{\mycerbexample}[4]{{\vspace*{-0.5\baselineskip}\par{\noindent\small\hspace*{\mylistingmargin}\lstinline{//} \mycerbexamplename{#2}{#4}\lstinputlisting[showstringspaces=false,xleftmargin=\mylistingmargin,aboveskip=0mm]{#1/#2}\vspace*{0.25\baselineskip}\par}}}
+
+
+
+
+
+\begin{document}
+\begin{frame}
+  \titlepage
+
+  \begin{center}
+    \ub{with notes from WG21 Cologne UB meeting}
+
+    \
+    
+  {\scriptsize with thanks to other C memory object model people
+    %    many others: 
+%Fr{\'e}d{\'e}ric  Besson, 
+%Richard           Biener,
+%Chandler          Carruth,
+%David             Chisnall, 
+%Pascal            Cuoq,
+%Hal               Finkel,
+%%Jens              Gustedt,
+%Chung-Kil         Hur, 
+%Ralf              Jung,
+%Robbert           Krebbers, 
+%Chris             Lattner,  
+%Juneyoung         Lee, 
+%Xavier            Leroy, 
+%Nuno              Lopes, 
+%Justus            Matthiesen,
+%Paul              McKenney, 
+%Santosh           Nagarakatte, 
+%John              Regehr, 
+%Martin            Sebor,
+%Kostya            Serebryany,
+%Richard           Smith, 
+%Hubert            Tong,
+%%Martin            Uecker,
+%Freek             Wiedijk,
+%Steve             Zdancewic,
+    %other WG14 colleagues, EuroLLVM and GNU Cauldron attendees, and survey respondents.
+    \par
+}
+\end{center}
+
+%\begin{center}
+%with thanks to all our other co-authors, WG14 and CMOM-SG colleagues,
+%survey respondents, and others for essential discussions
+%\end{center}
+\begin{center}
+%\url{http://www.cl.cam.ac.uk/~pes20/cerberus/}\\[2mm]
+\tiny WG21, Cologne, 2019-07-18
+
+\ 
+
+%ISO/IEC JTC1/SC22/WG14 N2378
+\end{center}
+\end{frame}
+
+% bullshit about C (what it is, why it's important)
+
+\begin{frame}{Provenance and subobjects}
+
+Yesterday: only considered provenance at per-allocation granularity.
+\end{frame}
+
+\begin{frame}{Provenance and subobjects: container-of casts}
+Can one cast from a pointer to the first
+member of a struct to the struct as a whole, and then use that to
+access other members.
+
+\
+
+Yes?
+
+\ub{Allowed}
+
+\end{frame}
+
+
+\begin{frame}{Provenance and subobjects: multidimensional arrays}
+
+  ISO C:  multidimensional arrays are recursively structured arrays-of-arrays.
+
+  \
+  
+  For access via explicit indexing: yes.
+
+\ 
+
+  For access via pointer arithmetic: should (e.g.) a linear traversal of a multidimensional array be allowed?
+
+  \
+
+  \ub{Desired for medical imaging.\\
+    See p9 C++ casts between different array types are not allowed.\\
+    Jens: C has an example that it's not allowed\\
+    Hal: as a practical matter, it'd be very hard to optimise assuming you couldn't linearise; there's too much code.\\
+    Gaby: think multidimensional arrays collapse. ``contiguous'' is what allows pointer arithmetic.\\
+    Hubert: no, you have 1-past problems for all subarrays
+    }
+  
+\end{frame}
+
+
+\begin{frame}{Provenance and subobjects: representation-byte arithmetic and access}
+
+N2222 2.5.4 Q34 \textbf{Can one move among the
+members of a struct using representation-pointer arithmetic and
+casts?} %\url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2222.htm#q34-can-one-move-among-the-members-of-a-struct-using-representation-pointer-arithmetic-and-casts}, if one believes that should be allowed. 
+
+\
+
+Yes
+
+\textbf{Can one move among the members of a struct with other pointer arithmetic?}  
+
+%But in other cases per-allocation provenance allows intra-allocation examples which we don't think should be supported, e.g.~as below, and which will unnecessarily impede alias analysis.  Existing compilers may well do this (according to Nuno Lopes, GCC and ICC already support some subobject analysis, and people are working on it for LLVM.  We don't know whether or not these analyses are turned on even with \lstinline{-fno-strict-aliasing}.)
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{provenance_intra_object_1.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/provenance_intra_object_1.c.html}
+
+No
+
+\ub{Hubert: C++ says no.\\
+  Someone: you can mess with the object representation (eg with memcpy) but you can't access the object\\
+  Hal: C++ code out there does violate this, but compilers will break it (unlike multidimensional arrays).\\
+  Hubert: we do make the zero-offset case work.\\
+  Hal: if you go to the first element and then \emph{cast to the parent}, compilers will make that work. So container-of should work.\\
+  Hubert: if you're stuck in a member, you can't in ISO C++ move outside.
+  }
+
+  \end{frame}
+
+
+\begin{frame}{Plan?}
+Have a per-subobject
+provenance restriction by default, but relax this (to per-allocation
+provenance) for pointers that have been formed by an explicit cast.
+
+Perhaps only for casts to \lstinline{void *}, \lstinline{unsigned char *}, \lstinline{intptr_t}, or
+\lstinline{uintptr_t}, or perhaps (for simplicity) for all casts.
+\end{frame}
+
+
+\begin{frame}{Effective types}
+\end{frame}
+  
+
+
+\begin{frame}[fragile]{}
+\myqtquestion{Q73}{Can one do type punning between arbitrary types?}
+No
+
+\myqtquestion{Q91}{Can a pointer to a structure alias with a pointer to one of its members?}
+Yes
+
+\myqtquestion{Q76}{After writing a structure to a malloc'd region, can its members can be accessed via pointers of the individual member types?}
+Yes
+
+\ub{Hubert: in C++ it's allowed but you need launder.\\
+  ...lots of discussion about whether the C++ text actually allows this example
+  \\
+  looking at the examples in \texttt{cmom-0004-2019-03-14-effective-types-examples.pdf}:
+  \texttt{effective\_type\_5.c} Hubert: uncontroversial\\
+  \texttt{effective\_type\_5d.c} does C++ need to magic up a pointer conversion in addition to magic'ing up an object? \\
+  Not allowed (without annotation) in current / future-planned text. Would need launder to give back a usable pointer of the type you want.
+}
+
+\myqtquestion{Q93}{After writing all members of structure in a malloc'd region, can the structure be accessed as a whole?}
+Yes
+\end{frame}
+
+\begin{frame}{}
+\myqtquestion{Q92}{Can one do whole-struct type punning between distinct but isomorphic structure types in an allocated region?}
+
+\only<1>{
+  A: Basic.  This example writes a value of one struct type into a malloc’d region then reads it via a
+pointer to a distinct but isomorphic struct type.
+
+  \myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2b.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2b.c.html}
+
+no
+
+\ub{ok. n C++ just doing the \lstinline{p2->i2} is UB, even if you don't do the access}
+}
+\only<2>{
+  B: read via  lvalue merely at type \lstinline{int}, but
+constructed via a pointer of type \lstinline{st2 *}
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2d.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2d.c.html}
+
+no?
+
+\ub{David: in C++ UB already on line 10}
+}
+\only<3>{
+C: read via an lvalue merely at type
+\lstinline{int}, constructed by \lstinline{offsetof} pointer
+arithmetic. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2e.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2e.c.html}
+
+yes
+{\small\ub{This is the same as the \texttt{effective\_type\_5d}, which Hubert said needed launder (and Richard Smith agreed). Because \lstinline{pf} is derived from \lstinline{p}, not an \lstinline{st1} there. So not allowed in C++ without launder.\\In C++ the check at lvalue construction time means that effective-type constraints don't have to remember lvalue construction.}}
+
+}
+
+\only<4>{
+  D: 
+Here \lstinline{f} is given aliased pointers to two distinct but isomorphic
+struct types, and uses them both to access an \lstinline{int} member of
+a struct.   We presume this is intended to be forbidden.
+%, and GCC
+%appears to assume that it is, printing \lstinline{f: s1p->i1 = 2}.
+
+But the lvalue expressions, \lstinline{s1p->i1} and
+\lstinline{s2p->i2}, have identical type. %, so the ISO text appears to allow
+this case.  
+%
+To forbid it, we have to take the construction of the lvalues
+into account, to
+see the types of \lstinline{s1p} and
+\lstinline{s2p}, not just the types of \lstinline{s1p->i1} and
+\lstinline{s2p->i2}. 
+
+\myfooexample{../../../rsem/csem/charon2/tests/de_facto_memory_model/}{effective_type_2.c}{http://www.cl.cam.ac.uk/users/pes20/cerberus/tests/effective_type_2.c.html}
+} 
+\end{frame}
+
+
+\begin{frame}{Effective types and representation-byte writes}
+
+ISO C says:  copying an object \emph{``as an
+  array of character type''} carries the effective type.
+
+But should representation byte writes with other integers affect the
+effective type? 
+
+\
+
+A: take the result of a \lstinline{memcpy}'d
+\lstinline{int} and then overwrite all of its bytes with zeros before
+trying to read it as an \lstinline{int}.
+
+allowed
+
+\ub{in Richard's paper, the object already existed (but not with user-memcpy)}
+
+\ 
+ 
+B: similar, but tries to read the resulting memory as a
+\lstinline{float}  (presuming the implementation-defined fact that
+these have the same size and alignment, and that pointers to them can
+be meaningfully interconverted). 
+
+?
+
+\ub{Hubert: this would be allowed. The memcpy creates objects but not necessarily ones of the types you had.\\
+  Jens: C++ allows type punning through memcpy (but not via unions). C is the opposite.}
+\end{frame}
+
+
+\begin{frame}{}
+  \myqtquestion{Q75}{Can an unsigned  character array with static or    automatic storage duration be used (in    the same way as a `malloc`'d region) to hold values of    other types?}
+
+
+  ISO C: no.   Real-world: yes ?
+
+  \ub{in C++ it doesn't matter whether it was automatic/static or malloc'd}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Hubert's examples}
+
+These show that current compiler behaviour is not consistent
+with the ISO C notion of effective types that allows type-changing
+updates within allocated regions simply by memory writes. 
+
+\begin{lstlisting}
+       typedef struct A { int x, y; } A;
+       typedef struct B { int x, y; } B;
+       
+       __attribute__((__noinline__, __weak__))
+       void f(long unk, void *pa, void *pa2, void *pb, long *x) {
+         for (long i = 0; i < unk; ++i) {
+           int oldy = ((A *)pa)->y;
+           ((B *)pb)->y = 42;
+           ((A *)pa2)->y = oldy ^ x[i];
+         }
+       }
+       int main(void) {
+         void *p = malloc(sizeof(A));
+         ((A *)p)->y = 13;
+         f(1, p, p, p, (long []){ 0 });
+         printf("pa->y(%d)\n", ((A *)p)->y);
+       }
+\end{lstlisting}
+\end{frame}
+  
+
+
+\begin{frame}{P0593R4
+    Implicit creation of objects for low-level object manipulation}
+
+  \emph{The abstract machine creates objects of implicit lifetime types within those regions of storage as needed to give the program defined behavior.}
+
+
+  \
+  
+(a) whole-program definedness is neither co- nor contra-variant:  finding more executions may also find data races or unsequenced races
+
+  \ 
+
+  (b) style!
+
+  \
+
+  Accumulate constraints?
+  \end{frame}
+
+
+  
+
+  
+  
+  
+\end{frame}
+
+
+
+\end{document}
+
+\
+
+
+  
+\myqtquestion{Q80}{After writing a structure to a malloc'd region, can its members be accessed via a pointer to a different structure type that has the same leaf member type at the same offset?}
+\myqtquestion{Q94}{After writing all the members of a structure to a malloc'd region, via member-type pointers, can its members be accessed via a pointer to a different structure type that has the same leaf member types at the same offsets?}
+\myqtquestion{Q75}{Can an unsigned  character array with static or    automatic storage duration be used (in    the same way as a `malloc`'d region) to hold values of    other types?}
+\myqtquestion{Q79}{After writing one member of a structure to a malloc'd region, can a member of another structure, with footprint  overlapping that of the first structure, be written?}
+\myqtquestion{Q77}{Can a non-character value be read    from an uninitialised malloc'd region?}
+\myqtquestion{Q78}{After writing one member of a    structure to a malloc'd region, can its other members be read?}
+\myqtquestion{Q81}{Can one access two objects, within a malloc'd region, that have overlapping but non-identical footprint?}
+\myqtquestion{Q86}{Are provenance checks only on a per-allocation granularity (not per-subobject)?}
+\myqtquestion{Q37}{Are usable pointers to a struct and to its first member interconvertable?}
+\myqtquestion{Q88}{Can array indexing within a multidimensonal array ignore the subarray bounds?}
+\myqtquestion{Q89}{Can one use pointer arithmetic to move arbitrarily within a multidimensional array, ignoring the subarray bounds?}
+
+
+
+\end{document}
