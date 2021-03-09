@@ -1,22 +1,33 @@
 % Clarifying uninitialised reads v5 - working draft
 % Kayvan Memarian, Peter Sewell. University of Cambridge
-% 2021-03-08
+% 2021-03-09
 
 
 
-Reading uninitialised values has many conceivable semantics in C,
-there are conflicting demands and expectations, and the current
-standard text is not clear about all aspects.  This note summarises
-the design space with a series of questions.
+Reading uninitialised values and padding bytes have many conceivable
+semantics in C, there are conflicting demands and expectations, and
+the current standard text is not clear about all aspects.  This note
+summarises the design space with a series of questions.
 
+WG14 has previously (DR451 CR) concluded "The committee agrees that
+this area would benefit from a new definition of something akin to a
+'wobbly' value and that this should be considered in any subsequent
+revision of this standard. The committee also notes that padding bytes
+within structures are possibly a distinct form of 'wobbly'
+representation.".  This note explores the design space for what that
+might mean in detail.
+
+This is another part of the C memory object model, orthogonal to provenance. 
 
 # Related papers
 
 This is a revision of part of 
 [notes98: Clarifying Uninitialised Values (Q47-Q59) v4 - working draft
 Kayvan Memarian, Victor Gomes, Peter Sewell. University of Cambridge
-2018-04-21](http://www.cl.cam.ac.uk/users/pes20/cerberus/notes98-2018-04-21-uninit-v4.html), a WG14 Brno meeting working draft that did not have an N-number. 
-notes98 was a revision of
+2018-04-21](http://www.cl.cam.ac.uk/users/pes20/cerberus/notes98-2018-04-21-uninit-v4.html) and the padding discussion of [N2013](http://www.cl.cam.ac.uk/users/pes20/cerberus/notes30.pdf). 
+
+
+notes98 was a WG14 Brno meeting working draft that did not have an N-number; it was a revision of
 [N2220](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2220.htm) and 
 [N2221](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2221.htm). The latter  was a revision of N2089. 
 N2089 was based on N2012 (Section 2), adding a concrete
@@ -53,7 +64,7 @@ There are some significant exceptions, where reading uninitialised values is eit
 
 - There's an occasional but real use-case of debug printing partially initialised structs. Making that UB could be very confusing if it gets exploited by compilers.
 
-- It seems to be fairly common for sets of flags (stored as bits in integer-typed variables) to be initialised incrementally, e.g. by reading a possibly-uninitialised value, doing some arithmetic or bitwise-logical operations on it, and storing the result back. Kostya Serebryany reported some time ago that this had to be allowed in their sanitisers, as there are too many instances to require them to be fixed.
+- Sometimes sets of flags (stored as bits in integer-typed variables, not as bitfields) are initialised incrementally, e.g. by reading a possibly-uninitialised value, doing some arithmetic or bitwise-logical operations on it, and storing the result back. Kostya Serebryany reported some time ago that this had to be allowed in their sanitisers, as there are too many instances to require them to be fixed.
 
   That said, we guess (without evidence) that not much memory is used in this way, and hence that the runtime/code-size cost of requiring zero-initialisation would be small. Although that might reduce error-detection opportunities, e.g. if this is allowed by special-casing some set-bit operations.
 
@@ -85,7 +96,7 @@ consequence of SSA form).
 
 There is ongoing work on the LLVM poison, freeze, and undef, since we
 started to look at these questions.  We don't know the current state
-of that, or the analogous situation for gcc.
+of that in detail, but some preliminary discussions have suggested that the C source semantics proposed here and the poison+freeze semantics proposed for LLVM can be made consistent. We also don't know the gcc internals.
 
 
 ## C++
@@ -216,7 +227,8 @@ The current standard text is not completely clear: the 3.19.3
 definition of unspecified value says "valid value of the relevant type
 where this International Standard imposes no requirements on which
 value is chosen in any instance", but it's unclear whether the
-"instance" is per-initialisation or per-read.
+"instance" is per-initialisation or per-read, or whether
+"uninitialisedness" propagates through expression evaluation.
 
 Clang sometimes prints distinct values here (this is consistent with
 the Clang internal documentation). Accordingly, we think the answer
@@ -300,6 +312,54 @@ For Option 1 (symbolic unspecified values) this seems forced.
 
 For Option 2 (read-time nondeterministic choices of concrete values),
 the UB will arise on one execution and hence the program will be UB.
+
+
+### Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?
+```c
+Example unspecified_value_control_flow_choice.c
+#include <stdio.h>
+int main() 
+{
+  unsigned char c; 
+  unsigned char *p = &c;
+  if (c == 'a') 
+    printf("equal\n");
+  else
+    printf("nonequal\n");
+  // should this have defined behaviour?
+}
+```
+
+We suggest "yes": 
+
+a. permit a runtime unspecified (nondeterministic) choice at any control-flow choice between specified alternatives based on an unspecified values. 
+b. more conservatively, one could treat any control-flow choice whose controlling expression has an unspecified value as having undefined behaviour. 
+c. other
+
+The only potential argument against (a) that we are aware of is (as noted by Joseph Myers) jump tables indexed by an unspecified value, if implementations don't do a range check.  Do they? That seems likely to lead to security weaknesses. 
+
+Computed gotos (if they were allowed in the standard) on unspecified values should give undefined behaviour in any case.
+
+IIRC in LLVM branches on poison are UB, so choosing (a) for the source
+semantics would necessitate a freeze for controlling expressions that
+might be unspecified values.
+
+
+### Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?
+
+```c
+Example unspecified_value_library_call_argument.c
+#include <stdio.h>
+int main() 
+{
+  unsigned char c; 
+  unsigned char *p = &c;
+  printf("char 0x%x\n",(unsigned int)c);
+  // should this have defined behaviour?
+}
+```
+The DR451 CR says "library functions will exhibit undefined behavior when used on indeterminate values" but here we are more specifically looking at unspecified values. We see no benefit from making this undefined behaviour, and we are not aware that compilers assume so. It prevents (e.g.) serialising or debug printing of partially uninitialised structs, or (if padding bytes are treated the same as other uninitialised values) byte-by-byte serialising of structs containing padding. Accordingly, we suggest that library functions such as printf, when called with an unspecified value, are executed by first making an unspecified (nondeterministic) choice at call-time of a concrete value. This permits the instability of uninitialised values that we see in practice.
+
 
 
 ### Can a structure containing an uninitialised member can be copied as a whole?
@@ -663,6 +723,38 @@ does not actually happens in mainstream implementations.
 
 ## Design questions - padding bytes
 
+There are several options for the semantics of padding. Presuming one has adopted the Option 1 symbolic unspecified-value token semantics, the choices for padding include:
+
+a. regarding padding bytes as holding unspecified-value tokens throughout the lifetime of the object, irrespective of any writes to them
+
+b. when a struct/union or a struct/union member is written, deeming the semantics as also having written unspecified-value tokens to all padding bytes of that struct/union (including of all sub-members)
+
+c. when a member is written, deeming the semantics as also having written unspecified-value tokens to adjacent padding (and when a struct/union is written as a whole, deeming the semantics as also having written unspecified-value tokens to all padding bytes of that struct/union (including of all sub-members))
+
+d. as (c) but "following" instead of "adjacent": when a member is written, deeming the semantics as also having written unspecified-value tokens to subsequent padding  (and when a struct/union is written as a whole, deeming the semantics as also having written unspecified-value tokens to all padding bytes of that struct/union (including of all sub-members))
+
+e. as (d) but "zeros" instead of "unspecified values": as when a member is written, nondeterministically either deeming the semantics as having written zeros to the subsequent padding or leaving it alone  (and when a struct/union is written as a whole, deeming the semantics as also having written zeros to all padding bytes of that struct/union (including of all sub-members))
+
+f. as (e) but nondeterministically also allowing a struct copy to copy the source padding  (this would need to record padding values in abstract-machine struct values)
+
+g. as (f) but also nondeterministically also allowing member copies to copy any following source padding (this would need padding values attached to all abstract-machine values, and it's not always clear what code is a "member copy")
+
+Option (a) makes it impossible for programmers to control what's in the padding.
+
+Options (b) and (c) are probably needlessly liberal for compilers.
+
+Option (d) would be a plausible conservative-with-respect-to-current-implementations choice, but not very useful for programmers.
+
+Options (e,f,g) aim to give programmers a way to maintain the
+invariant that padding is zero'd, e.g. where that matters for
+security. We're not sure which are sound w.r.t. current optimisations,
+or (if not) which could be made to be.
+
+As for effective types, it might be that the semantics has to consider
+lvalue construction, not just the lvalue type, e.g. to know what
+counts as a struct member write.
+
+
 ### Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)
 
 ```c
@@ -847,28 +939,3 @@ int main() {
 ```
 
 
-## Padding Design choices summarised
-
-1) regard reads from padding bytes as intrinsically loosely
-   specified, and then follow whatever semantics one has for
-   reading uninitialised values (at unsigned character type),
-   irrespective of any writes to those padding bytes.
-
-2) regard writes to struct members as uninitialising any
-   immediately following padding bytes, and a struct write as
-   uninitialising all the padding bytes, but also let code
-   meaningfully write concrete values to padding bytes (i.e., and
-   then be guaranteed it can read them back if there are no
-   intervening writes to the preceding struct member).
-
-3) give a slightly stronger guarantee to programmers than (2), to let
-   them (with care) deterministically ensure that there is no
-   information flow through padding, by requiring that any compiler
-   write of padding is either of zero or (for a struct copy) a copy of
-   the source-struct padding, or leave unchanged.  Then they could
-   maintain the invariant that padding is zero'd. We're not sure
-   whether this is sound w.r.t. current optimisations, or (if not)
-   whether it could reasonably be made to be.  But it's attractive if
-   it could.
-   
-   
