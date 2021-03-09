@@ -733,11 +733,11 @@ c. when a member is written, deeming the semantics as also having written unspec
 
 d. as (c) but "following" instead of "adjacent": when a member is written, deeming the semantics as also having written unspecified-value tokens to subsequent padding  (and when a struct/union is written as a whole, deeming the semantics as also having written unspecified-value tokens to all padding bytes of that struct/union (including of all sub-members))
 
-e. as (d) but "zeros" instead of "unspecified values": as when a member is written, nondeterministically either deeming the semantics as having written zeros to the subsequent padding or leaving it alone  (and when a struct/union is written as a whole, deeming the semantics as also having written zeros to all padding bytes of that struct/union (including of all sub-members))
+e. as (d) but "zeros" instead of "unspecified values": when a member is written, nondeterministically either deeming the semantics as having written zeros to the subsequent padding (and when a struct/union is written as a whole, deeming the semantics as also having written zeros to all padding bytes of that struct/union (including of all sub-members))
 
-f. as (e) but nondeterministically also allowing a struct copy to copy the source padding  (this would need to record padding values in abstract-machine struct values)
+f. as (e) but nondeterministically also allowing a struct copy to either zero, copy the source padding, or leave the target padding unchanged  (this would need to record padding values in abstract-machine struct values)
 
-g. as (f) but also nondeterministically also allowing member copies to copy any following source padding (this would need padding values attached to all abstract-machine values, and it's not always clear what code is a "member copy")
+g. as (f) but also nondeterministically also allowing member copies to either zero, copy source padding, or leave the target padding unchanged (this would need padding values attached to all abstract-machine values, and it's not always clear what their read/write footprints should be, or what code is a "member copy")
 
 Option (a) makes it impossible for programmers to control what's in the padding.
 
@@ -747,12 +747,11 @@ Option (d) would be a plausible conservative-with-respect-to-current-implementat
 
 Options (e,f,g) aim to give programmers a way to maintain the
 invariant that padding is zero'd, e.g. where that matters for
-security. We're not sure which are sound w.r.t. current optimisations,
-or (if not) which could be made to be.
+security. We're not sure which are (or could be made) sound w.r.t. current optimisations. 
 
-As for effective types, it might be that the semantics has to consider
-lvalue construction, not just the lvalue type, e.g. to know what
-counts as a struct member write.
+Similarly to effective types, it might be that the semantics has to
+consider lvalue construction, not just the lvalue type, e.g. to know
+what counts as a struct member write.
 
 
 ### Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)
