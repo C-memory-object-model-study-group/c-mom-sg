@@ -195,6 +195,18 @@ pointed out that inlining and optimisation might keep values in
 registers, potentially with a NaT flag, even if in the source its
 address is taken).
 
+How do we think reads of uninitialised address-taken variables are used in practice?
+Only for reading their representation bytes and when reading structs as a whole?
+(And for incremental bitwise initialisation.)
+
+If we could make reads of uninitialised variables always UB, or allow
+such reads but make it UB to use the results in any way except for a
+store, or either of those but allowing representation-byte reads, we
+could have a simpler semantics that might be equally useful.  But we
+hesitate to propose making potential existing code UB, so we don't
+pursue those options in detail in this note.  We could be guided by
+sanitiser and C++ experience?
+
 Design question: should we allow non-UB reads of uninitialised variables (at types that do not have trap representations):
 
 1. always

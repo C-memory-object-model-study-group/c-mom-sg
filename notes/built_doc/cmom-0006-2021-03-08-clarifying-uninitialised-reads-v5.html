@@ -160,6 +160,8 @@ Example trap_representation_2.c
 <p>In the current standard, for implementations in which <code>int</code> has no trap representations (so 6.2.6.1p5 is irrelevant), the first has defined behaviour. By 6.2.4p6 the value is indeterminate, so by the definition of indeterminate values, where there are no trap representations at <code>int</code>, the result is an unspecified value.</p>
 <p>In the current standard, the second has undefined behaviour (by 6.3.2.1p2).</p>
 <p>Historical question: what was the intent of the address-taken distinction? From previous discussion, it seems to have been an attempt to model the Itanium NaT not a thing behaviour, but it's not clear whether it's sufficient for that (c.f. mail with Hans Boehm, who pointed out that inlining and optimisation might keep values in registers, potentially with a NaT flag, even if in the source its address is taken).</p>
+<p>How do we think reads of uninitialised address-taken variables are used in practice? Only for reading their representation bytes and when reading structs as a whole? (And for incremental bitwise initialisation.)</p>
+<p>If we could make reads of uninitialised variables always UB, or allow such reads but make it UB to use the results in any way except for a store, or either of those but allowing representation-byte reads, we could have a simpler semantics that might be equally useful. But we hesitate to propose making potential existing code UB, so we don't pursue those options in detail in this note. We could be guided by sanitiser and C++ experience?</p>
 <p>Design question: should we allow non-UB reads of uninitialised variables (at types that do not have trap representations):</p>
 <ol style="list-style-type: decimal">
 <li>always</li>
