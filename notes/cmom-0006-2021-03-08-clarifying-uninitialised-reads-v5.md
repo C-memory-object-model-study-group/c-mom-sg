@@ -207,12 +207,85 @@ hesitate to propose making potential existing code UB, so we don't
 pursue those options in detail in this note.  We could be guided by
 sanitiser and C++ experience?
 
-Design question: should we allow non-UB reads of uninitialised variables (at types that do not have trap representations):
+Design question: for reads of uninitialised variables (at types that do not have trap representations):
 
 1. always
 2. only if their address has been taken
 3. never
 4. other
+
+
+### Summary from meeting:
+
+- trap representations exist (a) to support hardware, and (b) for conformance wo the "language-independent arithmetic" (LIA) standard, which gave rise to Annex H.  Now we have less pressure to conform to that.
+
+- the address-taken rule was a compromise to support Itanium NaT while not impacting other users.
+
+- there is agreement that the current terminology is confusing and we could/should change
+
+- there are some real cases where it should be an error to load specific object representations, though they are relatively rare.  We could require implementations to document those. 
+
+- there are some real cases where it should be an error to operate on specific object representations (eg `_Bool`).  
+
+
+
+
+
+
+1. always defined behaviour, as an unspecified value - 3
+2. at implementations's per-instance choice, either compile-time error or unspecified value - 3
+3. always undefined behaviour - 12
+4. other - 0 
+
+
+----------------------
+
+final 
+
+Design question: at types that do not have trap representations, should we allow non-character reads of scalar uninitialised variables:
+
+1. always defined behaviour, as an unspecified value  0 
+2. at implementations's per-instance choice, either compile-time error, or non-silent runtime error, or unspecified value  8
+3. always undefined behaviour  10
+4. other   0 
+
+
+
+
+
+-------------------
+
+post-discussion Jens+Peter chat.  
+
+- there are some cases where it has to be UB to read a specific object representation, e.g. to let some implementations trap - these cases are now rare, but they include signalling NaNs and perhaps other exotic number formats.
+
+- there are some cases where it has to be UB to operate on a read specific object representation - primarily _Bool and floating-point cases - but where it's not problematic to read them
+
+- it would be reasonable to require implementations to document both of the above
+
+- copying partially initialised structs has to be allowed (either by an explicit struct read&write, or implicitly as a struct function argument or return value)
+
+- reading the representation bytes of uninitialised automatic storage duration variables and malloc'd regions has to be allowed, eg to support library or user memcpy of partially initialised structs (deferring what one knows about the results of such reads for a moment)
+
+- (in ISO C, representation-byte accesses have to be at character types, but real code also relies on representation-byte accesses at larger types - this is likely rare, but we should support it in some way. There is also type-aliasing of matrices, relatively commonly)
+
+- reading the padding bytes of structs has to be allowed, eg to support (in some cases, not always) polymorphic bytewise operations such as copying, memcmp, marshalling, encryption, and hashing  (deferring what one knows about the results of such reads for a moment)
+
+- we see no programmer use-case for the current ISO address-taken exception, so we can remove that (though we may wish to check that whatever semantics we end up with admits Itanium NaT-like behaviour in case future architectures do that)
+
+- all other cases of reading uninitialised variables can be regarded as programmer errors
+
+- for these, we could either:
+      -- make them always UB
+      -- make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap), or a use-time nondeterministic particular concrete value 
+	  
+	  n unspecified value (deferring for the moment whether would be stable or not)
+
+-- make them always an unspecified value (deferring for the moment whether that would be stable or not)
+      
+
+
+
 
 
 ### Stability of uninitialised values

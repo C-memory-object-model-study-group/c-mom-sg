@@ -63,18 +63,19 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#design-questions---trap-representations"><span class="toc-section-number">2.5</span> Design questions - trap representations</a></li>
 <li><a href="#design-questions---unspecified-values"><span class="toc-section-number">2.6</span> Design questions - unspecified values</a><ul>
 <li><a href="#reading-uninitialised-values"><span class="toc-section-number">2.6.1</span> Reading uninitialised values</a></li>
-<li><a href="#stability-of-uninitialised-values"><span class="toc-section-number">2.6.2</span> Stability of uninitialised values</a></li>
-<li><a href="#q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="toc-section-number">2.6.3</span> Q52 Do operations on unspecified values result in unspecified values?</a></li>
-<li><a href="#q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="toc-section-number">2.6.4</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</a></li>
-<li><a href="#q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="toc-section-number">2.6.5</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</a></li>
-<li><a href="#q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="toc-section-number">2.6.6</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</a></li>
-<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="toc-section-number">2.6.7</span> Can a structure containing an uninitialised member can be copied as a whole?</a></li>
-<li><a href="#can-a-union-as-a-whole-be-an-unspecified-value"><span class="toc-section-number">2.6.8</span> Can a union-as-a-whole be an unspecified value?</a></li>
-<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="toc-section-number">2.6.9</span> Can a structure containing an uninitialised member can be copied member-by-member?</a></li>
-<li><a href="#q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="toc-section-number">2.6.10</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</a></li>
-<li><a href="#q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="toc-section-number">2.6.11</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</a></li>
-<li><a href="#q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="toc-section-number">2.6.12</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</a></li>
-<li><a href="#q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="toc-section-number">2.6.13</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</a></li>
+<li><a href="#summary-from-meeting"><span class="toc-section-number">2.6.2</span> Summary from meeting:</a></li>
+<li><a href="#stability-of-uninitialised-values"><span class="toc-section-number">2.6.3</span> Stability of uninitialised values</a></li>
+<li><a href="#q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="toc-section-number">2.6.4</span> Q52 Do operations on unspecified values result in unspecified values?</a></li>
+<li><a href="#q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="toc-section-number">2.6.5</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</a></li>
+<li><a href="#q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="toc-section-number">2.6.6</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</a></li>
+<li><a href="#q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="toc-section-number">2.6.7</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</a></li>
+<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="toc-section-number">2.6.8</span> Can a structure containing an uninitialised member can be copied as a whole?</a></li>
+<li><a href="#can-a-union-as-a-whole-be-an-unspecified-value"><span class="toc-section-number">2.6.9</span> Can a union-as-a-whole be an unspecified value?</a></li>
+<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="toc-section-number">2.6.10</span> Can a structure containing an uninitialised member can be copied member-by-member?</a></li>
+<li><a href="#q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="toc-section-number">2.6.11</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</a></li>
+<li><a href="#q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="toc-section-number">2.6.12</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</a></li>
+<li><a href="#q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="toc-section-number">2.6.13</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</a></li>
+<li><a href="#q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="toc-section-number">2.6.14</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</a></li>
 </ul></li>
 <li><a href="#summary-of-proposal"><span class="toc-section-number">2.7</span> Summary of proposal</a></li>
 </ul></li>
@@ -162,14 +163,37 @@ Example trap_representation_2.c
 <p>Historical question: what was the intent of the address-taken distinction? From previous discussion, it seems to have been an attempt to model the Itanium NaT not a thing behaviour, but it's not clear whether it's sufficient for that (c.f. mail with Hans Boehm, who pointed out that inlining and optimisation might keep values in registers, potentially with a NaT flag, even if in the source its address is taken).</p>
 <p>How do we think reads of uninitialised address-taken variables are used in practice? Only for reading their representation bytes and when reading structs as a whole? (And for incremental bitwise initialisation.)</p>
 <p>If we could make reads of uninitialised variables always UB, or allow such reads but make it UB to use the results in any way except for a store, or either of those but allowing representation-byte reads, we could have a simpler semantics that might be equally useful. But we hesitate to propose making potential existing code UB, so we don't pursue those options in detail in this note. We could be guided by sanitiser and C++ experience?</p>
-<p>Design question: should we allow non-UB reads of uninitialised variables (at types that do not have trap representations):</p>
+<p>Design question: for reads of uninitialised variables (at types that do not have trap representations):</p>
 <ol style="list-style-type: decimal">
 <li>always</li>
 <li>only if their address has been taken</li>
 <li>never</li>
 <li>other</li>
 </ol>
-<h3 id="stability-of-uninitialised-values"><span class="header-section-number">2.6.2</span> Stability of uninitialised values</h3>
+<h3 id="summary-from-meeting"><span class="header-section-number">2.6.2</span> Summary from meeting:</h3>
+<ul>
+<li><p>trap representations exist (a) to support hardware, and (b) for conformance wo the &quot;language-independent arithmetic&quot; (LIA) standard, which gave rise to Annex H. Now we have less pressure to conform to that.</p></li>
+<li><p>the address-taken rule was a compromise to support Itanium NaT while not impacting other users.</p></li>
+<li><p>there is agreement that the current terminology is confusing and we could/should change</p></li>
+<li><p>there are some real cases where it should be an error to load specific object representations, though they are relatively rare. We could require implementations to document those.</p></li>
+<li><p>there are some real cases where it should be an error to operate on specific object representations (eg <code>_Bool</code>).</p></li>
+</ul>
+<ol style="list-style-type: decimal">
+<li>always defined behaviour, as an unspecified value - 3</li>
+<li>at implementations's per-instance choice, either compile-time error or unspecified value - 3</li>
+<li>always undefined behaviour - 12</li>
+<li>other - 0</li>
+</ol>
+<hr />
+<p>final</p>
+<p>Design question: at types that do not have trap representations, should we allow non-character reads of scalar uninitialised variables:</p>
+<ol style="list-style-type: decimal">
+<li>always defined behaviour, as an unspecified value</li>
+<li>at implementations's per-instance choice, either compile-time error or non-silent runtime error or unspecified value</li>
+<li>always undefined behaviour</li>
+<li>other</li>
+</ol>
+<h3 id="stability-of-uninitialised-values"><span class="header-section-number">2.6.3</span> Stability of uninitialised values</h3>
 <p>In the absence of any writes, is the result of reading an uninitialised object potentially unstable, i.e., can multiple usages of it give different results?</p>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_stability.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
@@ -193,7 +217,7 @@ Example trap_representation_2.c
 <li>no</li>
 <li>other</li>
 </ol>
-<h3 id="q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="header-section-number">2.6.3</span> Q52 Do operations on unspecified values result in unspecified values?</h3>
+<h3 id="q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="header-section-number">2.6.4</span> Q52 Do operations on unspecified values result in unspecified values?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_strictness_and_1.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
@@ -222,7 +246,7 @@ Example trap_representation_2.c
 <p>Note that (a) makes incremental bitwise initialisation not useful. It's hard to imagine that such initialisation is desirable in new code, but it may exist; we don't know how common it is.</p>
 <p>It would also make the N1793 Fig.4 printhexdigit not useful when applied to an uninitialised structure member.</p>
 <p>Option 1a is implemented in the Cerberus C semantics, so we have experience of working through all the details.</p>
-<h3 id="q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="header-section-number">2.6.4</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</h3>
+<h3 id="q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="header-section-number">2.6.5</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_daemonic_1.c
 <span class="dt">int</span> main() {
   <span class="dt">int</span> i;
@@ -233,7 +257,7 @@ Example trap_representation_2.c
 <p>The division operation has undefined behaviour for certain concrete argument values, i.e. 0, to accommodate implementation behaviour. If there is an abstract-machine execution in which the second argument is an unspecified value, then a corresponding execution of an actual implementation might divide by zero, so in the abstract machine division should be daemonic: division by an unspecified value should be just as &quot;bad&quot; as division by zero. The same holds for other partial operations and library calls.</p>
 <p>For Option 1 (symbolic unspecified values) this seems forced.</p>
 <p>For Option 2 (read-time nondeterministic choices of concrete values), the UB will arise on one execution and hence the program will be UB.</p>
-<h3 id="q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="header-section-number">2.6.5</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</h3>
+<h3 id="q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="header-section-number">2.6.6</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_control_flow_choice.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() 
@@ -255,7 +279,7 @@ Example trap_representation_2.c
 <p>The only potential argument against (a) that we are aware of is (as noted by Joseph Myers) jump tables indexed by an unspecified value, if implementations don't do a range check. Do they? That seems likely to lead to security weaknesses.</p>
 <p>Computed gotos (if they were allowed in the standard) on unspecified values should give undefined behaviour in any case.</p>
 <p>IIRC in LLVM branches on poison are UB, so choosing (a) for the source semantics would necessitate a freeze for controlling expressions that might be unspecified values.</p>
-<h3 id="q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="header-section-number">2.6.6</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</h3>
+<h3 id="q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="header-section-number">2.6.7</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_library_call_argument.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() 
@@ -266,7 +290,7 @@ Example trap_representation_2.c
   <span class="co">// should this have defined behaviour?</span>
 }</code></pre></div>
 <p>The DR451 CR says &quot;library functions will exhibit undefined behavior when used on indeterminate values&quot; but here we are more specifically looking at unspecified values. We see no benefit from making this undefined behaviour, and we are not aware that compilers assume so. It prevents (e.g.) serialising or debug printing of partially uninitialised structs, or (if padding bytes are treated the same as other uninitialised values) byte-by-byte serialising of structs containing padding. Accordingly, we suggest that library functions such as printf, when called with an unspecified value, are executed by first making an unspecified (nondeterministic) choice at call-time of a concrete value. This permits the instability of uninitialised values that we see in practice.</p>
-<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="header-section-number">2.6.7</span> Can a structure containing an uninitialised member can be copied as a whole?</h3>
+<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="header-section-number">2.6.8</span> Can a structure containing an uninitialised member can be copied as a whole?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_struct_copy.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">int</span> i1; <span class="dt">int</span> i2; } st;
@@ -280,9 +304,9 @@ Example trap_representation_2.c
 <p>There are two versions of this question: one where the uninitialised member might be a trap representation and one where it cannot be, and so is known to be an unspecified value.</p>
 <p>In either case, this seems to be relied on in practice, and the 6.2.6.1p6 &quot;The value of a structure or union object is never a trap representation&quot; suggests the previous WG14 intent was to permit it.</p>
 <p>In the Option 1 (symbolic unspecified-value tokens) semantics, the copy will have the unspecified value token for the same member; the struct as a whole will not become an unspecified value (i.e. forming a structure value should not be strict in unspecified-value-ness). In the Option 2 (read-time nondeterministic value) semantics, the copy would have a nondeterministically chosen but thereafter fixed concrete value.</p>
-<h3 id="can-a-union-as-a-whole-be-an-unspecified-value"><span class="header-section-number">2.6.8</span> Can a union-as-a-whole be an unspecified value?</h3>
+<h3 id="can-a-union-as-a-whole-be-an-unspecified-value"><span class="header-section-number">2.6.9</span> Can a union-as-a-whole be an unspecified value?</h3>
 <p>In principle there is a similar question for unions: can a union value as a whole be an unspecified value? There might be a real semantic difference, between an unspecified value as whole and a union that contains a specific member which itself is an unspecified value. But it's unclear whether there is a test in ISO C that distinguishes the two. We presume &quot;no&quot;.</p>
-<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="header-section-number">2.6.9</span> Can a structure containing an uninitialised member can be copied member-by-member?</h3>
+<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="header-section-number">2.6.10</span> Can a structure containing an uninitialised member can be copied member-by-member?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_struct_copy_2.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">int</span> i1; <span class="dt">_Bool</span> b2; } st;
@@ -303,7 +327,7 @@ Example trap_representation_2.c
 <li>other</li>
 </ol>
 <p>We presume no for the time being, mostly to be conservative w.r.t. the current standard text.</p>
-<h3 id="q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="header-section-number">2.6.10</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</h3>
+<h3 id="q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="header-section-number">2.6.11</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example besson_blazy_wilke_bitfields_1u.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="kw">struct</span> f {
@@ -318,7 +342,7 @@ Example trap_representation_2.c
 }</code></pre></div>
 <p>This example is from Besson, Blazy, and Wilke 2015.</p>
 <p>For consistency with the rest of our per-leaf-value proposal, we suggest &quot;yes&quot;.</p>
-<h3 id="q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="header-section-number">2.6.11</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</h3>
+<h3 id="q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="header-section-number">2.6.12</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_1.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
@@ -337,7 +361,7 @@ Example trap_representation_2.c
 <li><p>We could conceivably have Option 1 (symbolic unspecified-value tokens) but for non-<code>unsigned char</code> types make a nondeterministic choice of concrete representation bytes at object creation time. That would mean representation-bytes reads would deterministically return those concrete bytes, and a bytewise <code>memcpy</code> would copy them. But this isn't really self-consistent - e.g., repeated printf of an uninitialised value would show it as unstable (consistent with observed compiler behaviour), but repeated printf of a <code>memcpy</code> of that value would show an arbitrary but stable value.</p></li>
 <li><p>Other.</p></li>
 </ol>
-<h3 id="q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="header-section-number">2.6.12</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</h3>
+<h3 id="q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="header-section-number">2.6.13</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_4.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
@@ -358,7 +382,7 @@ Example trap_representation_2.c
 <li>no</li>
 <li>other</li>
 </ol>
-<h3 id="q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="header-section-number">2.6.13</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</h3>
+<h3 id="q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="header-section-number">2.6.14</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_2.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
