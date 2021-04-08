@@ -255,38 +255,6 @@ Design question: at types that do not have trap representations, should we allow
 
 -------------------
 
-post-discussion Jens+Peter chat.  
-
-- there are some cases where it has to be UB to read a specific object representation, e.g. to let some implementations trap - these cases are now rare, but they include signalling NaNs and perhaps other exotic number formats.
-
-- there are some cases where it has to be UB to operate on a read specific object representation - primarily _Bool and floating-point cases - but where it's not problematic to read them
-
-- it would be reasonable to require implementations to document both of the above
-
-- copying partially initialised structs has to be allowed (either by an explicit struct read&write, or implicitly as a struct function argument or return value)
-
-- reading the representation bytes of uninitialised automatic storage duration variables and malloc'd regions has to be allowed, eg to support library or user memcpy of partially initialised structs (deferring what one knows about the results of such reads for a moment)
-
-- (in ISO C, representation-byte accesses have to be at character types, but real code also relies on representation-byte accesses at larger types - this is likely rare, but we should support it in some way. There is also type-aliasing of matrices, relatively commonly)
-
-- reading the padding bytes of structs has to be allowed, eg to support (in some cases, not always) polymorphic bytewise operations such as copying, memcmp, marshalling, encryption, and hashing  (deferring what one knows about the results of such reads for a moment)
-
-- we see no programmer use-case for the current ISO address-taken exception, so we can remove that (though we may wish to check that whatever semantics we end up with admits Itanium NaT-like behaviour in case future architectures do that)
-
-- all other cases of reading uninitialised variables can be regarded as programmer errors
-
-- for these, we could either:
-      -- make them always UB
-      -- make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap), or a use-time nondeterministic particular concrete value 
-	  
-	  n unspecified value (deferring for the moment whether would be stable or not)
-
--- make them always an unspecified value (deferring for the moment whether that would be stable or not)
-      
-
-
-
-
 
 ### Stability of uninitialised values
 
