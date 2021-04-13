@@ -30,9 +30,9 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 
 - for reads of these representation and padding bytes (they might not be treated identically, but we don't so far see any reason why not to), and of any other uninitialised value that one doesn't deem to be programmer errors, one could either:
 
-    1) regard them as holding stable concrete values - but this is inconsistent with current behaviour for some compilers, or
-	2) regard them as holding wobbly values, but with a memcpy (or other bytewise read and write) as concretising them to a nondeterministically chosen concrete value in the target (we think this is ugly), or
-    3) regard them as holding wobbly values that are propagated as wobbly values by memcpy (or other bytewise read and write), and then either:
+    (1) regard them as holding stable concrete values - but this is inconsistent with current behaviour for some compilers, or
+	(2) regard them as holding wobbly values, but with a memcpy (or other bytewise read and write) as concretising them to a nondeterministically chosen concrete value in the target (we think this is ugly), or
+    (3) regard them as holding wobbly values that are propagated as wobbly values by memcpy (or other bytewise read and write), and then either:
 
 		a. regard it as a programmer error (expressed either with UB or otherwise as below) to operate on them, or
 
