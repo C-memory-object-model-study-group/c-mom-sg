@@ -64,35 +64,32 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#design-questions---unspecified-values"><span class="toc-section-number">2.6</span> Design questions - unspecified values</a><ul>
 <li><a href="#reading-uninitialised-values"><span class="toc-section-number">2.6.1</span> Reading uninitialised values</a></li>
 <li><a href="#summary-from-meeting"><span class="toc-section-number">2.6.2</span> Summary from meeting:</a></li>
+<li><a href="#stability-of-uninitialised-values"><span class="toc-section-number">2.6.3</span> Stability of uninitialised values</a></li>
+<li><a href="#q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="toc-section-number">2.6.4</span> Q52 Do operations on unspecified values result in unspecified values?</a></li>
+<li><a href="#q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="toc-section-number">2.6.5</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</a></li>
+<li><a href="#q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="toc-section-number">2.6.6</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</a></li>
+<li><a href="#q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="toc-section-number">2.6.7</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</a></li>
+<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="toc-section-number">2.6.8</span> Can a structure containing an uninitialised member can be copied as a whole?</a></li>
+<li><a href="#can-a-union-as-a-whole-be-an-unspecified-value"><span class="toc-section-number">2.6.9</span> Can a union-as-a-whole be an unspecified value?</a></li>
+<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="toc-section-number">2.6.10</span> Can a structure containing an uninitialised member can be copied member-by-member?</a></li>
+<li><a href="#q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="toc-section-number">2.6.11</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</a></li>
+<li><a href="#q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="toc-section-number">2.6.12</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</a></li>
+<li><a href="#q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="toc-section-number">2.6.13</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</a></li>
+<li><a href="#q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="toc-section-number">2.6.14</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</a></li>
 </ul></li>
+<li><a href="#summary-of-proposal"><span class="toc-section-number">2.7</span> Summary of proposal</a></li>
 </ul></li>
-<li><a href="#post-wg14-discussion-jenspeter-summary-updated-after-jenspetermartinkayvan-chat-and-web-discussion"><span class="toc-section-number">3</span> post-WG14 discussion Jens+Peter summary, updated after Jens/Peter/Martin/Kayvan chat and web discussion</a></li>
-<li><a href="#earlier-questions-and-tests"><span class="toc-section-number">4</span> Earlier questions and tests</a><ul>
-<li><a href="#stability-of-uninitialised-values"><span class="toc-section-number">4.0.1</span> Stability of uninitialised values</a></li>
-<li><a href="#q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="toc-section-number">4.0.2</span> Q52 Do operations on unspecified values result in unspecified values?</a></li>
-<li><a href="#q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="toc-section-number">4.0.3</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</a></li>
-<li><a href="#q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="toc-section-number">4.0.4</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</a></li>
-<li><a href="#q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="toc-section-number">4.0.5</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</a></li>
-<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="toc-section-number">4.0.6</span> Can a structure containing an uninitialised member can be copied as a whole?</a></li>
-<li><a href="#can-a-union-as-a-whole-be-an-unspecified-value"><span class="toc-section-number">4.0.7</span> Can a union-as-a-whole be an unspecified value?</a></li>
-<li><a href="#can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="toc-section-number">4.0.8</span> Can a structure containing an uninitialised member can be copied member-by-member?</a></li>
-<li><a href="#q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="toc-section-number">4.0.9</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</a></li>
-<li><a href="#q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="toc-section-number">4.0.10</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</a></li>
-<li><a href="#q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="toc-section-number">4.0.11</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</a></li>
-<li><a href="#q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="toc-section-number">4.0.12</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</a></li>
-<li><a href="#summary-of-proposal"><span class="toc-section-number">4.1</span> Summary of proposal</a></li>
-</ul></li>
-<li><a href="#padding-bytes"><span class="toc-section-number">5</span> Padding bytes</a><ul>
-<li><a href="#the-current-c-standard-text---padding-bytes"><span class="toc-section-number">5.1</span> The current C standard text - padding bytes</a></li>
-<li><a href="#from-the-programmer-and-existing-code-points-of-view-1"><span class="toc-section-number">5.2</span> From the programmer and existing-code points of view</a></li>
-<li><a href="#compiler-behaviour-1"><span class="toc-section-number">5.3</span> Compiler behaviour</a></li>
-<li><a href="#design-questions---padding-bytes"><span class="toc-section-number">5.4</span> Design questions - padding bytes</a><ul>
-<li><a href="#q61.-after-an-explicit-write-of-a-padding-byte-does-that-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">5.4.1</span> Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)</a></li>
-<li><a href="#q62.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">5.4.2</span> Q62. After an explicit write of a padding byte followed by a write to the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
-<li><a href="#q63.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-adjacent-members-of-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">5.4.3</span> Q63. After an explicit write of a padding byte followed by a write to adjacent members of the structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
-<li><a href="#q65.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-a-non-adjacent-member-of-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">5.4.4</span> Q65. After an explicit write of a padding byte followed by a write to a non-adjacent member of the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
-<li><a href="#q66.-after-an-explicit-write-of-a-padding-byte-followed-by-a-writes-to-adjacent-members-of-the-whole-structure-but-accessed-via-pointers-to-the-members-rather-than-via-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">5.4.5</span> Q66. After an explicit write of a padding byte followed by a writes to adjacent members of the whole structure, but accessed via pointers to the members rather than via the structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
-<li><a href="#q60.-can-structure-copy-copy-padding"><span class="toc-section-number">5.4.6</span> Q60. Can structure-copy copy padding?</a></li>
+<li><a href="#padding-bytes"><span class="toc-section-number">3</span> Padding bytes</a><ul>
+<li><a href="#the-current-c-standard-text---padding-bytes"><span class="toc-section-number">3.1</span> The current C standard text - padding bytes</a></li>
+<li><a href="#from-the-programmer-and-existing-code-points-of-view-1"><span class="toc-section-number">3.2</span> From the programmer and existing-code points of view</a></li>
+<li><a href="#compiler-behaviour-1"><span class="toc-section-number">3.3</span> Compiler behaviour</a></li>
+<li><a href="#design-questions---padding-bytes"><span class="toc-section-number">3.4</span> Design questions - padding bytes</a><ul>
+<li><a href="#q61.-after-an-explicit-write-of-a-padding-byte-does-that-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">3.4.1</span> Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)</a></li>
+<li><a href="#q62.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">3.4.2</span> Q62. After an explicit write of a padding byte followed by a write to the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
+<li><a href="#q63.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-adjacent-members-of-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">3.4.3</span> Q63. After an explicit write of a padding byte followed by a write to adjacent members of the structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
+<li><a href="#q65.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-a-non-adjacent-member-of-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">3.4.4</span> Q65. After an explicit write of a padding byte followed by a write to a non-adjacent member of the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
+<li><a href="#q66.-after-an-explicit-write-of-a-padding-byte-followed-by-a-writes-to-adjacent-members-of-the-whole-structure-but-accessed-via-pointers-to-the-members-rather-than-via-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="toc-section-number">3.4.5</span> Q66. After an explicit write of a padding byte followed by a writes to adjacent members of the whole structure, but accessed via pointers to the members rather than via the structure, does the padding byte hold a well-defined value? (not an unspecified value)</a></li>
+<li><a href="#q60.-can-structure-copy-copy-padding"><span class="toc-section-number">3.4.6</span> Q60. Can structure-copy copy padding?</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -197,43 +194,7 @@ Example trap_representation_2.c
 <li>other 0</li>
 </ol>
 <hr />
-<h1 id="post-wg14-discussion-jenspeter-summary-updated-after-jenspetermartinkayvan-chat-and-web-discussion"><span class="header-section-number">3</span> post-WG14 discussion Jens+Peter summary, updated after Jens/Peter/Martin/Kayvan chat and web discussion</h1>
-<ul>
-<li><p>there are some cases where it has to be UB to read a specific object representation, e.g. to let some implementations trap - these cases are now rare, but they include signalling NaNs and perhaps other exotic number formats.</p></li>
-<li><p>there are some cases where it has to be UB to operate on a read specific object representation - primarily _Bool and floating-point cases - but where it's not problematic to read them</p></li>
-<li><p>it would be reasonable to require implementations to document both of the above</p></li>
-<li><p>copying partially initialised structs has to be allowed (either by an explicit struct read&amp;write, or implicitly as a struct function argument or return value). It's unclear whether copying partially initialised structs member-by-member has to be allowed.</p></li>
-<li><p>reading the representation bytes of uninitialised automatic storage duration variables and malloc'd regions has to be allowed, eg to support library or user memcpy of partially initialised structs (deferring what one knows about the results of such reads for a moment)</p>
-<ul>
-<li>in ISO C, representation-byte accesses have to be at character types, but real code also relies on representation-byte accesses at larger types - this is likely rare, but we should support it in some way. There is also type-aliasing of matrices, relatively commonly</li>
-</ul></li>
-<li><p>reading the padding bytes of structs has to be allowed, eg to support (in some cases, not always) polymorphic bytewise operations such as copying, memcmp, marshalling, encryption, and hashing (deferring what one knows about the results of such reads for a moment)</p></li>
-<li><p>for these representation and padding bytes, one could either:</p>
-<ul>
-<li>regard them as holding stable concrete values - but this is likely inconsistent with current compiler behaviour, or</li>
-<li>regard them as holding wobbly values, but with a memcpy (or other bytewise read and write) as concretising them to a nondeterministically chosen concrete value in the target, or</li>
-<li><p>regard them as holding wobbly values that are propagated by memcpy (or other bytewise read and write), and then either:</p>
-<ul>
-<li>propagate wobbliness through operations, except for UB where some concrete value would give UB (e.g. division by zero)</li>
-<li>regard it as a programmer error (expressed either with UB or otherwise as below) to operate on them</li>
-</ul></li>
-<li><p>in the last two cases, the wobbliness of the source values could be either:</p>
-<ul>
-<li>intrinsic to those locations</li>
-<li>subject to being overwritten by explicit writes of non-wobbly values, but reset to wobbly by adjacent or whole-struct writes</li>
-</ul></li>
-</ul></li>
-<li><p>we see no programmer use-case for the current ISO address-taken exception, so we can remove that (though we may wish to check that whatever semantics we end up with admits Itanium NaT-like behaviour in case future architectures do that)</p></li>
-<li><p>all other cases of reading uninitialised variables can be regarded as programmer errors</p></li>
-<li><p>for these, we could either:</p>
-<ul>
-<li>make them always UB</li>
-<li>make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap), or a use-time nondeterministic particular concrete value</li>
-<li>make them always an unspecified value (with the above options)</li>
-</ul></li>
-</ul>
-<h1 id="earlier-questions-and-tests"><span class="header-section-number">4</span> Earlier questions and tests</h1>
-<h3 id="stability-of-uninitialised-values"><span class="header-section-number">4.0.1</span> Stability of uninitialised values</h3>
+<h3 id="stability-of-uninitialised-values"><span class="header-section-number">2.6.3</span> Stability of uninitialised values</h3>
 <p>In the absence of any writes, is the result of reading an uninitialised object potentially unstable, i.e., can multiple usages of it give different results?</p>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_stability.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
@@ -257,7 +218,7 @@ Example trap_representation_2.c
 <li>no</li>
 <li>other</li>
 </ol>
-<h3 id="q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="header-section-number">4.0.2</span> Q52 Do operations on unspecified values result in unspecified values?</h3>
+<h3 id="q52-do-operations-on-unspecified-values-result-in-unspecified-values"><span class="header-section-number">2.6.4</span> Q52 Do operations on unspecified values result in unspecified values?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_strictness_and_1.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
@@ -286,7 +247,7 @@ Example trap_representation_2.c
 <p>Note that (a) makes incremental bitwise initialisation not useful. It's hard to imagine that such initialisation is desirable in new code, but it may exist; we don't know how common it is.</p>
 <p>It would also make the N1793 Fig.4 printhexdigit not useful when applied to an uninitialised structure member.</p>
 <p>Option 1a is implemented in the Cerberus C semantics, so we have experience of working through all the details.</p>
-<h3 id="q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="header-section-number">4.0.3</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</h3>
+<h3 id="q54-must-unspecified-values-be-considered-daemonically-for-identification-of-other-possible-undefined-behaviours"><span class="header-section-number">2.6.5</span> Q54 Must unspecified values be considered daemonically for identification of other possible undefined behaviours?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_daemonic_1.c
 <span class="dt">int</span> main() {
   <span class="dt">int</span> i;
@@ -297,7 +258,7 @@ Example trap_representation_2.c
 <p>The division operation has undefined behaviour for certain concrete argument values, i.e. 0, to accommodate implementation behaviour. If there is an abstract-machine execution in which the second argument is an unspecified value, then a corresponding execution of an actual implementation might divide by zero, so in the abstract machine division should be daemonic: division by an unspecified value should be just as &quot;bad&quot; as division by zero. The same holds for other partial operations and library calls.</p>
 <p>For Option 1 (symbolic unspecified values) this seems forced.</p>
 <p>For Option 2 (read-time nondeterministic choices of concrete values), the UB will arise on one execution and hence the program will be UB.</p>
-<h3 id="q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="header-section-number">4.0.4</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</h3>
+<h3 id="q50-can-control-flow-choices-based-on-unspecified-values-be-assumed-to-make-an-unspecified-arbitrary-choice-not-giving-rise-to-undefined-behaviour"><span class="header-section-number">2.6.6</span> Q50 Can control-flow choices based on unspecified values be assumed to make an unspecified (arbitrary) choice (not giving rise to undefined behaviour)?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_control_flow_choice.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() 
@@ -319,7 +280,7 @@ Example trap_representation_2.c
 <p>The only potential argument against (a) that we are aware of is (as noted by Joseph Myers) jump tables indexed by an unspecified value, if implementations don't do a range check. Do they? That seems likely to lead to security weaknesses.</p>
 <p>Computed gotos (if they were allowed in the standard) on unspecified values should give undefined behaviour in any case.</p>
 <p>IIRC in LLVM branches on poison are UB, so choosing (a) for the source semantics would necessitate a freeze for controlling expressions that might be unspecified values.</p>
-<h3 id="q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="header-section-number">4.0.5</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</h3>
+<h3 id="q49-can-library-calls-with-unspecified-value-arguments-be-assumed-to-execute-with-an-arbitrary-choice-of-a-concrete-value-not-necessarily-giving-rise-to-undefined-behaviour"><span class="header-section-number">2.6.7</span> Q49 Can library calls with unspecified-value arguments be assumed to execute with an arbitrary choice of a concrete value (not necessarily giving rise to undefined behaviour)?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_library_call_argument.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() 
@@ -330,7 +291,7 @@ Example trap_representation_2.c
   <span class="co">// should this have defined behaviour?</span>
 }</code></pre></div>
 <p>The DR451 CR says &quot;library functions will exhibit undefined behavior when used on indeterminate values&quot; but here we are more specifically looking at unspecified values. We see no benefit from making this undefined behaviour, and we are not aware that compilers assume so. It prevents (e.g.) serialising or debug printing of partially uninitialised structs, or (if padding bytes are treated the same as other uninitialised values) byte-by-byte serialising of structs containing padding. Accordingly, we suggest that library functions such as printf, when called with an unspecified value, are executed by first making an unspecified (nondeterministic) choice at call-time of a concrete value. This permits the instability of uninitialised values that we see in practice.</p>
-<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="header-section-number">4.0.6</span> Can a structure containing an uninitialised member can be copied as a whole?</h3>
+<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-as-a-whole"><span class="header-section-number">2.6.8</span> Can a structure containing an uninitialised member can be copied as a whole?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_struct_copy.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">int</span> i1; <span class="dt">int</span> i2; } st;
@@ -344,9 +305,9 @@ Example trap_representation_2.c
 <p>There are two versions of this question: one where the uninitialised member might be a trap representation and one where it cannot be, and so is known to be an unspecified value.</p>
 <p>In either case, this seems to be relied on in practice, and the 6.2.6.1p6 &quot;The value of a structure or union object is never a trap representation&quot; suggests the previous WG14 intent was to permit it.</p>
 <p>In the Option 1 (symbolic unspecified-value tokens) semantics, the copy will have the unspecified value token for the same member; the struct as a whole will not become an unspecified value (i.e. forming a structure value should not be strict in unspecified-value-ness). In the Option 2 (read-time nondeterministic value) semantics, the copy would have a nondeterministically chosen but thereafter fixed concrete value.</p>
-<h3 id="can-a-union-as-a-whole-be-an-unspecified-value"><span class="header-section-number">4.0.7</span> Can a union-as-a-whole be an unspecified value?</h3>
+<h3 id="can-a-union-as-a-whole-be-an-unspecified-value"><span class="header-section-number">2.6.9</span> Can a union-as-a-whole be an unspecified value?</h3>
 <p>In principle there is a similar question for unions: can a union value as a whole be an unspecified value? There might be a real semantic difference, between an unspecified value as whole and a union that contains a specific member which itself is an unspecified value. But it's unclear whether there is a test in ISO C that distinguishes the two. We presume &quot;no&quot;.</p>
-<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="header-section-number">4.0.8</span> Can a structure containing an uninitialised member can be copied member-by-member?</h3>
+<h3 id="can-a-structure-containing-an-uninitialised-member-can-be-copied-member-by-member"><span class="header-section-number">2.6.10</span> Can a structure containing an uninitialised member can be copied member-by-member?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_struct_copy_2.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="kw">typedef</span> <span class="kw">struct</span> { <span class="dt">int</span> i1; <span class="dt">_Bool</span> b2; } st;
@@ -367,7 +328,7 @@ Example trap_representation_2.c
 <li>other</li>
 </ol>
 <p>We presume no for the time being, mostly to be conservative w.r.t. the current standard text.</p>
-<h3 id="q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="header-section-number">4.0.9</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</h3>
+<h3 id="q56-given-multiple-bitfields-that-may-be-in-the-same-word-can-one-be-a-well-defined-value-while-another-is-an-unspecified-value"><span class="header-section-number">2.6.11</span> Q56 Given multiple bitfields that may be in the same word, can one be a well-defined value while another is an unspecified value?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example besson_blazy_wilke_bitfields_1u.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="kw">struct</span> f {
@@ -382,7 +343,7 @@ Example trap_representation_2.c
 }</code></pre></div>
 <p>This example is from Besson, Blazy, and Wilke 2015.</p>
 <p>For consistency with the rest of our per-leaf-value proposal, we suggest &quot;yes&quot;.</p>
-<h3 id="q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="header-section-number">4.0.10</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</h3>
+<h3 id="q57-are-the-representation-bytes-of-an-unspecified-value-themselves-also-unspecified-values-not-an-arbitrary-choice-of-concrete-byte-values"><span class="header-section-number">2.6.12</span> Q57 Are the representation bytes of an unspecified value themselves also unspecified values? (not an arbitrary choice of concrete byte values)</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_1.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
@@ -401,7 +362,7 @@ Example trap_representation_2.c
 <li><p>We could conceivably have Option 1 (symbolic unspecified-value tokens) but for non-<code>unsigned char</code> types make a nondeterministic choice of concrete representation bytes at object creation time. That would mean representation-bytes reads would deterministically return those concrete bytes, and a bytewise <code>memcpy</code> would copy them. But this isn't really self-consistent - e.g., repeated printf of an uninitialised value would show it as unstable (consistent with observed compiler behaviour), but repeated printf of a <code>memcpy</code> of that value would show an arbitrary but stable value.</p></li>
 <li><p>Other.</p></li>
 </ol>
-<h3 id="q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="header-section-number">4.0.11</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</h3>
+<h3 id="q58-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-do-the-other-representation-bytes-still-hold-unspecified-values"><span class="header-section-number">2.6.13</span> Q58 If one writes some but not all of the representation bytes of an uninitialized value, do the other representation bytes still hold unspecified values?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_4.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
@@ -422,7 +383,7 @@ Example trap_representation_2.c
 <li>no</li>
 <li>other</li>
 </ol>
-<h3 id="q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="header-section-number">4.0.12</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</h3>
+<h3 id="q59-if-one-writes-some-but-not-all-of-the-representation-bytes-of-an-uninitialized-value-does-a-read-of-the-whole-value-still-give-an-unspecified-value"><span class="header-section-number">2.6.14</span> Q59 If one writes some but not all of the representation bytes of an uninitialized value, does a read of the whole value still give an unspecified value?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example unspecified_value_representation_bytes_2.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="dt">int</span> main() {
@@ -442,7 +403,7 @@ Example trap_representation_2.c
 <li>no</li>
 <li>other</li>
 </ol>
-<h2 id="summary-of-proposal"><span class="header-section-number">4.1</span> Summary of proposal</h2>
+<h2 id="summary-of-proposal"><span class="header-section-number">2.7</span> Summary of proposal</h2>
 <p>We could express the above Option 1 by a modest change to the C abstract machine: for any scalar type, we extend the set of values of that type with a symbolic &quot;unspecified value&quot; token, then we can give rules defining how that is propagated, e.g. if one adds an unspecified value and a concrete integer. The unspecified value token does not have a bit-level representation. notes</p>
 <p><a href="http://www.cl.cam.ac.uk/users/pes20/cerberus/notes98-2018-04-21-uninit-v4.html">notes98: Clarifying Uninitialised Values (Q47-Q59) v4 - working draft Kayvan Memarian, Victor Gomes, Peter Sewell. University of Cambridge 2018-04-21</a> detailed a possible technical corrigendum for this.</p>
 <p>As always, the &quot;as if&quot; rule applies: the fact that the abstract machine manipulates an explicit &quot;unspecified value&quot; token doesn't mean that implementations have to. Normal implementations may at compile-time but will not at runtime: at runtime they will typically have some arbitrary bit pattern where the abstract machine has the unspecified value token, and the looseness of the rules for operations on unspecified values licenses compiler optimisations.</p>
@@ -461,8 +422,8 @@ Example trap_representation_2.c
 <p>So all this should be discussed.</p>
 <p>Perhaps there should be a language-level analogue of the &quot;freeze&quot; being introduced in LLVM, to support code that knowingly manipulates potentially uninitialised values. We do not here attempt to specify that.</p>
 <p>If we are keeping the concept of trap representations, with _Bool as a type (possibly the only one in normal implementations) that has them, then copying a partly uninitialised struct member-by-member will give rise to UB. How about copying a partially uninitialised struct as a whole? Is this an argument for making _Bool have no trap representations, instead making it UB to use non-canonical values in boolean operations or control-flow choices?</p>
-<h1 id="padding-bytes"><span class="header-section-number">5</span> Padding bytes</h1>
-<h2 id="the-current-c-standard-text---padding-bytes"><span class="header-section-number">5.1</span> The current C standard text - padding bytes</h2>
+<h1 id="padding-bytes"><span class="header-section-number">3</span> Padding bytes</h1>
+<h2 id="the-current-c-standard-text---padding-bytes"><span class="header-section-number">3.1</span> The current C standard text - padding bytes</h2>
 <p>The standard has two quite distinct notions of padding: padding bytes in structures and unions, and padding bits within the representation of integer types. We focus here just on the former.</p>
 <p>Padding can be added by an implementation between the members of a structure, or at the end of a structure or union, but not before the first member:</p>
 <p>6.7.2.1p17 &quot;...There may be unnamed padding within a structure object, but not at its beginning.&quot;</p>
@@ -478,7 +439,7 @@ Example trap_representation_2.c
 <p>The force of &quot;including in a member object&quot; here is unclear: does that mean that if one writes to a struct member member, then the padding bytes of the enclosing struct, and perhaps also of any of its other members, also take unspecified values?</p>
 <p>7.24.4.3p2 (<code>memcmp</code>) Footnote 331): &quot;The contents of &quot;holes&quot; used as padding for purposes of alignment within structure objects are indeterminate. [...]&quot;</p>
 <p>It's unclear whether this applies just for <code>memcmp</code> or more generally. If padding bytes were intrinsically indeterminate, there would be <em>no</em> way for programmers to ensure an absence of information flow. Though as a footnote this is non-normative in any case.</p>
-<h2 id="from-the-programmer-and-existing-code-points-of-view-1"><span class="header-section-number">5.2</span> From the programmer and existing-code points of view</h2>
+<h2 id="from-the-programmer-and-existing-code-points-of-view-1"><span class="header-section-number">3.2</span> From the programmer and existing-code points of view</h2>
 <p>Usually programmers are not concerned with the contents of padding bytes. The exceptions are those we mentioned above:</p>
 <ul>
 <li><p>Some polymorphic bytewise operations on structs should be supported e.g. (library or user) implementations of <code>memcpy</code> and <code>memcmp</code>, serialisation, encryption, and hashing. These necessarily will read and write any uninitialised members and padding bytes in the struct layout, and there should be some way for the programmer to make them well-defined and deterministic.</p></li>
@@ -513,7 +474,7 @@ Example trap_representation_2.c
 <li>no response : 150</li>
 <li>other : 80</li>
 </ul>
-<h2 id="compiler-behaviour-1"><span class="header-section-number">5.3</span> Compiler behaviour</h2>
+<h2 id="compiler-behaviour-1"><span class="header-section-number">3.3</span> Compiler behaviour</h2>
 <p>We don't have good data about what modern compilers actually do for padding - comment would be welcome - but they might write to padding bytes for several reasons:</p>
 <ul>
 <li>if the target hardware architecture does not support the natural width of a write</li>
@@ -526,7 +487,7 @@ Example trap_representation_2.c
 <p>A struct copy could therefore either write to or not write any padding in the struct.</p>
 <p>The values of writes to padding could come from a read of that padding in another struct of the same type (e.g. in a struct copy), or from whatever value happens to be in some processor register, or be zero or another fixed value chosen by the compiler.</p>
 <p>It's also conceivable that a compiler would reserve space in a structure or union type for its own purposes, e.g. for some bounds-checking or debug metadata, but we imagine that this does not actually happens in mainstream implementations.</p>
-<h2 id="design-questions---padding-bytes"><span class="header-section-number">5.4</span> Design questions - padding bytes</h2>
+<h2 id="design-questions---padding-bytes"><span class="header-section-number">3.4</span> Design questions - padding bytes</h2>
 <p>There are several options for the semantics of padding. Presuming one has adopted the Option 1 symbolic unspecified-value token semantics, the choices for padding include:</p>
 <ol style="list-style-type: lower-alpha">
 <li><p>regarding padding bytes as holding unspecified-value tokens throughout the lifetime of the object, irrespective of any writes to them</p></li>
@@ -542,7 +503,7 @@ Example trap_representation_2.c
 <p>Option (d) would be a plausible conservative-with-respect-to-current-implementations choice, but not very useful for programmers.</p>
 <p>Options (e,f,g) aim to give programmers a way to maintain the invariant that padding is zero'd, e.g. where that matters for security. We're not sure which are (or could be made) sound w.r.t. current optimisations.</p>
 <p>Similarly to effective types, it might be that the semantics has to consider lvalue construction, not just the lvalue type, e.g. to know what counts as a struct member write.</p>
-<h3 id="q61.-after-an-explicit-write-of-a-padding-byte-does-that-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">5.4.1</span> Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)</h3>
+<h3 id="q61.-after-an-explicit-write-of-a-padding-byte-does-that-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.1</span> Q61. After an explicit write of a padding byte, does that byte hold a well-defined value? (not an unspecified value)</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_1.c
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
@@ -563,7 +524,7 @@ Example trap_representation_2.c
 }</code></pre></div>
 <p>For objects with static, thread, or automatic storage durations, and leaving aside unions, for each byte it's fixed whether it’s a padding byte or not for the lifetime of the object, and one could conceivably regard the padding bytes as being unspecified values irrespective of any explicit writes to them (for a union, the padding status of a byte depends on which member the union &quot;currently contains&quot;) (For objects with allocated storage duration, as malloc'd region can be reused, that would have to be intertwined with effective-type semantics, which is still unclear.) But this would give programmers no way to ensure the absence of information leaks.</p>
 <p>If we've gone for Option 1 for uninitialised reads, it'd be straightforward to use the same mechanism for uninitialised padding bytes, and write the unspecified-value token to padding in some circumstances. That would let it be overwritten with a concrete value if desired.</p>
-<h3 id="q62.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">5.4.2</span> Q62. After an explicit write of a padding byte followed by a write to the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
+<h3 id="q62.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.2</span> Q62. After an explicit write of a padding byte followed by a write to the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_2.c:
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
@@ -584,7 +545,7 @@ Example trap_representation_2.c
   <span class="cf">return</span> <span class="dv">0</span>;
 }</code></pre></div>
 <p>Here we see reads both of <code>B</code> and of <code>0x0</code>. Changing the example to one in which the compiler might naturally use a 4-byte copy, we sometimes see an overwrite of the padding byte on the write of the struct value.</p>
-<h3 id="q63.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-adjacent-members-of-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">5.4.3</span> Q63. After an explicit write of a padding byte followed by a write to adjacent members of the structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
+<h3 id="q63.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-adjacent-members-of-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.3</span> Q63. After an explicit write of a padding byte followed by a write to adjacent members of the structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_7.c:
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
@@ -607,7 +568,7 @@ Example trap_representation_2.c
   <span class="cf">return</span> <span class="dv">0</span>;
 }</code></pre></div>
 <p>This is perhaps the most relevant of these cases in practice, covering the case where the whole footprint of the struct has been filled with zero before use, and also covering the case where all members of the struct have been written (and hence where compilers might coalesce the writes). By requiring the explicit write to be of zero, compilers could implement this either by preserving the in-memory padding byte value or by writing a constant zero to it. Whether that would be sound w.r.t. actual practice is unclear. But it would be useful.</p>
-<h3 id="q65.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-a-non-adjacent-member-of-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">5.4.4</span> Q65. After an explicit write of a padding byte followed by a write to a non-adjacent member of the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
+<h3 id="q65.-after-an-explicit-write-of-a-padding-byte-followed-by-a-write-to-a-non-adjacent-member-of-the-whole-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.4</span> Q65. After an explicit write of a padding byte followed by a write to a non-adjacent member of the whole structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_5.c:
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
@@ -627,7 +588,7 @@ Example trap_representation_2.c
   }
   <span class="cf">return</span> <span class="dv">0</span>;
 }</code></pre></div>
-<h3 id="q66.-after-an-explicit-write-of-a-padding-byte-followed-by-a-writes-to-adjacent-members-of-the-whole-structure-but-accessed-via-pointers-to-the-members-rather-than-via-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">5.4.5</span> Q66. After an explicit write of a padding byte followed by a writes to adjacent members of the whole structure, but accessed via pointers to the members rather than via the structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
+<h3 id="q66.-after-an-explicit-write-of-a-padding-byte-followed-by-a-writes-to-adjacent-members-of-the-whole-structure-but-accessed-via-pointers-to-the-members-rather-than-via-the-structure-does-the-padding-byte-hold-a-well-defined-value-not-an-unspecified-value"><span class="header-section-number">3.4.5</span> Q66. After an explicit write of a padding byte followed by a writes to adjacent members of the whole structure, but accessed via pointers to the members rather than via the structure, does the padding byte hold a well-defined value? (not an unspecified value)</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_6.c:
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
@@ -652,7 +613,7 @@ Example trap_representation_2.c
   <span class="cf">return</span> <span class="dv">0</span>;
 }</code></pre></div>
 <p>Compiler optimisations could perhaps recognise the accesses are to adjacent struct members and coalesce them.</p>
-<h3 id="q60.-can-structure-copy-copy-padding"><span class="header-section-number">5.4.6</span> Q60. Can structure-copy copy padding?</h3>
+<h3 id="q60.-can-structure-copy-copy-padding"><span class="header-section-number">3.4.6</span> Q60. Can structure-copy copy padding?</h3>
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">Example padding_unspecified_value_1.c:
 <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span>
 <span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span>
