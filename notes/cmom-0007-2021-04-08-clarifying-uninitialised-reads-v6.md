@@ -35,6 +35,7 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
     3. regard them as holding wobbly values that are propagated as wobbly values by memcpy (or other bytewise read and write), and then either:
 
 		a. regard it as a programmer error (expressed either with UB or otherwise as below) to operate on them, or
+
         b. propagate wobbliness through operations (including conversions), except for UB where some concrete value would give UB (e.g. division by zero) (this is what Cerberus does at present)
 
     - in cases 2 and 3, for padding bytes, the wobbliness of the source values could be either:
