@@ -51,7 +51,9 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 - for these, we could either:
 
      x. make them always UB (which is classically what ISO C would do)
+
      y. make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap), or a use-time nondeterministic particular concrete value. This is a bit like the current ISO semantics for conversion, 6.3.1.3.  This lets implementations detect and report errors wherever they can, while somewhat limiting "surprising" optimisations arising from UB.  (This approach could also be applied to some other UBs.)
+
      z. make them wobbly, with one of the above options
 
 
