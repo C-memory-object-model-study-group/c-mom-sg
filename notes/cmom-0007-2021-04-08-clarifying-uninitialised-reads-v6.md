@@ -16,6 +16,8 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 
 - it would be reasonable to require implementations to document the cases where they do each of the above
 
+- in most cases, reading uninitialised values or padding should be deemed an error. We return below to what exactly that should mean, but first consider the exceptions.
+
 - copying partially initialised structs has to be allowed (either by an explicit struct read&write, or implicitly as a struct function argument or return value).  
 
 - it's unclear whether copying partially initialised structs member-by-member has to be allowed. We tentatively assume not.
@@ -52,7 +54,7 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 
 - the point of the wobbly-value options is to admit implementation behaviour while giving stronger guarantees for programmers than just "any access of any uninitialised data is UB", for the cases where the latter is necessary.  One would not expect programmers to be intentionally manipulating wobbly values in many circumstances, and they can be hard to reason about. 
 
-- the answers to these questions determine e.g. whether one can memcpy a partially initialised struct (perhaps containing padding) and then get a guarantee that a memcmp would compare equal.  It's unclear whether this is a hard requirement for the semantics.  Currently gcc seems to guarantee it, and so does clang head (though not older versions) for copy-and-compare, but not always if there's also some arithmetic. 
+- the answers to these questions determine e.g. whether one can memcpy a partially initialised struct (perhaps containing padding) and then get a guarantee that a memcmp would compare equal.  It's unclear whether this is a hard requirement for the semantics.  Currently some tests suggest gcc may guarantee it, and similarly clang for copy-and-compare, but not always if there's also some arithmetic. 
 
 - we think it's important for the programmer to have some way to sanitise padding, in cases where they have to exclude bad information flow. This rules out the option (i) of padding bytes being intrinsically wobbly. 
 
@@ -60,7 +62,7 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 
 - for these, we could either:
 
-     x. make them always UB (which is classically what ISO C would do)
+     x. make them always UB
 
      y. make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap), or either
 	 
