@@ -34,7 +34,8 @@
 <li><p>reading uninitialised representation bytes and padding bytes is also necessary for other bytewise polymorphic operations: memcmp, marshalling, encryption, and hashing (deferring what one knows about the results of such reads for a moment). It's not clear how generally these operations have to be supported, and we would like more data. Atomic cmpxchg on large structs, implemented with locks, would do a memcmp/memcpy combination (in fact is described as such in the standard).</p></li>
 <li><p>for reads of uninitialised representation and padding bytes (they might not be treated identically, but we don't so far see any reason why not to), and of any other uninitialised value that one doesn't deem to be programmer errors, one could either:</p>
 <ol style="list-style-type: decimal">
-<li><p>regard them as holding stable concrete values - but this is inconsistent with current behaviour for some compilers, or</p></li>
+<li><p>regard them as holding stable concrete values. This is inconsistent with current behaviour for some compilers,</p></li>
+<li><p>regard them as holding stable concrete values, but let implementations nondeterministically read either those or zero. This would let programmers control information flow via padding.</p></li>
 <li><p>regard them as holding wobbly values, but with a memcpy (or other bytewise read and write) as concretising them to a nondeterministically chosen concrete value in the target (we think this is ugly), or</p></li>
 <li><p>regard them as holding wobbly values that are propagated as wobbly values by memcpy (or other bytewise read and write), and then either:</p>
 <ol style="list-style-type: lower-alpha">
@@ -47,6 +48,7 @@
 <li><p>intrinsic to the padding locations - uninitialisable, whatever happens, or</p></li>
 <li><p>subject to being overwritten by explicit writes of non-wobbly values to padding, but reset to wobbly by preceding-adjacent or whole-struct writes.</p></li>
 </ol></li>
+<li><p>the point of the wobbly-value options is to admit implementation behaviour while giving stronger guarantees for programmers than just &quot;any access of any uninitialised data is UB&quot;, for the cases where the latter is necessary. One would not expect programmers to be intentionally manipulating wobbly values in many circumstances, and they can be hard to reason about.</p></li>
 <li><p>the answers to these questions determine e.g. whether one can memcpy a partially initialised struct (perhaps containing padding) and then get a guarantee that a memcmp would compare equal. It's unclear whether this is a hard requirement for the semantics. Currently gcc seems to guarantee it, and so does clang head (though not older versions) for copy-and-compare, but not always if there's also some arithmetic.</p></li>
 <li><p>we think it's important for the programmer to have some way to sanitise padding, in cases where they have to exclude bad information flow. This rules out the option (i) of padding bytes being intrinsically wobbly.</p></li>
 <li><p>all other cases (i.e., those that are neither representation-byte accesses, padding-byte accesses, or partially initialised struct member accesses) of reading uninitialised variables can be regarded as programmer errors</p></li>
@@ -57,7 +59,7 @@
 <ol start="16" style="list-style-type: lower-alpha">
 <li><p>an object-creation-time nondeterministic particular concrete value, or</p></li>
 <li><p>a read-time nondeterministic particular concrete value, or</p></li>
-<li><p>a wobbly value following 3a or 3b.</p></li>
+<li><p>a wobbly value following 4a or 4b.</p></li>
 </ol>
 <p>This is a bit like the current ISO semantics for conversion, 6.3.1.3. This lets implementations detect and report errors wherever they can, while somewhat limiting &quot;surprising&quot; optimisations arising from UB. (This approach could also be applied to some other UBs.)</p></li>
 <li><p>make them wobbly, with one of the above options 1-3. This wouldn't permit desirable implementation error reporting.</p></li>

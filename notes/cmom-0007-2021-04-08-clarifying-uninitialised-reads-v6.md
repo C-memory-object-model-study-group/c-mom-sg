@@ -32,11 +32,13 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 
 - for reads of uninitialised representation and padding bytes (they might not be treated identically, but we don't so far see any reason why not to), and of any other uninitialised value that one doesn't deem to be programmer errors, one could either:
 
-    1. regard them as holding stable concrete values - but this is inconsistent with current behaviour for some compilers, or
+    1. regard them as holding stable concrete values. This is inconsistent with current behaviour for some compilers,
+	
+	2. regard them as holding stable concrete values, but let implementations nondeterministically read either those or zero. This would let programmers control information flow via padding.
 
-    2. regard them as holding wobbly values, but with a memcpy (or other bytewise read and write) as concretising them to a nondeterministically chosen concrete value in the target (we think this is ugly), or
+    3. regard them as holding wobbly values, but with a memcpy (or other bytewise read and write) as concretising them to a nondeterministically chosen concrete value in the target (we think this is ugly), or
 
-    3. regard them as holding wobbly values that are propagated as wobbly values by memcpy (or other bytewise read and write), and then either:
+    4. regard them as holding wobbly values that are propagated as wobbly values by memcpy (or other bytewise read and write), and then either:
 
 		a. deem it to be a programmer error to operate on them in any way except writing them, or
 
@@ -47,6 +49,8 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 	i. intrinsic to the padding locations - uninitialisable, whatever happens, or
 
     ii. subject to being overwritten by explicit writes of non-wobbly values to padding, but reset to wobbly by preceding-adjacent or whole-struct writes.
+
+- the point of the wobbly-value options is to admit implementation behaviour while giving stronger guarantees for programmers than just "any access of any uninitialised data is UB", for the cases where the latter is necessary.  One would not expect programmers to be intentionally manipulating wobbly values in many circumstances, and they can be hard to reason about. 
 
 - the answers to these questions determine e.g. whether one can memcpy a partially initialised struct (perhaps containing padding) and then get a guarantee that a memcmp would compare equal.  It's unclear whether this is a hard requirement for the semantics.  Currently gcc seems to guarantee it, and so does clang head (though not older versions) for copy-and-compare, but not always if there's also some arithmetic. 
 
@@ -64,7 +68,7 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 
 	     q. a read-time nondeterministic particular concrete value, or
 
-		 r. a wobbly value following 3a or 3b.
+		 r. a wobbly value following 4a or 4b.
 		 
          This is a bit like the current ISO semantics for conversion, 6.3.1.3.  This lets implementations detect and report errors wherever they can, while somewhat limiting "surprising" optimisations arising from UB.  (This approach could also be applied to some other UBs.)
 
