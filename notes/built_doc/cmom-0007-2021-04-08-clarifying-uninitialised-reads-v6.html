@@ -23,6 +23,7 @@
 <li><p>there are some cases where it has to be deemed an error to read a specific object representation, e.g. to let some implementations trap - these cases are now rare, but they include signalling NaNs and perhaps other exotic number formats.</p></li>
 <li><p>there are some cases where it has to be deemed an error to operate on the result of a read of a specific object representation - primarily _Bool and floating-point cases - but where we have a free choice whether to deem it an error to read or write them</p></li>
 <li><p>it would be reasonable to require implementations to document the cases where they do each of the above</p></li>
+<li><p>in most cases, reading uninitialised values or padding should be deemed an error. We return below to what exactly that should mean, but first consider the exceptions.</p></li>
 <li><p>copying partially initialised structs has to be allowed (either by an explicit struct read&amp;write, or implicitly as a struct function argument or return value).</p></li>
 <li><p>it's unclear whether copying partially initialised structs member-by-member has to be allowed. We tentatively assume not.</p></li>
 <li><p>we see no programmer use-case for the current ISO address-taken exception (leaving representation-byte accesses aside), so we can remove that (though we may wish to check that whatever semantics we end up with admits Itanium NaT-like behaviour in case future architectures do that).</p></li>
@@ -49,12 +50,12 @@
 <li><p>subject to being overwritten by explicit writes of non-wobbly values to padding, but reset to wobbly by preceding-adjacent or whole-struct writes.</p></li>
 </ol></li>
 <li><p>the point of the wobbly-value options is to admit implementation behaviour while giving stronger guarantees for programmers than just &quot;any access of any uninitialised data is UB&quot;, for the cases where the latter is necessary. One would not expect programmers to be intentionally manipulating wobbly values in many circumstances, and they can be hard to reason about.</p></li>
-<li><p>the answers to these questions determine e.g. whether one can memcpy a partially initialised struct (perhaps containing padding) and then get a guarantee that a memcmp would compare equal. It's unclear whether this is a hard requirement for the semantics. Currently gcc seems to guarantee it, and so does clang head (though not older versions) for copy-and-compare, but not always if there's also some arithmetic.</p></li>
+<li><p>the answers to these questions determine e.g. whether one can memcpy a partially initialised struct (perhaps containing padding) and then get a guarantee that a memcmp would compare equal. It's unclear whether this is a hard requirement for the semantics. Currently some tests suggest gcc may guarantee it, and similarly clang for copy-and-compare, but not always if there's also some arithmetic.</p></li>
 <li><p>we think it's important for the programmer to have some way to sanitise padding, in cases where they have to exclude bad information flow. This rules out the option (i) of padding bytes being intrinsically wobbly.</p></li>
 <li><p>all other cases (i.e., those that are neither representation-byte accesses, padding-byte accesses, or partially initialised struct member accesses) of reading uninitialised variables can be regarded as programmer errors</p></li>
 <li><p>for these, we could either:</p>
 <ol start="24" style="list-style-type: lower-alpha">
-<li><p>make them always UB (which is classically what ISO C would do)</p></li>
+<li><p>make them always UB</p></li>
 <li><p>make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap), or either</p>
 <ol start="16" style="list-style-type: lower-alpha">
 <li><p>an object-creation-time nondeterministic particular concrete value, or</p></li>
