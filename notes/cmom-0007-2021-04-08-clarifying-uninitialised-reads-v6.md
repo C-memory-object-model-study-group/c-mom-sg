@@ -64,7 +64,7 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
 
      x. make them always UB
 
-     y. make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap), or either
+     y. make them, at the implementation's per-instance choice, either a compile-time or a runtime error (a trap or signal), or either
 	 
 	     p. an object-creation-time nondeterministic particular concrete value, or
 
