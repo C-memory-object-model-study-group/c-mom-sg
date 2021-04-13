@@ -41,7 +41,8 @@ C and C++ should ideally be closely aligned for all this, but here we focus just
     - in cases 2 and 3, for padding bytes, the wobbliness of the source values could be either:
 	
 	    i. intrinsic to the padding locations - uninitialisable, whatever happens, or
-		ii. subject to being overwritten by explicit writes of non-wobbly values to padding, but reset to wobbly by preceding-adjacent or whole-struct writes.
+
+        ii. subject to being overwritten by explicit writes of non-wobbly values to padding, but reset to wobbly by preceding-adjacent or whole-struct writes.
 
 - the answers to these questions determine e.g. whether one can memcpy a partially initialised struct (perhaps containing padding) and then get a guarantee that a memcmp would compare equal.  It's unclear whether this is a hard requirement for the semantics.  Currently gcc seems to guarantee it, and so does clang head (though not older versions) for copy-and-compare, but not always if there's also some arithmetic. 
 
