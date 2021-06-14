@@ -15,8 +15,8 @@ types of automatic storage duration. Ignore (for now):
 There are some cases where it has to be deemed an error to read a
 specific object representation, e.g. to let some implementations
 trap - these cases are now rare, but they include signalling NaNs and
-perhaps other exotic number formats. (An explicit licence to report an
-error would cover those.)
+perhaps other exotic number formats.  Call these "true trap
+representations" for now.
 
 There are some cases where it has to be deemed an error to operate on
 the result of a read of a specific object representation - primarily
@@ -26,7 +26,7 @@ those later.
 
 
 Current standard: reads from uninitialised variables are UB unless the
-address of the variable is taken.
+address of the variable is taken, with indeterminate value.
 
 Current compiler behaviour: 
 
@@ -108,9 +108,16 @@ We could explicit permitting, at the implementation's per-instance
 choice, either a compile-time error, a non-silent runtime error, or
 some other stronger-than-UB behaviour
 
-(This is somewhat like the existing 6.3.1.3 semantics for
+This is somewhat like the existing 6.3.1.3 semantics for
 conversion, "either the result is implementation-defined or an
-implementation-defined signal is raised".)
+implementation-defined signal is raised".
+
+Explicitly permiting errors like this accommodates the "true trap
+representation" cases, and sanitiser-like debugging tools, but it's
+arguably not very useful beyond that - compilers can always warn where
+they wish, and to avoid false positives they would need to show
+reachability.
+
 
 What could the stronger-than-UB semantics be? 
 
@@ -146,7 +153,9 @@ operate on the uninitialised value in any other way.
 
 What criteria do we have for choosing between these?
 
-(0) and (1) are the most predictable.
+(0) and (1) are the most predictable.  They have some costs, but
+perhaps those are negligible in enough cases that an explicit opt-out
+would suffice?
 
 (2) and (3) accommodate compiler SSA optimisations
 
@@ -154,3 +163,6 @@ What criteria do we have for choosing between these?
 making uninitialised reads always UB, except that they are all making
 it defined behaviour to copy an uninitialised value.
 
+
+Or we can give up on increased predictability and just make it UB in
+all cases...
