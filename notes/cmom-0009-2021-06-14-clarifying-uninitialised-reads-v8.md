@@ -11,6 +11,7 @@ types of automatic storage duration. Ignore (for now):
 - whole-struct reads
 - padding
 
+---------------------
 
 There are some cases where it has to be deemed an error to read a
 specific object representation, e.g. to let some implementations
@@ -24,6 +25,7 @@ _Bool and floating-point cases - but where we have a free choice
 whether to deem it an error to read or write them.  We'll return to
 those later.
 
+---------------------
 
 Current standard: reads from uninitialised variables are UB unless the
 address of the variable is taken, with indeterminate value.
@@ -43,9 +45,24 @@ x64 msvc v19.14 (WINE)   warns, returns zero
 
 (compiling with -O2 -Wall -pedantic -std=c11)
 
+---------------------
 
 Think uncontroversial: in this case, uninitialised reads are almost always programmer errors.
 The only exception we know: partial initialisation of a bitmask.
+
+- volatile?  no
+- bitfield? out of scope (but abstract machine should perhaps only read bitfield)
+- for debugging, read the previous function's variables
+- for garbage collection, scanning the stack
+those last two are intentional but clearly outside the scope of the standard
+- implementation of strlen, reading memory in long words - different issue
+- entropy - but that's terrible
+- idioms like the partially-initialised struct, except for a flat set of local variables
+    (where the initialisation is based on some complex control flow)
+	
+https://wiki.sei.cmu.edu/confluence/display/c/ERR33-C.+Detect+and+handle+standard+library+errors. covers cases of reading uninit memory that CERT knows of (incl for entropy) 
+
+---------------------
 
 Issues with the current semantics:
 
@@ -71,11 +88,27 @@ Issues with the current semantics:
 
   We propose to make (in this case!) the semantics identical
   irrespective of whether the address is taken.
-  
-  Straw poll: for reads of scalar non-character types of automatic
-  storage duration, should the semantics be independent of whether the
-  address of the variable is taken? 
 
+    MartinU: complete rule was for Itanium, not the address-taken exception. Not sure why the exception was there - perhaps to constrain it to automatic variables that do not escape. 
+    Joseph: from 2007 notes, without address-taken had concerns about UB leaking into memcpy.  But think shouldn't have the rule now. 
+    David: confirms. The exception was because people didn't find UB palatable without some out. Without that, NaT wasn't going to get into the standard; it was a concession.
+	 
+  Straw poll: for reads of scalar non-character types of uninitialised
+  automatic storage duration variables, should the semantics be
+  independent of whether the address of the variable is taken?
+
+  (NB this is not asking "should we just delete the exception text")
+
+  Yes:    15
+  No:      2
+  Abstain: 4
+
+  Why no?  Rajan: because anyone depending on the current text shouldn't be broken. 
+    (would be fine if it became more defined)
+  Victor: agree with Rajan - don't see motivation
+  David: would have voted no, but presuming would find some other way to allow NaT 
+
+---------------------
 
 2) just having UB is simple in the standard text, gives the most
 implementation flexibility, and is in the style of most of the rest of
@@ -104,7 +137,9 @@ the current standard.  But it is not very helpful for programmers:
 
 Can we do better? 
 
-We could explicit permitting, at the implementation's per-instance
+---------------------
+
+We could explicitly permit, at the implementation's per-instance
 choice, either a compile-time error, a non-silent runtime error, or
 some other stronger-than-UB behaviour
 
@@ -118,6 +153,7 @@ arguably not very useful beyond that - compilers can always warn where
 they wish, and to avoid false positives they would need to show
 reachability.
 
+---------------------
 
 What could the stronger-than-UB semantics be? 
 
@@ -126,6 +162,12 @@ In increasing looseness:
 0) a default (zero) particular concrete value, with some annotation to
 let the programmer say that specific variables (e.g. large arrays)
 should not be default-initialised.
+
+https://bugzilla.mozilla.org/show_bug.cgi?id=1514965 gives some figures for Firefox benchmarks.
+
+from the Clang review (https://reviews.llvm.org/D54604) it says: "What's the performance like? Not too bad! Previous publications [0] have cited 2.7 to 4.5% averages. " 
+
+0.5) initialisation to a strange concrete value for better error detection
 
 1) an object-creation-time nondeterministic particular concrete value
 
@@ -150,6 +192,7 @@ should not be default-initialised.
 3) propagate uninitialisedness through stores, but make it UB to
 operate on the uninitialised value in any other way.
 
+---------------------
 
 What criteria do we have for choosing between these?
 
@@ -166,3 +209,38 @@ it defined behaviour to copy an uninitialised value.
 
 Or we can give up on increased predictability and just make it UB in
 all cases...
+
+
+------------
+
+Straw poll:
+
+Does the committee support in principle the approach of defining
+a small number of alternative options for uninitialised-read semantics,
+allowing users to choose as they wish? 
+
+Yes: 6
+No: 9
+Abstain: 6
+
+
+Straw poll:
+
+Does the committee support in principle the approach of explicitly
+permitting, at the implementation's per-instance choice, either a
+compile-time error, a non-silent runtime error, or some other
+more-defined-than-UB behaviour for uninitialised read semantics. 
+
+Yes:  10
+No:    9
+Abstain: 3
+
+
+Straw poll:
+
+Does the committee want to make uninitialised reads of scalar non-character
+typed objects of automatic storage duration always UB.
+
+Yes:  10
+No:    9
+Abstain: 3
