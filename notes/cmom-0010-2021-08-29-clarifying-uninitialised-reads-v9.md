@@ -58,7 +58,9 @@ platform in question) have trap representations, if the address is
 taken, should it be:
 
 a. an allocation-time nondeterministic choice of a concrete value (stable if re-read) 
+
 b. some flavour of wobbly value
+
 c. some other semantics
 
 
@@ -92,8 +94,9 @@ taken, which flavour of wobbly value should it be:
 
 We could either keep UB or give a more constrained semantics,
 e.g. that it must either (however the implementation prefers) be
-reported as a compile-time or run-time error or be treated as a
-concrete allocation-time nondeterministic value.
+identified at compile-time (with a diagnostic message) or give rise to
+a non-silent run-time error or be treated as a concrete
+allocation-time nondeterministic value.
 
 Straw poll 3: For an uninitialised reads of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
@@ -101,11 +104,15 @@ platform in question) have trap representations, if the address is
 never taken, should it be:
 
 a. UB
-b. either (however the implementation prefers) be reported
-    as a compile-time or run-time error or be treated as a concrete
+
+b. either (however the implementation prefers) be identified at
+    compile-time (with a diagnostic message) or give rise to a
+    non-silent run-time error or be treated as a concrete
     allocation-time nondeterministic value.
+
 c. either (however the implementation prefers) be reported
     as a compile-time or run-time error or be treated as a wobbly value.
+
 d. some other semantics
 
 
