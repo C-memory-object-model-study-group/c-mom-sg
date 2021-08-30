@@ -1,3 +1,5 @@
+Uninitialised reads again, 2021-08-30
+-------------------------------------
 
 Consider uninitialised reads of scalar non-character typed objects of
 automatic storage duration, for types that do not (on the platform in
@@ -22,7 +24,7 @@ From the discussion last time, we believe the committee wants:
 We assume both below.  If not, say so now. 
 
 
-Case 1 - address never taken:
+## Case 1 - address never taken:
 
 If we're giving non-error semantics to an uninitialised read, there are
 two basic options:
@@ -38,7 +40,7 @@ b. some flavour of wobbly value
 (a) is more predictable for programmers
 (b) allows SSA-based optimisations
 
-The existing standard text is (in my view) ambiguous: 
+The existing standard text is (in my view - some differ) ambiguous: 
 
   3.19.3 "unspecified value: valid value of the relevant type
   where this International Standard imposes no requirements on which
@@ -50,20 +52,19 @@ A priori, that "in any instance" could be read as:
   - any read-time instance 
   - any use-time instance 
 
-Straw poll: For an uninitialised reads of a scalar non-character typed
+Straw poll 1: For an uninitialised reads of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
 platform in question) have trap representations, if the address is
 taken, should it be:
 
-a. an allocation-time nondeterministic choice of a concrete value
-   (stable if re-read) 
+a. an allocation-time nondeterministic choice of a concrete value (stable if re-read) 
 b. some flavour of wobbly value
 c. some other semantics
 
 
 If there was a majority for (b), then we should ask:
 
-Straw poll: For an uninitialised reads of a scalar non-character typed
+Straw poll 2: For an uninitialised reads of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
 platform in question) have trap representations, if the address is
 taken, which flavour of wobbly value should it be:
@@ -87,14 +88,14 @@ taken, which flavour of wobbly value should it be:
    iv) something else
    
 
-Case 2 - address taken:
+## Case 2 - address taken:
 
 We could either keep UB or give a more constrained semantics,
 e.g. that it must either (however the implementation prefers) be
 reported as a compile-time or run-time error or be treated as a
 concrete allocation-time nondeterministic value.
 
-Straw poll: For an uninitialised reads of a scalar non-character typed
+Straw poll 3: For an uninitialised reads of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
 platform in question) have trap representations, if the address is
 never taken, should it be:
