@@ -64,7 +64,7 @@ c. some other semantics
 
 If there was a majority for (b), then we should ask:
 
-Straw poll 2: For an uninitialised reads of a scalar non-character typed
+Straw poll 2: For an uninitialised read of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
 platform in question) have trap representations, if the address is
 taken, which flavour of wobbly value should it be:
