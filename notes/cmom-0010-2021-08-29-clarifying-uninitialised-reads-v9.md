@@ -7,8 +7,8 @@ question) have trap representations.
 
 Currrent ISO C:
 
-1. if their address is never taken: an "unspecified value"
-2. if their address is taken: UB
+1. if their address is taken: an "unspecified value"
+2. if their address is never taken: UB
 
 (from 6.2.4p6,7 "the initial value is indeterminate", and 3.19.2
 "indeterminate value: either an unspecified value or a trap representation")
@@ -24,7 +24,7 @@ From the discussion last time, we believe the committee wants:
 We assume both below.  If not, say so now. 
 
 
-## Case 1 - address never taken:
+## Case 1 - address taken:
 
 If we're giving non-error semantics to an uninitialised read, there are
 two basic options:
@@ -38,7 +38,7 @@ b. some flavour of wobbly value
    to later if needed)
 
 (a) is more predictable for programmers
-(b) allows SSA-based optimisations
+(b) allows certain SSA-based optimisations
 
 The existing standard text is (in my view - some differ) ambiguous: 
 
@@ -88,7 +88,7 @@ taken, which flavour of wobbly value should it be:
    iv) something else
    
 
-## Case 2 - address taken:
+## Case 2 - address never taken:
 
 We could either keep UB or give a more constrained semantics,
 e.g. that it must either (however the implementation prefers) be
