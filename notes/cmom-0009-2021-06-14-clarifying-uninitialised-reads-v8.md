@@ -45,6 +45,9 @@ x64 msvc v19.14 (WINE)   warns, returns zero
 
 (compiling with -O2 -Wall -pedantic -std=c11)
 
+
+imaging small (within one field of view) and large (2x2 tile) embryos with Luxendo light-sheet microscope
+
 ---------------------
 
 Think uncontroversial: in this case, uninitialised reads are almost always programmer errors.
