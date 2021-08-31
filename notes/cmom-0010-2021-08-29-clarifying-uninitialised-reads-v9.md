@@ -1,6 +1,12 @@
 Uninitialised reads again, 2021-08-30
 -------------------------------------
 
+Peter Sewell, with feedback from Jens Gustedt, Kayvan Memarian, Martin Uecker
+
+Discussed with WG14 and edited live 2021-08-31
+
+
+
 Consider uninitialised reads of scalar non-character typed objects of
 automatic storage duration, for types that do not (on the platform in
 question) have trap representations.
@@ -52,21 +58,71 @@ A priori, that "in any instance" could be read as:
   - any read-time instance 
   - any use-time instance 
 
-Straw poll 1: For an uninitialised reads of a scalar non-character typed
+Straw poll 1: For an uninitialised read of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
 platform in question) have trap representations, if the address is
-taken, should it be:
+taken, which of the following should be reasonable options? 
+
+Bearing in mind that if there are several good candidates, the TS might identify 
+a set of them that compilers could adopt, not just a single option.
+
+You can vote for as many as you like.
 
 a. an allocation-time nondeterministic choice of a concrete value (stable if re-read) 
 
 b. some flavour of wobbly value
 
-c. some other semantics
+some error semantics: either 
+c.1 plain UB or
+c.2 diagnosed compile-time or run-time error or (a) (at the impl's per-instance choice)
+c.3 diagnosed compile-time or run-time error or some flavour of wobbly value (atipic)
 
+d. some other semantics
+
+for the address-taken variant:
+
+a:  yes 18   no 3   abstain 3
+b:    12     10    1
+c.1:  9      12    2
+c.2:  16      5    2
+c.3:  9      14    0
+d:    2      12    9
+
+Straw poll 2 - the same, but a preference vote:
+a: 5    b: 1  c.1:  7    c.2: 9   c.3:  2   d: 0
+
+
+## Case 2 - address never taken:
+
+Straw poll 3: for the address never taken variant of the above, preference vote:
+
+0. the same as whatever semantics is chosen for the address-taken case
+
+a. an allocation-time nondeterministic choice of a concrete value (stable if re-read) 
+
+b. some flavour of wobbly value
+
+some error semantics: either 
+c.1 plain UB or
+c.2 diagnosed compile-time or run-time error or (a) (at the impl's per-instance choice)
+c.3 diagnosed compile-time or run-time error or some flavour of wobbly value (atipic)
+
+d. some other semantics
+
+
+0(same): 11   a: 0   b: 0  c.1: 5   c.2: 7    c.3: 0    d: 0
+
+
+
+---------------------------------------------------------
+
+#  Further notes, not discussed in the meeting
+
+## Case 1 - address taken:
 
 If there was a majority for (b), then we should ask:
 
-Straw poll 2: For an uninitialised read of a scalar non-character typed
+Straw poll 4: For an uninitialised read of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
 platform in question) have trap representations, if the address is
 taken, which flavour of wobbly value should it be:
@@ -87,7 +143,10 @@ taken, which flavour of wobbly value should it be:
    Nondeterministically choose particular concrete values only at
    external library calls.
 
-   iv) something else
+   iv)  Freek WV: you can read and copy it, but get UB if you try to
+   do anything else with it. 
+
+   v) something else
    
 
 ## Case 2 - address never taken:
@@ -98,7 +157,7 @@ identified at compile-time (with a diagnostic message) or give rise to
 a non-silent run-time error or be treated as a concrete
 allocation-time nondeterministic value.
 
-Straw poll 3: For an uninitialised reads of a scalar non-character typed
+Straw poll 5: For an uninitialised reads of a scalar non-character typed
 object of automatic storage duration, for a type that does not (on the
 platform in question) have trap representations, if the address is
 never taken, should it be:
