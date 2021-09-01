@@ -36,7 +36,7 @@ for each major compiler, to identify which of the following alternatives it
 implements (or aims to implement), under which circumstances - and also to 
 identify whether the following alternatives suffice. 
 
-## Conclusions from the 2021-08-31 WG14 discussion and straw polls
+## The 2021-08-31 WG14 discussion and straw polls
 
 We first asked, for the address-taken case: 
 
@@ -81,4 +81,29 @@ We then asked for people's single preference among these options, and later also
 |c.3  |   2 		 				|						  |		0							  |
 |d    |   0 		 				|                         |     0                             |
 
+
+Our main conclusion from this is that multiple alternatives receive significant yes votes in the first vote (identifying "reasonable" alternatives), that no alternative gets even a majority in the preferences votes, that a, c.1, and c.2 are the main preferences, and that d has no preference votes (hence these are, for WG14 at the time, not missing any major alternatives). 
+
+The wobbly-value alternatives, b and c.3, have rather low support in the preference votes, perhaps indicating that people feel these provide little of use (to programmers or compilers) beyond UB.   For the purposes of these polls, the semantics (which at least one person favoured) in which one can read and write an uninitialised value but with UB on any other operation was included in the wobbly-value bucket, and we didn't go into detailed votes among the many different flavours of wobbly values. 
+
+It's also clear from earlier discussion that two other semantics are sometimes provided by existing compilers and valued in practice: automatic zero initalisation, and automatic initialisation with some sentinel value for error detection. 
+
+
+## The proposed alternatives
+
+That leads us to these alternatives:
+
+- a: an allocation-time nondeterministic choice of a concrete value (stable if re-read) 
+- c.1: plain UB 
+- c.2: at the implementations's per-instance choice: diagnosed compile-time or run-time error or (a)
+- e: uninitialised values can be read and written (with the target becoming uninitialised), but give UB if operated on in any other way
+- f.1: automatic zero initialisation
+- f.2: automatic sentinel-value initialisation
+
+The proposal would be to make it implementation-defined which
+alternative(s) a compiler provides, in which circumstances - depending
+on compiler options, on the type, and on whether the address is ever
+taken.
+
+Does that suffice to describe existing practice?
 
