@@ -82,11 +82,11 @@ d. some other semantics
 for the address-taken variant:
 
 a:  yes 18   no 3   abstain 3
-b:    12     10    1
-c.1:  9      12    2
-c.2:  16      5    2
-c.3:  9      14    0
-d:    2      12    9
+b:    	12     10    		1
+c.1:  	9      12    		2
+c.2:  	16      5    		2
+c.3:  	9      14    		0
+d:    	2      12    		9
 
 Straw poll 2 - the same, but a preference vote:
 a: 5    b: 1  c.1:  7    c.2: 9   c.3:  2   d: 0
@@ -111,6 +111,11 @@ d. some other semantics
 
 
 0(same): 11   a: 0   b: 0  c.1: 5   c.2: 7    c.3: 0    d: 0
+
+
+
+
+
 
 
 
