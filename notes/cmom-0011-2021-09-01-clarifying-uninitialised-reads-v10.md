@@ -88,6 +88,9 @@ The wobbly-value alternatives, b and c.3, have rather low support in the prefere
 
 It's also clear from earlier discussion that two other semantics are sometimes provided by existing compilers and valued in practice: automatic zero initalisation, and automatic initialisation with some sentinel value for error detection. 
 
+The votes for c.2, which aims to allow implementation error reporting whenever the implementation can identify an uninitialised read, but a tolerably predictable semantics otherwise, indicate significant but not overwhelming support for providing such guarantees as an alternative to plain UB. 
+
+The vote for the address-never-taken case was evenly split between those who thought it should be the same as the address-taken case (whatever that is), and those who picked c.1 and c.2.
 
 ## The proposed alternatives
 
@@ -105,5 +108,10 @@ alternative(s) a compiler provides, in which circumstances - depending
 on compiler options, on the type, and on whether the address is ever
 taken.
 
-Does that suffice to describe existing practice?
+Does that suffice to describe existing practice? 
+
+I.e., can the existing major compiler teams describe the behaviour
+their current implementations provide (or aim to provide) in terms of
+these?
+
 
