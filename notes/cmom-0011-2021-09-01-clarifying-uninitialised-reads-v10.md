@@ -61,6 +61,7 @@ You can vote for as many as you like.
 </em>
 
 |     |   yes  |   no  | abstain |
+|:----|-------:|------:|--------:|
 |a    |     18 |     3 |       3 |
 |b    |     12 |    10 |       1 |
 |c.1  |      9 |    12 |       2 |
@@ -71,6 +72,7 @@ You can vote for as many as you like.
 We then asked for people's single preference among these options, and later also for the preference in the address-never-taken case
 
 |     |   preference (address-taken)|                         |   preference (address-never-taken)|
+|:----|-----------------------------|------------------------:|----------------------------------:|
 |     |                             | same as address-taken:  |     11                            |
 |a    |   5 		 				|    					  |		0							  |
 |b    |   1 		 				|						  |		0							  |
