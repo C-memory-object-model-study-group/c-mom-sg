@@ -105,12 +105,13 @@ in terms of these, which semantics they provide in what circumstances
 the type is a character type or not, and on whether the address is
 ever taken)?
 
+y: 10 n: 3 a: 8
+
 The main alternatives that received support are:
 
 - a: an allocation-time nondeterministic choice of a concrete value (stable if re-read) 
 - c.1: plain UB 
 - c.2: at the implementations's per-instance choice: diagnosed compile-time or run-time error or (a)
-
 
 Note that an implementation could trivially conform by picking (c.1)
 in all cases. That's weaker than the current standard in some cases -
@@ -119,24 +120,44 @@ These options don't include wobbly values (as there was little support
 in the preference vote), so that might have to be stronger than the 
 current standard.
 
+- f.1: automatic zero initialisation (with some per-variable opt-out as in existing practice), or
+- f.2: automatic sentinel-value initialisation
+
+
+Straw poll: For TS 6010, does WG14 support defining the given set X of
+alternative semantics for uninitialised reads, so that compilers must
+document, in terms of these, which semantics they provide in what
+circumstances (depending on compiler options, on the storage duration,
+on whether the type is a character type or not, and on whether the
+address is ever taken)? (Please vote for all sets that you would find
+acceptable)
+
+For X=:
+{a, c1, c2}          y:12  n:10  a: 3
+{a, c2}              y: 8  n:11  a: 5
+{a}					 y: 9  n:10  a: 5
+{a, c1, c2, f1, f2}	 y:10  n:12  a: 3
+{a, c2, f1, f2}		 y: 8  n:13  a: 4
+{f1}				 y: 6  n:15  a: 3
+{c1}                 y:13  n: 8  a: 2
+{a, c1}              y:13  n: 9  a: 2
+
+
 
 We also discussed:
 
 (1) Making the choice not just implementation-defined but also checkable via a feature-test macro.
 
-
 (2) Removing c.1 altogether.  That would be a strengthening of the
 standard - but perhaps now has support?
 
-
 (3) Automatic initialisation, either:
 
-- f.1: automatic zero initialisation, or
+- f.1: automatic zero initialisation (with some per-variable opt-out as in existing practice), or
 - f.2: automatic sentinel-value initialisation
 
 These could both be subsumed by (a), though (f.1) does give extra
 usable strength.
-
 
 (4) The following (C++ direction?):
 
