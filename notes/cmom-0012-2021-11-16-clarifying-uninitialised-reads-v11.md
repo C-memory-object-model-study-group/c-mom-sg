@@ -112,19 +112,51 @@ The main alternatives that received support are:
 - c.2: at the implementations's per-instance choice: diagnosed compile-time or run-time error or (a)
 
 
+Note that an implementation could trivially conform by picking (c.1)
+in all cases. That's weaker than the current standard in some cases -
+we could conceivably mandate a non-UB lower bound in those cases.
+These options don't include wobbly values (as there was little support
+in the preference vote), so that might have to be stronger than the 
+current standard.
+
+
 We also discussed:
 
-- e: uninitialised values can be read and written (with the target becoming uninitialised), but give UB if operated on in any other way (NB this does not guarantee memcmp of a memcpy will be true)
-- f.1: automatic zero initialisation  (NB this could be subsumed by (a), though one might or might not want to let compilers express the additional guarantee beyond that)
-- f.2: automatic sentinel-value initialisation (NB this could be subsumed by (a)
-
-Does that suffice to describe existing practice? 
-
-I.e., can the existing major compiler teams describe the behaviour
-their current implementations provide (or aim to provide) in terms of
-these?
+(1) Making the choice not just implementation-defined but also checkable via a feature-test macro.
 
 
-Straw poll: yes/no? 
+(2) Removing c.1 altogether.  That would be a strengthening of the
+standard - but perhaps now has support?
+
+
+(3) Automatic initialisation, either:
+
+- f.1: automatic zero initialisation, or
+- f.2: automatic sentinel-value initialisation
+
+These could both be subsumed by (a), though (f.1) does give extra
+usable strength.
+
+
+(4) The following (C++ direction?):
+
+- e: uninitialised values can be read and written (with the target becoming uninitialised), but give UB if operated on in any other way 
+
+This does not guarantee memcmp of a memcpy will be true.
+
+
+[we may edit the following live as appropriate]
+
+Straw poll: For TS 6010, does WG14 support defining several
+alternative semantics, (a), (c.1), and (c.2) for uninitialised reads,
+so that compilers can document, in terms of these, which semantics
+they provide in what circumstances (depending on compiler options, on
+the storage duration, on whether the type is a character type or not,
+and on whether the address is ever taken)?
+
+Straw poll: For TS 6010, does WG14 support introducing feature-test
+macros that differentiate between the different models for
+uninitialized reads?"
+
 
 
